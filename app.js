@@ -1,0 +1,187 @@
+const STORAGE_KEY = 'scope-freelance-v1';
+const PROFILE_KEY = 'scope-resume-profile-v1';
+const WORK_EMAIL_KEY = 'scope-work-email-v1';
+const statuses = ['Saved','Proposal Drafted','Proposal Sent','Client Replied','Negotiation','Hired','In Progress','Submitted','Revision Requested','Completed','Payment Received','Client Lost','Skipped'];
+const boardStatuses = statuses;
+
+const seed = [
+  {id:1,title:'Brand identity for an AI finance platform',client:'Lumen Ledger',country:'United States',platform:'Contra',type:'Freelance project',budget:3200,brief:'Create a strategic visual identity, logo system, color palette and launch-ready social templates for a seed-stage AI finance platform. Four-week timeline.',skills:['Branding','Logo','AI'],skill:94,portfolio:92,credibility:91,competition:72,deadline:86,payment:94,longterm:78,remote:100,international:100,clarity:93,status:'Saved',verified:true,url:'https://contra.com',deadlineText:'4 weeks'},
+  {id:2,title:'Monthly social creative partner',client:'GoodHabit Foods',country:'United Kingdom',platform:'LinkedIn',type:'Retainer client',budget:1800,brief:'Ongoing partner for 16 Instagram assets, campaign concepts and two short motion pieces each month. Brand system already exists.',skills:['Social','Marketing','Retainer'],skill:91,portfolio:88,credibility:84,competition:80,deadline:82,payment:80,longterm:97,remote:100,international:100,clarity:89,status:'Proposal Drafted',verified:true,url:'https://linkedin.com/jobs',deadlineText:'Monthly'},
+  {id:3,title:'AI product launch campaign visuals',client:'Vera Robotics',country:'Singapore',platform:'Upwork',type:'Contract role',budget:2400,brief:'Design a visual campaign for a consumer robotics launch using AI-assisted image generation, product mockups, landing page art and paid ad variants.',skills:['AI creative','Ads','Mockups'],skill:96,portfolio:84,credibility:88,competition:63,deadline:72,payment:95,longterm:74,remote:100,international:95,clarity:82,status:'Proposal Sent',verified:true,url:'https://upwork.com',deadlineText:'3 weeks'},
+  {id:4,title:'Pitch deck redesign for health startup',client:'MediLoop',country:'India',platform:'Direct company',type:'One-time project',budget:650,brief:'Redesign a 22-slide investor deck in five days. Copy and data are finalized; visual storytelling and charts need improvement.',skills:['Pitch deck','Presentation'],skill:88,portfolio:93,credibility:76,competition:86,deadline:61,payment:72,longterm:48,remote:100,international:35,clarity:91,status:'Client Replied',verified:false,url:'',deadlineText:'5 days'},
+  {id:5,title:'“Simple” logo and unlimited concepts',client:'Unknown buyer',country:'Unknown',platform:'Freelancer',type:'Freelance project',budget:45,brief:'Need a simple premium logo by tomorrow. Send three free samples first. Unlimited revisions and contact on Telegram.',skills:['Logo'],skill:82,portfolio:90,credibility:12,competition:22,deadline:18,payment:15,longterm:12,remote:80,international:50,clarity:25,status:'Saved',verified:false,url:'https://freelancer.com',deadlineText:'Tomorrow'},
+  {id:6,title:'Remote UI/UX design support — 3 months',client:'Northline Studio',country:'Germany',platform:'Dribbble',type:'Remote contract',budget:5400,brief:'Three-month remote contract supporting landing pages and SaaS product flows, approximately 20 hours per week. Defined weekly deliverables.',skills:['UI/UX','Landing page'],skill:82,portfolio:79,credibility:89,competition:74,deadline:88,payment:87,longterm:90,remote:100,international:100,clarity:90,status:'Negotiation',verified:true,url:'https://dribbble.com/jobs',deadlineText:'3 months'}
+];
+
+let opportunities = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || seed;
+let resumeProfile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+let selectedId = null, activeFilter = 'all';
+const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
+const clamp = n => Math.max(0,Math.min(100,Math.round(n)));
+const money = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+
+function analyze(o){
+  const budgetQuality=clamp((o.budget/3000)*100);
+  const score=clamp(o.skill*.25+o.portfolio*.20+budgetQuality*.15+o.credibility*.15+o.competition*.10+o.deadline*.05+o.longterm*.05+o.payment*.05);
+  const reply=clamp(score*.62+o.credibility*.15+o.clarity*.13+o.competition*.1-5);
+  const win=clamp(score*.72+o.competition*.18+o.portfolio*.1-10);
+  const long=clamp(o.longterm*.62+score*.2+o.credibility*.18);
+  const risks=[]; const text=o.brief.toLowerCase();
+  if(o.clarity<50||/simple work|simple premium/.test(text)) risks.push('Scope is vague or understates the work.');
+  if(o.budget<150) risks.push('Budget is far below a sustainable project floor.');
+  if(/free sample|unpaid test/.test(text)) risks.push('Requests free or unpaid test work.');
+  if(o.deadline<45||/by tomorrow/.test(text)) risks.push('Deadline looks unrealistic.');
+  if(!o.verified||o.payment<50) risks.push('Payment method or client reputation is unverified.');
+  if(/telegram|whatsapp|outside/.test(text)) risks.push('Wants off-platform contact unusually early.');
+  if(/unlimited revision/.test(text)) risks.push('Unlimited revisions create uncontrolled scope.');
+  const priority=score>=75&&risks.length<2?'High':score>=58&&risks.length<3?'Medium':score>=40&&risks.length<4?'Low':'Skip';
+  return {score,reply,win,long,risks,priority,budgetQuality};
+}
+function rating(n){return n>=80?'Very strong':n>=60?'Good':n>=40?'Moderate':n>=20?'Low':'Very low'}
+function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(opportunities));}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function esc(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function renderDashboard(){
+  const analyzed=opportunities.map(o=>({...o,...analyze(o)}));
+  $('#strongMatchCount').textContent=analyzed.filter(o=>o.score>=70).length;
+  $('#bestScore').textContent=Math.max(...analyzed.map(o=>o.score));
+  $('#pipelineValue').textContent=money(analyzed.filter(o=>!['Skipped','Client Lost','Payment Received'].includes(o.status)).reduce((s,o)=>s+o.budget,0));
+  $('#retainerCount').textContent=`${analyzed.filter(o=>o.type==='Retainer client'||o.longterm>=85).length} leads`;
+  $('#trackerCount').textContent=opportunities.filter(o=>o.status!=='Skipped').length;
+  renderList(); renderProposalSelect(); renderBoard();
+}
+function renderList(){
+  const q=$('#searchInput').value.toLowerCase(); let list=opportunities.filter(o=>(activeFilter==='all'||o.type===activeFilter)&&`${o.title} ${o.client} ${o.skills.join(' ')}`.toLowerCase().includes(q)).map(o=>({...o,...analyze(o)}));
+  const sort=$('#sortSelect').value;
+  list.sort((a,b)=>sort==='budget'?b.budget-a.budget:sort==='chance'?b.win-a.win:sort==='risk'?a.risks.length-b.risks.length:b.score-a.score);
+  $('#resultCount').textContent=`${list.length} found`;
+  $('#opportunityList').innerHTML=list.length?list.map(o=>`<article class="opp-card ${selectedId===o.id?'selected':''}" data-id="${o.id}"><div class="platform-icon">${esc(o.platform.slice(0,2).toUpperCase())}</div><div class="opp-main"><strong>${esc(o.title)}</strong><div class="opp-meta"><span>${esc(o.client)}</span><span>•</span><span>${esc(o.country)}</span><span>•</span><span>${money(o.budget)}</span></div><div class="tag-row">${o.skills.slice(0,3).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}<span class="tag">${esc(o.type)}</span></div></div><div class="opp-side"><strong class="${o.score>=70?'score-good':o.score>=45?'score-mid':'score-low'}">${o.score}</strong><small>match</small></div></article>`).join(''):`<div class="empty-state"><h3>No matches</h3><p>Try a broader filter or add a project URL manually.</p></div>`;
+  $$('.opp-card').forEach(c=>c.onclick=()=>{selectedId=Number(c.dataset.id);renderList();renderDetail()});
+}
+function renderDetail(){
+  const o=opportunities.find(x=>x.id===selectedId); if(!o)return; const a=analyze(o); const suggested=Math.max(120,Math.round(o.budget*.92/50)*50);
+  $('#detailPanel').classList.remove('empty');
+  $('#detailPanel').innerHTML=`<div class="detail-top"><div><span class="eyebrow">${esc(o.platform)} · ${esc(o.type)}</span><h3>${esc(o.title)}</h3><p class="muted">${esc(o.client)} · ${esc(o.country)}</p></div><span class="priority ${a.priority}">${a.priority} priority</span></div><div class="chance-block"><div class="chance-row"><span>Proposal reply · ${rating(a.reply)}</span><b>${a.reply}%</b><div class="meter"><i style="width:${a.reply}%"></i></div></div><div class="chance-row"><span>Project winning · ${rating(a.win)}</span><b>${a.win}%</b><div class="meter"><i style="width:${a.win}%"></i></div></div><div class="chance-row"><span>Long-term client · ${rating(a.long)}</span><b>${a.long}%</b><div class="meter"><i style="width:${a.long}%"></i></div></div></div><div class="detail-section"><h4>Why it fits</h4><p>${o.skill>=80?'Strong alignment with your design and creative capabilities. ':'Some adjacent capability fit. '}${o.portfolio>=80?'Your portfolio should provide credible proof quickly.':''}</p></div><div class="detail-section"><h4>Potential difficulty</h4><p>${a.risks.length?esc(a.risks[0]):o.competition<65?'Competition may be crowded; the opening needs a sharp point of view.':'No major structural concern detected—validate scope before committing.'}</p></div><div class="detail-section"><h4>Proposal angle</h4><p>Lead with a concrete idea for ${esc(o.title.toLowerCase())}, then show one closely related result. Emphasize a clear process and decision-ready milestones.</p></div><div class="detail-section"><h4>Portfolio to attach</h4><p>${esc(o.skills.slice(0,2).join(' + '))} case study; one before/after showing business context and final system.</p></div><div class="detail-section"><h4>Pricing & time</h4><p>Suggest <b>${money(suggested)}–${money(Math.max(suggested+100,o.budget*1.1))}</b> · roughly ${Math.max(8,Math.round(o.budget/85))}–${Math.max(12,Math.round(o.budget/65))} hours. Use 40/40/20 milestones for larger work.</p></div><div class="detail-section"><h4>Risk scan · ${a.risks.length?'Review':'Low risk'}</h4><div class="risk-list">${a.risks.length?a.risks.map(r=>`<div class="risk-item">⚑ ${esc(r)}</div>`).join(''):'<div class="risk-item safe-risk">✓ No common red flags detected. Still confirm deliverables, rights, revisions, and payment.</div>'}</div></div><div class="detail-actions"><button class="button primary" id="draftFromDetail">Draft proposal</button><button class="button secondary" id="statusFromDetail">${o.status==='Saved'?'Save':'Move status'}</button>${o.url?`<a class="button secondary" href="${esc(o.url)}" target="_blank" rel="noopener">Open source ↗</a>`:''}<button class="button secondary" id="skipFromDetail">Skip</button></div>`;
+  $('#draftFromDetail').onclick=()=>{showView('studio');$('#proposalOpportunity').value=o.id;generateProposal()};
+  $('#statusFromDetail').onclick=()=>{o.status=o.status==='Saved'?'Proposal Drafted':'Saved';persist();renderDashboard();toast(`Status: ${o.status}`)};
+  $('#skipFromDetail').onclick=()=>{o.status='Skipped';persist();renderDashboard();renderDetail();toast('Opportunity skipped')};
+}
+function renderBoard(){
+  $('#kanbanBoard').innerHTML=boardStatuses.map(status=>{const cards=opportunities.filter(o=>o.status===status);return `<section class="kanban-column"><div class="kanban-head"><span>${status}</span><span>${cards.length}</span></div>${cards.map(o=>`<article class="kanban-card"><strong>${esc(o.title)}</strong><p>${esc(o.client)} · <span class="card-budget">${money(o.budget)}</span></p><select data-board-id="${o.id}">${statuses.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></article>`).join('')}</section>`}).join('');
+  $$('[data-board-id]').forEach(s=>s.onchange=()=>{const o=opportunities.find(x=>x.id===Number(s.dataset.boardId));o.status=s.value;persist();renderDashboard();toast(`Moved to ${s.value}`)});
+}
+function renderProposalSelect(){const current=$('#proposalOpportunity').value;$('#proposalOpportunity').innerHTML=opportunities.filter(o=>o.status!=='Skipped').map(o=>`<option value="${o.id}">${esc(o.title)}</option>`).join('');if(current)$('#proposalOpportunity').value=current}
+function generateProposal(){
+  const o=opportunities.find(x=>x.id===Number($('#proposalOpportunity').value)); if(!o)return; const fmt=$('#proposalFormat').value; const portfolio=$('#portfolioInput').value.trim()||`a relevant ${o.skills[0]} project`; const question=$('#questionInput').value.trim()||'Are the final copy, dimensions, and delivery priorities already confirmed?'; const timeline=o.deadlineText||'the agreed timeline';
+  const compact=`Hi ${o.client},\n\nYour need for ${o.title.toLowerCase()} stood out—especially the focus on ${o.skills.slice(0,2).join(' and ')}. I’d approach it by aligning on the core objective first, building one clear creative direction, then turning that into a practical, consistent set of deliverables.\n\nI’ve handled ${portfolio}, which is directly relevant here. I can share the closest samples and map a delivery plan for ${timeline}.\n\nOne question before I recommend the exact scope: ${question}\n\nIf the fit looks right, let’s do a 15-minute brief check and I’ll send a focused milestone plan.\n\nBest,\n[Your name]`;
+  const premium=`Hi ${o.client},\n\nI read your brief for ${o.title.toLowerCase()}. The opportunity I see is bigger than making polished assets: it’s creating a visual solution that makes the offer easier to understand, trust, and remember.\n\nMy proposed approach:\n1. Clarify the audience, priority message, and success criteria.\n2. Build and review one strategically grounded creative direction.\n3. Develop the final ${o.skills.slice(0,3).join(', ')} deliverables as a cohesive system.\n4. Package source files and usage guidance for an easy handoff.\n\nMy work on ${portfolio} gives me a useful head start. I’d suggest a project range around ${money(Math.round(o.budget*.9/50)*50)}–${money(Math.round(o.budget*1.1/50)*50)}, with scope and revisions confirmed before kickoff. Delivery can fit ${timeline}, subject to feedback timing.\n\n${question}\n\nI’m happy to share the most relevant case study and outline the first milestone. Would a short call this week be useful?\n\nBest,\n[Your name]`;
+  let out=fmt==='Short proposal'||fmt==='LinkedIn DM pitch'||fmt==='Fiverr buyer-request response'?compact:premium;
+  if(fmt==='Retainer pitch')out=premium.replace('a project range', 'a monthly partnership range').replace('project range around','monthly retainer around');
+  if(fmt==='Email pitch')out=`Subject: A focused approach to ${o.title}\n\n${premium}`;
+  $('#proposalOutput').value=out; toast(`${fmt} generated`);
+}
+const messageTemplates={
+  'Proposal follow-up':'Hi [Client], just bringing this back to the top of your inbox. I’m still interested and have a clear first-step plan. Has the project scope or timing changed?',
+  'Clarify the brief':'Before I confirm price and timing, could you clarify the final deliverable list, dimensions, source-file needs, usage rights, and who approves the work?',
+  'Negotiate price':'I can work within a tighter budget by reducing scope—not quality. We could prioritize [core deliverables] at [price], then treat the remaining items as a second milestone.',
+  'Confirm scope':'To confirm: the fee covers [deliverables], [timeline], and two revision rounds. New deliverables or direction changes will be quoted separately.',
+  'Revision boundary':'I’m happy to make this update. We’ve used the included revision rounds, so I can add this as a new mini-milestone at [price] and deliver by [date].',
+  'Payment reminder':'Hi [Client], a quick reminder that invoice [number] for [amount] was due on [date]. Please let me know if your finance team needs anything from me.',
+  'Project delivery':'The final files are ready: [link]. I’ve included exports, editable sources, and a short usage note. Please confirm receipt when convenient.',
+  'Retainer conversion':'We’ve built useful momentum. A monthly retainer could give you predictable design capacity and faster turnarounds. I’d suggest [deliverables/hours] at [price]/month.'
+};
+function renderMessages(){$('#messageGrid').innerHTML=Object.entries(messageTemplates).map(([k,v])=>`<article class="message-card" data-message="${esc(v)}"><strong>${esc(k)}</strong><p>${esc(v.slice(0,74))}…</p></article>`).join('');$$('.message-card').forEach(c=>c.onclick=()=>{navigator.clipboard?.writeText(c.dataset.message);toast('Message copied')})}
+function calculatePrice(){const hours=+$(`#hours`).value||1,complexity=+$(`#complexity`).value,level=+$(`#skillLevel`).value,market=+$(`#clientMarket`).value,urgency=+$(`#urgency`).value,usage=+$(`#usage`).value,deliverables=+$(`#deliverables`).value||1,revisions=+$(`#revisions`).value;const hourly=18*level*market;const base=hourly*hours*complexity*usage*(1+(deliverables-1)*.035)*(1+(revisions-1)*.05);const low=Math.round(base*.9/50)*50,high=Math.round(base*1.18/50)*50,retainer=Math.round(hourly*60*.9/50)*50,rush=Math.round((urgency-1)*100);const lowInr=Math.round(low*83/1000)*1000,highInr=Math.round(high*83/1000)*1000;$('#priceUsd').textContent=`${money(low)}–${money(high)}`;$('#priceInr').textContent=`₹${lowInr.toLocaleString('en-IN')}–₹${highInr.toLocaleString('en-IN')}`;$('#hourlyPrice').textContent=`${money(Math.round(hourly))}/hr`;$('#retainerPrice').textContent=`${money(retainer)}/mo`;$('#rushCharge').textContent=urgency===1?'Not needed':`+${rush}%`;$('#revisionText').textContent=`${revisions} revision round${revisions>1?'s':''}`;$('#milestones').innerHTML=`<div class="milestone"><span>40% · Advance & direction</span><b>${money(high*.4)}</b></div><div class="milestone"><span>40% · Design development</span><b>${money(high*.4)}</b></div><div class="milestone"><span>20% · Final delivery</span><b>${money(high*.2)}</b></div>`}
+const skillPatterns = {
+  'Graphic Design':/graphic design|visual design|creative design/i,'Branding':/brand identity|branding|brand strategy|visual identity/i,'Logo Design':/logo design|logo system|logotype/i,
+  'Social Media Design':/social media|instagram|facebook creatives|social creative/i,'Advertising':/advertising|ad creative|campaign creative|paid media/i,'AI Image Generation':/ai image|generative ai|midjourney|stable diffusion|dall.?e|comfyui/i,
+  'Product Mockups':/product mockup|packaging mockup|3d mockup/i,'Marketing Design':/marketing design|marketing collateral|campaign design/i,'YouTube Thumbnails':/youtube thumbnail|thumbnail design/i,
+  'Web Design':/web design|website design|landing page/i,'UI/UX':/ui.?ux|user interface|user experience|figma|wireframe|prototype/i,'Presentation Design':/pitch deck|presentation design|powerpoint|keynote/i,
+  'Illustration':/\billustration\b|digital art|editorial art/i,'Motion Design':/motion design|after effects|animation|motion graphics/i,'Photoshop':/photoshop|photo editing|compositing/i,
+  'Illustrator':/adobe illustrator|vector design/i,'Figma':/figma|design system/i,'Canva':/canva/i,'Creative Direction':/creative direction|art direction/i,'Copywriting':/copywriting|content writing/i
+};
+const roleBlueprints = [
+  {name:'Brand Identity Designer',skills:['Branding','Logo Design','Graphic Design','Creative Direction']},
+  {name:'Graphic Designer',skills:['Graphic Design','Photoshop','Illustrator','Marketing Design']},
+  {name:'AI Creative Designer',skills:['AI Image Generation','Advertising','Product Mockups','Creative Direction']},
+  {name:'Social Media Designer',skills:['Social Media Design','Advertising','Marketing Design','Canva']},
+  {name:'UI/UX Designer',skills:['UI/UX','Figma','Web Design']},
+  {name:'Web & Landing Page Designer',skills:['Web Design','UI/UX','Figma']},
+  {name:'Presentation Designer',skills:['Presentation Design','Graphic Design','Branding']},
+  {name:'Motion Designer',skills:['Motion Design','Advertising','Social Media Design']}
+];
+function findSkills(text=''){return Object.entries(skillPatterns).filter(([,pattern])=>pattern.test(text)).map(([skill])=>skill)}
+function inferRoles(skills){return roleBlueprints.map(role=>({...role,score:role.skills.filter(s=>skills.includes(s)).length})).filter(role=>role.score>0).sort((a,b)=>b.score-a.score).slice(0,5)}
+function calculateResumeMatch(text=''){if(!resumeProfile?.skills?.length)return 60;const projectSkills=findSkills(text);if(!projectSkills.length)return 58;const overlap=projectSkills.filter(s=>resumeProfile.skills.includes(s)).length;return clamp(42+(overlap/projectSkills.length)*48+Math.min(overlap*3,10))}
+function saveProfile(){localStorage.setItem(PROFILE_KEY,JSON.stringify(resumeProfile))}
+async function readResumeFile(file){
+  if(file.size>10*1024*1024)throw new Error('Please choose a file smaller than 10 MB.');
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(['txt','md'].includes(ext))return file.text();
+  if(ext==='pdf'){
+    if(!window.pdfjsLib)throw new Error('PDF reader could not load. Paste the résumé text below instead.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.min.js';
+    const pdf=await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let text='';
+    for(let page=1;page<=pdf.numPages;page++){const content=await (await pdf.getPage(page)).getTextContent();text+=content.items.map(item=>item.str).join(' ')+'\n'}
+    return text;
+  }
+  if(ext==='docx'){
+    if(!window.mammoth)throw new Error('DOCX reader could not load. Paste the résumé text below instead.');
+    return (await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value;
+  }
+  throw new Error('Use a PDF, DOCX, TXT, or MD file.');
+}
+function analyzeResumeText(text,fileName='Pasted résumé'){
+  const clean=text.replace(/\s+/g,' ').trim();if(clean.length<80)throw new Error('I need a little more résumé text to build a reliable profile.');
+  const skills=findSkills(clean);const roles=inferRoles(skills);const yearMatches=[...clean.matchAll(/(\d{1,2})\+?\s*(?:years?|yrs?)/gi)].map(m=>+m[1]);
+  const years=yearMatches.length?Math.max(...yearMatches):null;
+  resumeProfile={fileName,skills:skills.length?skills:['Graphic Design'],roles:roles.length?roles.map(r=>r.name):['Graphic Designer'],years,text:clean.slice(0,30000),updatedAt:new Date().toISOString()};
+  saveProfile();renderProfile();buildSearches();renderDashboard();return resumeProfile;
+}
+function renderProfile(){
+  if(!resumeProfile){$('#profileResult').innerHTML='<div class="empty-profile"><span>◎</span><h3>No résumé profile yet</h3><p>Upload your résumé to identify the work you should search for—and the work you should ignore.</p></div>';$('#searchSummary').textContent='Analyze your résumé to unlock searches';return}
+  const fit=Math.min(98,68+resumeProfile.skills.length*3);$('#resumeFileLabel').textContent=resumeProfile.fileName;
+  $('#profileResult').innerHTML=`<div class="profile-identity"><div><span class="eyebrow">Best-positioned as</span><h3>${esc(resumeProfile.roles[0])}</h3><p class="muted">${resumeProfile.years?`${resumeProfile.years}+ years detected · `:''}${resumeProfile.skills.length} relevant skills</p></div><div class="profile-fit"><strong>${fit}</strong><small>profile depth</small></div></div><div class="profile-block"><h4>Detected strengths</h4><div class="skill-cloud">${resumeProfile.skills.map(s=>`<span>${esc(s)}</span>`).join('')}</div></div><div class="profile-block"><h4>Recommended target roles</h4><div class="role-list">${resumeProfile.roles.map((r,i)=>`<div class="role-item"><span>${esc(r)}</span><b>${i===0?'Primary':`#${i+1}`}</b></div>`).join('')}</div></div><div class="profile-block"><h4>Search advice</h4><div class="profile-insight">Lead searches with <b>${esc(resumeProfile.roles[0])}</b>, then add ${esc(resumeProfile.skills.slice(0,3).join(', '))}. Keep broader “graphic designer” searches as a secondary net.</div></div>`;
+  $('#searchRole').innerHTML=resumeProfile.roles.map(r=>`<option>${esc(r)}</option>`).join('');$('#searchSummary').textContent=`Built from ${resumeProfile.fileName}`;
+}
+function makeSearchUrl(source,role,location){
+  const remote=location==='remote'?' remote':location==='international'?' remote India eligible':' India';const query=`${role}${remote}`;
+  const urls={LinkedIn:`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(role)}&location=${encodeURIComponent(location==='india'?'India':'Worldwide')}&f_WT=2`,Upwork:`https://www.upwork.com/nx/search/jobs/?q=${encodeURIComponent(role)}`,Freelancer:`https://www.freelancer.com/jobs/?keyword=${encodeURIComponent(role)}`,PeoplePerHour:`https://www.peopleperhour.com/freelance-jobs?keyword=${encodeURIComponent(role)}`,Contra:`https://contra.com/opportunities?query=${encodeURIComponent(role)}`,Dribbble:`https://dribbble.com/jobs?query=${encodeURIComponent(role)}`,RemoteOK:`https://remoteok.com/remote-${encodeURIComponent(role.toLowerCase().replaceAll(' ','-'))}-jobs`,Wellfound:`https://wellfound.com/jobs?keywords=${encodeURIComponent(role)}`,Direct:`https://www.google.com/search?q=${encodeURIComponent(`"hiring" OR "looking for" "${role}" freelance${remote}`)}`,Startup:`https://www.google.com/search?q=${encodeURIComponent(`site:wellfound.com OR site:ycombinator.com "${role}" contract${remote}`)}`,LinkedInPosts:`https://www.google.com/search?q=${encodeURIComponent(`site:linkedin.com/posts "hiring" "${role}"${remote}`)}`};return urls[source]||`https://www.google.com/search?q=${encodeURIComponent(query)}`
+}
+function buildSearches(){
+  if(!resumeProfile){$('#searchResults').innerHTML='<div class="notice">Upload or paste your résumé first.</div>';return}
+  const role=$('#searchRole').value||resumeProfile.roles[0],work=$('#searchWorkType').value,location=$('#searchLocation').value;
+  const freelance=[['LinkedIn','Remote freelance, contract, and project roles'],['Upwork','Freelance projects matched to your strongest role'],['Contra','Independent and startup creative work'],['Freelancer','Project-based design briefs'],['PeoplePerHour','Freelance and hourly client work']];
+  const jobs=[['LinkedIn','Remote and contract job listings'],['Dribbble','Design-specific roles'],['RemoteOK','Remote-first company roles'],['Wellfound','Startup jobs and contracts']];
+  const clients=[['Direct','Companies actively looking for a freelancer'],['LinkedInPosts','Recent hiring posts and founder requests'],['Startup','Startup and accelerator client leads']];
+  const chosen=work==='freelance'?freelance:work==='jobs'?jobs:work==='clients'?clients:[...freelance,...jobs.filter(item=>item[0]!=='LinkedIn'),...clients];
+  $('#searchResults').innerHTML=chosen.map(([source,desc])=>{const searchRole=source==='LinkedIn'&&work==='freelance'?`${role} contract freelance`:role;return `<article class="search-card ${clients.some(x=>x[0]===source)?'client-search':''}"><span class="source-name">${esc(source)}</span><p>${esc(desc)} for <b>${esc(role)}</b>.</p>${source==='LinkedIn'?'<span class="linkedin-note">Sign-in may be required</span>':''}<a class="button ${source==='Direct'||source==='Startup'||source==='LinkedInPosts'?'primary':'secondary'}" href="${makeSearchUrl(source,searchRole,location)}" target="_blank" rel="noopener">Search ${esc(source)} ↗</a></article>`}).join('');
+}
+function showView(name){$$('.view').forEach(v=>v.classList.remove('active'));$(`#${name}View`).classList.add('active');$$('.nav-item[data-view]').forEach(n=>n.classList.toggle('active',n.dataset.view===name));const titles={discover:'Good opportunities, minus the noise.',tracker:'Keep every conversation moving.',studio:'Write like you read the brief.',email:'Nothing sends without your say-so.',pricing:'Charge for the value, not the anxiety.',profile:'Make the search fit you.'};$('#pageTitle').textContent=titles[name]}
+
+$$('.nav-item[data-view]').forEach(n=>n.onclick=()=>showView(n.dataset.view));
+$('#searchInput').oninput=renderList;$('#sortSelect').onchange=renderList;
+$$('#typeFilters .chip').forEach(c=>c.onclick=()=>{$$('#typeFilters .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');activeFilter=c.dataset.filter;renderList()});
+$('#addOpportunity').onclick=()=>$('#opportunityDialog').showModal();
+$('#opportunityForm').addEventListener('submit',e=>{if(e.submitter?.value==='cancel')return; e.preventDefault();const fd=new FormData(e.currentTarget),brief=fd.get('brief'),budget=+fd.get('budget');const clarity=brief.length>180?85:brief.length>80?68:42;const matchedSkills=findSkills(`${fd.get('title')} ${brief}`);const profileMatch=resumeProfile?calculateResumeMatch(`${fd.get('title')} ${brief}`):+fd.get('skill');opportunities.unshift({id:Date.now(),title:fd.get('title'),client:fd.get('client'),country:fd.get('country')||'Unknown',platform:fd.get('platform'),type:fd.get('type'),budget,brief,skills:matchedSkills.length?matchedSkills.slice(0,4):['Design','Creative'],skill:profileMatch,portfolio:+fd.get('portfolio'),credibility:fd.get('verified')?82:45,competition:60,deadline:/tomorrow|urgent|24 hour/i.test(brief)?28:72,payment:fd.get('verified')?90:42,longterm:/ongoing|monthly|retainer|long.term/i.test(brief)?90:48,remote:90,international:fd.get('country')&&fd.get('country').toLowerCase()!=='india'?95:55,clarity,status:'Saved',verified:!!fd.get('verified'),url:fd.get('url'),deadlineText:'Confirm with client'});persist();e.currentTarget.reset();$('#opportunityDialog').close();renderDashboard();selectedId=opportunities[0].id;renderDetail();toast(resumeProfile?'Added with résumé-based matching':'Opportunity analyzed and added')});
+$('#generateProposal').onclick=generateProposal;
+$$('.copy').forEach(b=>b.onclick=()=>{navigator.clipboard?.writeText($(`#${b.dataset.copy}`).value);toast('Copied to clipboard')});
+$('#pricingForm').oninput=calculatePrice;
+const savedWorkEmail=localStorage.getItem(WORK_EMAIL_KEY)||'connect.mayankchauhan@gmail.com';$('#workEmail').value=savedWorkEmail;$('#emailFrom').value=savedWorkEmail;
+$('#workEmail').onchange=()=>{const email=$('#workEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){toast('Enter a valid work email');return}localStorage.setItem(WORK_EMAIL_KEY,email);$('#emailFrom').value=email;toast('Work inbox updated')};
+function revokeEmailApproval(){if($('#approveEmail').checked)$('#approveEmail').checked=false;$('#openGmailDraft').disabled=true}
+['#emailTo','#emailSubject','#emailBody'].forEach(id=>$(id).addEventListener('input',revokeEmailApproval));
+$('#approveEmail').onchange=()=>{$('#openGmailDraft').disabled=!$('#approveEmail').checked};
+$('#useProposalEmail').onclick=()=>{const o=opportunities.find(x=>x.id===Number($('#proposalOpportunity').value))||opportunities[0];if(!$('#proposalOutput').value){generateProposal()}$('#emailSubject').value=`Design support for ${o.title}`;$('#emailBody').value=$('#proposalOutput').value;revokeEmailApproval();toast('Proposal imported for review')};
+$('#copyApprovedEmail').onclick=()=>{const text=`Subject: ${$('#emailSubject').value}\n\n${$('#emailBody').value}`;navigator.clipboard?.writeText(text);toast('Email copied')};
+$('#openGmailDraft').onclick=()=>{const from=$('#emailFrom').value.trim(),to=$('#emailTo').value.trim(),subject=$('#emailSubject').value.trim(),body=$('#emailBody').value.trim();if(!$('#approveEmail').checked)return;if(!/^\S+@\S+\.\S+$/.test(to)){toast('Add a valid recipient email');return}if(!subject||!body){toast('Subject and message are required');return}const url=`https://mail.google.com/mail/u/?authuser=${encodeURIComponent(from)}&view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;window.open(url,'_blank','noopener');$('#approveEmail').checked=false;$('#openGmailDraft').disabled=true;toast('Approved draft opened in Gmail')};
+$('#resumeFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;$('#resumeFileLabel').textContent=file.name;$('#parseStatus').textContent='Reading your résumé locally…';try{const text=await readResumeFile(file);$('#resumeText').value=text;analyzeResumeText(text,file.name);$('#parseStatus').textContent='Profile ready. Your personalized searches are below.';toast('Résumé profile created')}catch(err){$('#parseStatus').textContent=err.message;toast('Could not read that résumé')}};
+$('#analyzeResume').onclick=()=>{try{analyzeResumeText($('#resumeText').value,$('#resumeFileLabel').textContent==='Upload PDF, DOCX, or TXT'?'Pasted résumé':$('#resumeFileLabel').textContent);$('#parseStatus').textContent='Profile ready. Your personalized searches are below.';toast('Résumé profile created')}catch(err){$('#parseStatus').textContent=err.message}};
+$('#clearProfile').onclick=()=>{resumeProfile=null;localStorage.removeItem(PROFILE_KEY);$('#resumeText').value='';$('#resumeFile').value='';$('#resumeFileLabel').textContent='Upload PDF, DOCX, or TXT';$('#parseStatus').textContent='';$('#searchRole').innerHTML='<option>Graphic Designer</option>';$('#searchWorkType').value='freelance';$('#searchLocation').value='remote';$('#searchResults').innerHTML='';renderProfile();toast('Résumé profile cleared')};
+$('#buildSearches').onclick=buildSearches;$('#searchRole').onchange=buildSearches;$('#searchWorkType').onchange=buildSearches;$('#searchLocation').onchange=buildSearches;
+const resumeDrop=$('#resumeDrop');resumeDrop.ondragover=e=>{e.preventDefault();resumeDrop.classList.add('dragging')};resumeDrop.ondragleave=()=>resumeDrop.classList.remove('dragging');resumeDrop.ondrop=async e=>{e.preventDefault();resumeDrop.classList.remove('dragging');const file=e.dataTransfer.files?.[0];if(!file)return;$('#resumeFileLabel').textContent=file.name;$('#parseStatus').textContent='Reading your résumé locally…';try{const text=await readResumeFile(file);$('#resumeText').value=text;analyzeResumeText(text,file.name);$('#parseStatus').textContent='Profile ready. Your personalized searches are below.';toast('Résumé profile created')}catch(err){$('#parseStatus').textContent=err.message}};
+$('#resetData').onclick=()=>{if(confirm('Reset all local demo data?')){opportunities=structuredClone(seed);persist();selectedId=null;renderDashboard();$('#detailPanel').className='detail-panel empty';$('#detailPanel').innerHTML='<div class="empty-state"><span>↗</span><h3>Pick an opportunity</h3><p>See its chance report, risks, proposal angle, and pricing guidance here.</p></div>';toast('Demo data reset')}};
+$('#exportCsv').onclick=()=>{const headers=['Platform','Client','Country','Project title','Budget','Proposed price','Deadline','Proposal sent date','Reply status','Portfolio samples sent','Contract status','Payment status','Follow-up date','Status','Notes'];const rows=opportunities.map(o=>[o.platform,o.client,o.country,o.title,o.budget,'',o.deadlineText,'','','','','','',o.status,'']);const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='scope-freelance-tracker.csv';a.click();URL.revokeObjectURL(a.href);toast('Tracker exported')};
+$('#todayLabel').textContent=new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+renderMessages();calculatePrice();renderProfile();if(resumeProfile)buildSearches();renderDashboard();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));

@@ -1,0 +1,13 @@
+{
+  "name": "Scope — Freelance Opportunity Intelligence",
+  "short_name": "Scope",
+  "description": "A private, approval-first command center for freelance work, job searches, proposals, pricing, and client outreach.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#171816",
+  "icons": [
+    {"src": "scope-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}

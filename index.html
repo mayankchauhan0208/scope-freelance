@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Scope — a private freelance opportunity command center for designers." />
+  <meta name="theme-color" content="#171816" />
+  <title>Scope — Freelance Opportunity Intelligence</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="scope-icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Scope home"><span class="brand-mark">S</span><span>scope</span></a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-item active" data-view="discover"><span>⌁</span> Discover</button>
+        <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
+        <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
+        <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
+        <button class="nav-item" data-view="pricing"><span>₹</span> Pricing Lab</button>
+        <button class="nav-item" data-view="profile"><span>◎</span> My Profile</button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="guardrail-card">
+        <span class="eyebrow">Safety mode</span>
+        <strong>Approval required</strong>
+        <p>Scope never applies, accepts work, or contacts clients for you.</p>
+        <span class="status-pill safe">● Active</span>
+      </div>
+      <button class="nav-item" id="resetData"><span>↻</span> Reset demo data</button>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="date-line" id="todayLabel"></p>
+          <h1 id="pageTitle">Good opportunities, minus the noise.</h1>
+        </div>
+        <div class="top-actions">
+          <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search projects, skills, clients…" /></label>
+          <button class="button primary" id="addOpportunity">+ Add opportunity</button>
+        </div>
+      </header>
+
+      <section class="view active" id="discoverView">
+        <div class="hero-grid">
+          <article class="hero-card">
+            <div>
+              <span class="eyebrow coral">Opportunity radar</span>
+              <h2><span id="strongMatchCount">0</span> strong matches<br>worth your attention.</h2>
+              <p>Ranked by fit, earning potential, client trust, and the odds of a healthy project.</p>
+            </div>
+            <div class="hero-score"><small>Best match</small><strong id="bestScore">—</strong><span>/100</span></div>
+          </article>
+          <article class="mini-card ink">
+            <span class="eyebrow">Pipeline value</span>
+            <strong id="pipelineValue">$0</strong>
+            <p>Across active opportunities</p>
+            <div class="spark-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="mini-card lime">
+            <span class="eyebrow">Retainer potential</span>
+            <strong id="retainerCount">0 leads</strong>
+            <p>Recurring-income prospects</p>
+            <span class="trend">↗ Build stability</span>
+          </article>
+        </div>
+
+        <div class="toolbar">
+          <div class="filter-group" id="typeFilters">
+            <button class="chip active" data-filter="all">All</button>
+            <button class="chip" data-filter="Freelance project">Projects</button>
+            <button class="chip" data-filter="Retainer client">Retainers</button>
+            <button class="chip" data-filter="Contract role">Contracts</button>
+            <button class="chip" data-filter="Full-time job">Full-time</button>
+          </div>
+          <select id="sortSelect" aria-label="Sort opportunities">
+            <option value="rank">Best match first</option>
+            <option value="budget">Highest budget</option>
+            <option value="chance">Winning chance</option>
+            <option value="risk">Lowest risk</option>
+          </select>
+        </div>
+
+        <div class="source-launcher">
+          <div><span class="eyebrow">Search sources</span><strong>Open a marketplace, then add the promising URL here.</strong></div>
+          <div class="source-links">
+            <a href="https://www.upwork.com/nx/search/jobs/" target="_blank" rel="noopener">Upwork ↗</a>
+            <a href="https://www.fiverr.com/categories/graphics-design" target="_blank" rel="noopener">Fiverr ↗</a>
+            <a href="https://www.freelancer.com/jobs/graphic-design/" target="_blank" rel="noopener">Freelancer ↗</a>
+            <a href="https://contra.com/opportunities" target="_blank" rel="noopener">Contra ↗</a>
+            <a href="https://www.peopleperhour.com/freelance-jobs/design" target="_blank" rel="noopener">PeoplePerHour ↗</a>
+            <a href="https://www.behance.net/joblist" target="_blank" rel="noopener">Behance ↗</a>
+            <a href="https://dribbble.com/jobs" target="_blank" rel="noopener">Dribbble ↗</a>
+            <a href="https://www.linkedin.com/jobs/" target="_blank" rel="noopener">LinkedIn ↗</a>
+            <a href="https://weworkremotely.com/categories/remote-design-jobs" target="_blank" rel="noopener">Remote boards ↗</a>
+          </div>
+        </div>
+
+        <div class="content-grid">
+          <div>
+            <div class="section-heading"><div><span class="eyebrow">Curated for you</span><h3>Opportunity feed</h3></div><span id="resultCount" class="muted"></span></div>
+            <div class="opportunity-list" id="opportunityList"></div>
+          </div>
+          <aside class="detail-panel empty" id="detailPanel">
+            <div class="empty-state"><span>↗</span><h3>Pick an opportunity</h3><p>See its chance report, risks, proposal angle, and pricing guidance here.</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="trackerView">
+        <div class="section-heading"><div><span class="eyebrow">From saved to paid</span><h2>Application tracker</h2></div><button class="button secondary" id="exportCsv">Export CSV</button></div>
+        <div class="kanban" id="kanbanBoard"></div>
+      </section>
+
+      <section class="view" id="studioView">
+        <div class="workspace-header"><span class="eyebrow coral">Write less generic</span><h2>Proposal Studio</h2><p>Client-focused drafts built from the actual brief. Nothing is sent without you.</p></div>
+        <div class="studio-grid">
+          <div class="form-card">
+            <label>Opportunity<select id="proposalOpportunity"></select></label>
+            <label>Format<select id="proposalFormat"><option>Short proposal</option><option>Premium proposal</option><option>Upwork-style proposal</option><option>Fiverr buyer-request response</option><option>LinkedIn DM pitch</option><option>Email pitch</option><option>Retainer pitch</option><option>International client pitch</option></select></label>
+            <label>Your relevant portfolio example<input id="portfolioInput" placeholder="e.g. Fintech rebrand + launch campaign" /></label>
+            <label>One useful question<input id="questionInput" placeholder="e.g. Is copy already finalized?" /></label>
+            <button class="button primary wide" id="generateProposal">Generate proposal</button>
+          </div>
+          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft</span><button class="text-button copy" data-copy="proposalOutput">Copy</button></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
+        </div>
+        <div class="followup-section"><div class="section-heading"><div><span class="eyebrow">After the pitch</span><h3>Message kit</h3></div></div><div class="message-grid" id="messageGrid"></div></div>
+      </section>
+
+      <section class="view" id="emailView">
+        <div class="workspace-header email-heading">
+          <span class="eyebrow coral">Review before anything leaves</span>
+          <h2>Your approval desk.</h2>
+          <p>Prepare outreach from your dedicated work inbox. Scope opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
+        </div>
+        <div class="email-layout">
+          <aside class="mail-account-card">
+            <div class="mail-mark">M</div>
+            <span class="eyebrow">Work inbox</span>
+            <input id="workEmail" type="email" value="connect.mayankchauhan@gmail.com" aria-label="Work email address" />
+            <div class="connection-state"><i></i><span><b>Approval handoff ready</b><small>Gmail opens separately; no credentials live here</small></span></div>
+            <div class="mail-rules">
+              <strong>Non-negotiable controls</strong>
+              <p>✓ No automatic sending</p><p>✓ Exact draft review required</p><p>✓ Recipient must be entered manually</p><p>✓ Gmail still shows the final Send button</p>
+            </div>
+          </aside>
+          <section class="email-composer">
+            <div class="composer-top"><div><span class="eyebrow">New approved draft</span><h3>Client outreach</h3></div><button class="button secondary" id="useProposalEmail">Use Proposal Studio draft</button></div>
+            <div class="email-fields">
+              <label>From<input id="emailFrom" type="email" value="connect.mayankchauhan@gmail.com" readonly /></label>
+              <label>To<input id="emailTo" type="email" placeholder="client@company.com" autocomplete="off" /></label>
+              <label>Subject<input id="emailSubject" placeholder="Design support for [project/company]" /></label>
+              <label>Message<textarea id="emailBody" placeholder="Write or import your reviewed email here…"></textarea></label>
+            </div>
+            <label class="approval-check"><input id="approveEmail" type="checkbox" /><span><b>I approve this exact recipient, subject, and message.</b><small>Changing any field removes approval automatically.</small></span></label>
+            <div class="composer-actions"><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open approved draft in Gmail ↗</button></div>
+            <div class="notice">Opening Gmail creates a compose window—it does not send. For connector-based sending, ask Codex to send the reviewed draft and confirm at that moment.</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="pricingView">
+        <div class="workspace-header"><span class="eyebrow coral">Price with a spine</span><h2>Pricing Lab</h2><p>A defensible range—not a race to the bottom.</p></div>
+        <div class="pricing-layout">
+          <form class="form-card" id="pricingForm">
+            <div class="form-row"><label>Complexity<select id="complexity"><option value="0.85">Simple</option><option value="1" selected>Standard</option><option value="1.35">Complex</option><option value="1.7">Strategic</option></select></label><label>Experience<select id="skillLevel"><option value="0.8">Emerging</option><option value="1" selected>Established</option><option value="1.3">Expert</option></select></label></div>
+            <div class="form-row"><label>Estimated hours<input id="hours" type="number" min="1" value="24" /></label><label>Deliverables<input id="deliverables" type="number" min="1" value="4" /></label></div>
+            <div class="form-row"><label>Client market<select id="clientMarket"><option value="1">India</option><option value="1.8" selected>United States</option><option value="1.55">Europe / UK</option><option value="1.35">APAC / Middle East</option></select></label><label>Urgency<select id="urgency"><option value="1">Normal</option><option value="1.25">Rush</option><option value="1.5">Weekend / emergency</option></select></label></div>
+            <div class="form-row"><label>Commercial usage<select id="usage"><option value="1">Limited</option><option value="1.15" selected>Standard business</option><option value="1.4">Paid advertising</option><option value="1.7">Global campaign</option></select></label><label>Revisions<select id="revisions"><option value="1">1 round</option><option value="2" selected>2 rounds</option><option value="3">3 rounds</option></select></label></div>
+          </form>
+          <div class="price-result">
+            <span class="eyebrow">Suggested fixed fee</span><div class="price-range"><strong id="priceUsd">$0–$0</strong><span id="priceInr">₹0–₹0</span></div>
+            <div class="price-metrics"><div><small>Hourly anchor</small><strong id="hourlyPrice">—</strong></div><div><small>Monthly retainer</small><strong id="retainerPrice">—</strong></div><div><small>Rush charge</small><strong id="rushCharge">—</strong></div></div>
+            <div class="milestones" id="milestones"></div>
+            <div class="notice dark">Includes <b id="revisionText">2 revision rounds</b>. Additional revisions are billed separately. Recommend a signed scope and milestone funding before work begins.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="profileView">
+        <div class="workspace-header profile-heading">
+          <span class="eyebrow coral">Your search intelligence</span>
+          <h2>Let your résumé do the filtering.</h2>
+          <p>Upload once. Scope turns your experience into targeted job and client searches, while keeping the file in this browser.</p>
+        </div>
+
+        <div class="profile-grid">
+          <section class="resume-card">
+            <div class="resume-card-top"><div><span class="eyebrow">Step 1</span><h3>Résumé profile</h3></div><span class="private-pill">⌾ Browser-private</span></div>
+            <input id="resumeFile" type="file" accept=".pdf,.docx,.txt,.md" hidden />
+            <label class="resume-drop" for="resumeFile" id="resumeDrop">
+              <span class="upload-icon">⇧</span>
+              <strong id="resumeFileLabel">Upload PDF, DOCX, or TXT</strong>
+              <small>Maximum 10 MB · Nothing is submitted anywhere</small>
+              <span class="button primary">Choose résumé</span>
+            </label>
+            <div class="resume-or"><span>or paste the résumé text</span></div>
+            <textarea id="resumeText" class="resume-text" placeholder="Paste your résumé here if file extraction is unavailable…"></textarea>
+            <div class="profile-actions"><button class="button primary" id="analyzeResume">Analyze my profile</button><button class="button secondary" id="clearProfile">Clear profile</button></div>
+            <p class="parse-status" id="parseStatus"></p>
+          </section>
+
+          <section class="profile-result" id="profileResult">
+            <div class="empty-profile"><span>◎</span><h3>No résumé profile yet</h3><p>Upload your résumé to identify the work you should search for—and the work you should ignore.</p></div>
+          </section>
+        </div>
+
+        <section class="search-command" id="searchCommand">
+          <div class="section-heading"><div><span class="eyebrow">Step 2</span><h2>Personal search command</h2></div><span class="muted" id="searchSummary">Analyze your résumé to unlock searches</span></div>
+          <div class="search-controls">
+            <label>Primary role<select id="searchRole"><option>Graphic Designer</option></select></label>
+            <label>Work type<select id="searchWorkType"><option value="freelance">Freelance & contract</option><option value="jobs">Remote jobs</option><option value="clients">Direct clients</option><option value="all">Everything</option></select></label>
+            <label>Location<select id="searchLocation"><option value="remote">Remote worldwide</option><option value="india">India</option><option value="international">International, India eligible</option></select></label>
+            <button class="button primary" id="buildSearches">Build my searches</button>
+          </div>
+          <div class="search-results" id="searchResults"></div>
+          <div class="search-safety"><strong>How searching works:</strong> Scope creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="opportunityDialog">
+    <form method="dialog" id="opportunityForm">
+      <div class="dialog-head"><div><span class="eyebrow coral">Manual URL or brief</span><h2>Add opportunity</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <div class="form-row"><label>Project title<input name="title" required placeholder="Brand identity for climate startup" /></label><label>Platform<select name="platform"><option>Upwork</option><option>Fiverr</option><option>Freelancer</option><option>Contra</option><option>PeoplePerHour</option><option>Behance</option><option>Dribbble</option><option>LinkedIn</option><option>Direct company</option><option>Manual URL</option></select></label></div>
+      <div class="form-row"><label>Opportunity type<select name="type"><option>Freelance project</option><option>Contract role</option><option>Remote contract</option><option>Retainer client</option><option>One-time project</option><option>Long-term client opportunity</option><option>Agency outsourcing opportunity</option><option>Full-time job</option><option>Part-time job</option></select></label><label>Client / company<input name="client" required placeholder="Northstar Labs" /></label></div>
+      <div class="form-row"><label>Budget (USD equivalent)<input name="budget" type="number" min="0" required placeholder="1800" /></label><label>Client country<input name="country" placeholder="United States" /></label></div>
+      <label>Source URL<input name="url" type="url" placeholder="https://…" /></label>
+      <label>Project brief<textarea name="brief" required placeholder="Paste the project requirements, deliverables, and deadline…"></textarea></label>
+      <div class="form-row"><label>Skill match<select name="skill"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label><label>Portfolio match<select name="portfolio"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label></div>
+      <label class="check"><input type="checkbox" name="verified" /> Client payment/reputation is verified</label>
+      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & add</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="pdf.min.js"></script>
+  <script src="mammoth.browser.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
