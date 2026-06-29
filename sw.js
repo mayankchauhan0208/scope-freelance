@@ -1,4 +1,4 @@
-const CACHE='scope-v2';
+const CACHE='scope-v4';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
