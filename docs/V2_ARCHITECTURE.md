@@ -1,13 +1,13 @@
-# Scope V2: supervised opportunity agent
+# RoleDesk V2: supervised opportunity agent
 
 ## Product contract
 
-Scope discovers and analyzes work; the user makes every final decision.
+RoleDesk discovers and analyzes work; the user makes every final decision.
 
 1. External messages, proposals, applications, negotiations, and form submissions are always drafts.
 2. Editing a draft revokes prior approval.
 3. The user sees the destination, recipient, full content, attachments, and platform before approving.
-4. Scope never clicks a final Submit, Apply, Bid, Accept, Sign, or Send control automatically.
+4. RoleDesk never clicks a final Submit, Apply, Bid, Accept, Sign, or Send control automatically.
 5. Every external action is recorded in an audit log.
 
 ## Architecture
@@ -15,7 +15,7 @@ Scope discovers and analyzes work; the user makes every final decision.
 - **GitHub Pages frontend:** review queue, opportunity detail, drafts, coaching, and approvals.
 - **Supabase:** authentication, Postgres data, encrypted integration metadata, realtime updates, scheduled searches, and Edge Functions.
 - **OpenAI Responses API:** structured extraction, ranking explanation, email/proposal/form drafting, reply classification, and negotiation coaching. Use a smaller model for high-volume extraction/ranking and the flagship model only for final high-value drafts.
-- **Scope browser companion:** reads the visible application form schema and fills reviewed drafts. It never submits.
+- **RoleDesk browser companion:** reads the visible application form schema and fills reviewed drafts. It never submits.
 - **Gmail OAuth backend:** checks permitted message metadata, associates replies with opportunities, prepares reply drafts, and waits for approval.
 
 ## Source strategy
@@ -52,4 +52,4 @@ Any content or destination change after `user_approved` moves the item back to `
 4. An OpenAI Platform API key stored only as a backend secret.
 5. A Google Cloud OAuth client for Gmail access from the web product.
 6. An approved Upwork API key for direct Upwork ingestion.
-7. LinkedIn and Naukri logins remain in the user's own browser; passwords are never supplied to Scope.
+7. LinkedIn and Naukri logins remain in the user's own browser; passwords are never supplied to RoleDesk.

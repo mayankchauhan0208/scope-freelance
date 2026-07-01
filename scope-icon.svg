@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="128" fill="#ff6b4a"/>
-  <path d="M344 159c-23-19-52-29-86-29-76 0-130 49-130 126 0 78 55 128 133 128 38 0 76-12 102-35v-99H250v55h49v25c-10 5-22 8-35 8-43 0-71-31-71-81 0-48 29-80 70-80 21 0 38 6 53 18z" fill="#171816"/>
+  <text x="256" y="302" text-anchor="middle" font-family="Arial, sans-serif" font-size="150" font-weight="800" letter-spacing="-12" fill="#171816">RD</text>
 </svg>

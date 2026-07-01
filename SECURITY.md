@@ -1,4 +1,4 @@
-# Security and privacy
+# RoleDesk security and privacy
 
 ## Security model
 

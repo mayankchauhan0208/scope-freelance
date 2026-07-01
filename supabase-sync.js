@@ -116,7 +116,7 @@
     const publicUrl = window.ScopeSecurity.safeHttpUrl(item.url);
     return {
       user_id: userId,
-      source: item.platform || 'Scope',
+      source: item.platform || 'RoleDesk',
       source_id: String(item.id),
       source_url: publicUrl || `scope://local/${item.id}`,
       title: window.ScopeSecurity.boundedText(item.title, 500),

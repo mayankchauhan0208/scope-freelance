@@ -4,22 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://mnvcgtjbdywrenmnktem.supabase.co https://remotive.com https://www.arbeitnow.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self' https://mail.google.com; upgrade-insecure-requests" />
-  <meta name="description" content="Scope — a private freelance opportunity command center for designers." />
+  <meta name="description" content="RoleDesk helps users build ATS-friendly resumes, discover jobs and freelance opportunities, draft applications, and track every career conversation with full approval control." />
   <meta name="theme-color" content="#171816" />
-  <title>Scope — Freelance Opportunity Intelligence</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="scope-icon.svg" type="image/svg+xml" />
+  <title>RoleDesk — Resume, Job Search &amp; Application Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest?v=2" />
+  <link rel="icon" href="scope-icon.svg?v=2" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link rel="stylesheet" href="styles.css?v=16" />
   <link rel="stylesheet" href="cloud.css" />
   <script src="security-utils.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="#" aria-label="Scope home"><span class="brand-mark">S</span><span>scope</span></a>
+      <a class="brand" href="#" aria-label="RoleDesk home"><span class="brand-mark">RD</span><span>RoleDesk</span></a>
       <nav aria-label="Primary navigation">
         <button class="nav-item active" data-view="discover"><span>⌁</span> Discover</button>
         <button class="nav-item" data-view="smart"><span>◉</span> Smart Search</button>
@@ -33,7 +33,7 @@
       <div class="guardrail-card">
         <span class="eyebrow">Safety mode</span>
         <strong>Approval required</strong>
-        <p>Scope never applies, accepts work, or contacts clients for you.</p>
+        <p>RoleDesk never applies, sends, submits, bids, signs, accepts work, or contacts anyone without your explicit approval.</p>
         <span class="status-pill safe">● Active</span>
       </div>
       <button class="nav-item" id="resetData"><span>↻</span> Reset demo data</button>
@@ -58,7 +58,7 @@
             <div>
               <span class="eyebrow coral">Opportunity radar</span>
               <h2><span id="strongMatchCount">0</span> strong matches<br>worth your attention.</h2>
-              <p>Ranked by fit, earning potential, client trust, and the odds of a healthy project.</p>
+              <p>Build your resume. Find better roles. Apply with confidence.</p>
             </div>
             <div class="hero-score"><small>Best match</small><strong id="bestScore">—</strong><span>/100</span></div>
           </article>
@@ -122,7 +122,7 @@
         <div class="workspace-header smart-heading">
           <span class="eyebrow coral">Real opportunities · supervised AI workflow</span>
           <h2>Search broadly. Decide carefully.</h2>
-          <p>Scope retrieves permitted live listings, ranks the full description against your résumé, finds public contact details, and prepares every next step as a draft.</p>
+          <p>RoleDesk retrieves permitted live listings, ranks the full description against your résumé, finds public contact details, and prepares every next step as a draft.</p>
         </div>
         <section class="smart-console">
           <div class="smart-controls">
@@ -149,7 +149,7 @@
         <div class="smart-results-layout">
           <section>
             <div class="section-heading"><div><span class="eyebrow">Review queue</span><h3>Real opportunities</h3></div><span class="muted" id="liveResultCount">Not searched</span></div>
-            <div class="live-job-list" id="liveJobList"><div class="smart-empty"><span>◉</span><h3>Your search queue is empty</h3><p>Scope will show full descriptions and rank each opportunity after you search.</p></div></div>
+            <div class="live-job-list" id="liveJobList"><div class="smart-empty"><span>◉</span><h3>Your search queue is empty</h3><p>RoleDesk will show full descriptions and rank each opportunity after you search.</p></div></div>
           </section>
           <aside class="live-detail empty" id="liveDetail"><div class="smart-empty"><span>↗</span><h3>Select an opportunity</h3><p>Review the brief, fit, public email, application route, and prepared next steps.</p></div></aside>
         </div>
@@ -180,7 +180,7 @@
         <div class="workspace-header email-heading">
           <span class="eyebrow coral">Review before anything leaves</span>
           <h2>Your approval desk.</h2>
-          <p>Prepare outreach from your dedicated work inbox. Scope opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
+          <p>Prepare outreach from your dedicated work inbox. RoleDesk opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
         </div>
         <div class="email-layout">
           <aside class="mail-account-card">
@@ -232,7 +232,7 @@
         <div class="workspace-header profile-heading">
           <span class="eyebrow coral">Your search intelligence</span>
           <h2>Let your résumé do the filtering.</h2>
-          <p>Upload once. Scope turns your experience into targeted job and client searches, while keeping the file in this browser.</p>
+          <p>Upload once. RoleDesk turns your experience into targeted job and client searches, while keeping the file in this browser.</p>
         </div>
 
         <div class="profile-grid">
@@ -265,7 +265,7 @@
             <button class="button primary" id="buildSearches">Build my searches</button>
           </div>
           <div class="search-results" id="searchResults"></div>
-          <div class="search-safety"><strong>How searching works:</strong> Scope creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
+          <div class="search-safety"><strong>How searching works:</strong> RoleDesk creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
         </section>
       </section>
     </main>
@@ -286,13 +286,13 @@
   </dialog>
   <dialog id="accountDialog" class="account-dialog">
     <form method="dialog" id="accountForm">
-      <div class="dialog-head"><div><span class="eyebrow coral">Private Scope account</span><h2>Sync across your devices</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <div class="dialog-head"><div><span class="eyebrow coral">Private RoleDesk account</span><h2>Sync across your devices</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
       <p class="account-copy">Your résumé profile and reviewed opportunities are protected by Supabase row-level security. Only the signed-in account can read them.</p>
       <div id="signedOutAccount">
         <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
         <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
         <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="createAccount">Request beta account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
-        <p class="account-hint">Beta access requires an invited email. Confirm the Supabase email after signup. Never share your password with Scope or Codex.</p>
+        <p class="account-hint">Beta access requires an invited email. Confirm the Supabase email after signup. Never share your password with RoleDesk or Codex.</p>
       </div>
       <div id="passwordRecovery" hidden>
         <label>New password<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" /></label>
@@ -309,7 +309,7 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js?v=18"></script>
-  <script src="supabase-sync.js?v=15"></script>
+  <script src="app.js?v=19"></script>
+  <script src="supabase-sync.js?v=16"></script>
 </body>
 </html>
