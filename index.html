@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://mnvcgtjbdywrenmnktem.supabase.co https://remotive.com https://www.arbeitnow.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self' https://mail.google.com; upgrade-insecure-requests" />
   <meta name="description" content="Scope — a private freelance opportunity command center for designers." />
   <meta name="theme-color" content="#171816" />
   <title>Scope — Freelance Opportunity Intelligence</title>
@@ -11,8 +12,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=15" />
   <link rel="stylesheet" href="cloud.css" />
+  <script src="security-utils.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -134,7 +136,7 @@
             <span><i class="ready"></i><b>Arbeitnow</b> Live API</span>
             <span><i class="guided"></i><b>LinkedIn</b> Guided search</span>
             <span><i class="guided"></i><b>Naukri</b> Guided search</span>
-            <span><i class="guided"></i><b>Upwork</b> API key required</span>
+            <span><i class="guided"></i><b>Upwork</b> Guided search</span>
           </div>
         </section>
         <div class="smart-platforms">
@@ -162,13 +164,14 @@
         <div class="workspace-header"><span class="eyebrow coral">Write less generic</span><h2>Proposal Studio</h2><p>Client-focused drafts built from the actual brief. Nothing is sent without you.</p></div>
         <div class="studio-grid">
           <div class="form-card">
+            <div class="identity-warning" id="proposalIdentityWarning" hidden></div>
             <label>Opportunity<select id="proposalOpportunity"></select></label>
             <label>Format<select id="proposalFormat"><option>Short proposal</option><option>Premium proposal</option><option>Upwork-style proposal</option><option>Fiverr buyer-request response</option><option>LinkedIn DM pitch</option><option>Email pitch</option><option>Retainer pitch</option><option>International client pitch</option></select></label>
             <label>Your relevant portfolio example<input id="portfolioInput" placeholder="e.g. Fintech rebrand + launch campaign" /></label>
             <label>One useful question<input id="questionInput" placeholder="e.g. Is copy already finalized?" /></label>
             <button class="button primary wide" id="generateProposal">Generate proposal</button>
           </div>
-          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft</span><button class="text-button copy" data-copy="proposalOutput">Copy</button></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
+          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft</span><button class="text-button copy" data-copy="proposalOutput">Copy</button></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="identity-warning" id="proposalDataWarning" hidden></div><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
         </div>
         <div class="followup-section"><div class="section-heading"><div><span class="eyebrow">After the pitch</span><h3>Message kit</h3></div></div><div class="message-grid" id="messageGrid"></div></div>
       </section>
@@ -183,7 +186,8 @@
           <aside class="mail-account-card">
             <div class="mail-mark">M</div>
             <span class="eyebrow">Work inbox</span>
-            <input id="workEmail" type="email" value="connect.mayankchauhan@gmail.com" aria-label="Work email address" />
+            <input id="workEmail" type="email" placeholder="you@example.com" aria-label="Work email address" />
+            <div class="mail-signature" id="emailSignaturePreview">Signature: [Your name]</div>
             <div class="connection-state"><i></i><span><b>Approval handoff ready</b><small>Gmail opens separately; no credentials live here</small></span></div>
             <div class="mail-rules">
               <strong>Non-negotiable controls</strong>
@@ -192,8 +196,9 @@
           </aside>
           <section class="email-composer">
             <div class="composer-top"><div><span class="eyebrow">New approved draft</span><h3>Client outreach</h3></div><button class="button secondary" id="useProposalEmail">Use Proposal Studio draft</button></div>
+            <div class="identity-warning" id="emailIdentityWarning" hidden></div>
             <div class="email-fields">
-              <label>From<input id="emailFrom" type="email" value="connect.mayankchauhan@gmail.com" readonly /></label>
+              <label>From<input id="emailFrom" type="email" readonly /></label>
               <label>To<input id="emailTo" type="email" placeholder="client@company.com" autocomplete="off" /></label>
               <label>Subject<input id="emailSubject" placeholder="Design support for [project/company]" /></label>
               <label>Message<textarea id="emailBody" placeholder="Write or import your reviewed email here…"></textarea></label>
@@ -284,13 +289,18 @@
       <div class="dialog-head"><div><span class="eyebrow coral">Private Scope account</span><h2>Sync across your devices</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
       <p class="account-copy">Your résumé profile and reviewed opportunities are protected by Supabase row-level security. Only the signed-in account can read them.</p>
       <div id="signedOutAccount">
-        <label>Email<input id="accountEmail" type="email" value="connect.mayankchauhan@gmail.com" readonly /></label>
+        <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
         <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
-        <div class="account-actions"><button class="button secondary" type="button" id="createAccount">Create my private account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
-        <p class="account-hint">First time only: create the account, confirm the email from Supabase, then sign in. Never share this password with Scope or Codex.</p>
+        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="createAccount">Request beta account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
+        <p class="account-hint">Beta access requires an invited email. Confirm the Supabase email after signup. Never share your password with Scope or Codex.</p>
+      </div>
+      <div id="passwordRecovery" hidden>
+        <label>New password<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" /></label>
+        <div class="account-actions"><button class="button primary" type="button" id="updateRecoveredPassword">Update password</button></div>
       </div>
       <div id="signedInAccount" hidden>
         <div class="signed-in-card"><i></i><div><strong id="signedInEmail">Signed in</strong><small id="lastCloudSync">Cloud sync ready</small></div></div>
+        <div id="legacyRecovery" class="legacy-recovery" hidden><strong>Legacy browser data found</strong><small>A protected recovery copy of your old scope-* data is available. Import it only if it belongs to this account.</small><button class="button secondary" type="button" id="importLegacyData">Import legacy data</button></div>
         <div class="account-actions"><button class="button secondary" type="button" id="syncCloudNow">Sync now</button><button class="button secondary" type="button" id="signOutAccount">Sign out</button></div>
       </div>
       <p class="parse-status" id="accountStatus"></p>
@@ -299,7 +309,7 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js"></script>
-  <script src="supabase-sync.js"></script>
+  <script src="app.js?v=18"></script>
+  <script src="supabase-sync.js?v=15"></script>
 </body>
 </html>

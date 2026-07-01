@@ -1,73 +1,165 @@
 (function () {
   const config = window.SCOPE_SUPABASE_CONFIG;
   const sdk = window.supabase;
-  const ownerEmail = 'connect.mayankchauhan@gmail.com';
-  if (!config?.url || !config?.publishableKey || !sdk?.createClient) return;
+  if (!config?.url || !config?.publishableKey || !sdk?.createClient) {
+    document.documentElement.classList.remove('auth-pending');
+    return;
+  }
 
+  const LEGACY_BACKUP_KEY = 'scope-legacy-recovery-v1';
+  const CACHE_OWNER_KEY = 'scope-cache-owner-v1';
   const cloud = sdk.createClient(config.url, config.publishableKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' }
   });
   window.scopeCloud = cloud;
 
   const accountDialog = document.querySelector('#accountDialog');
   const accountButton = document.querySelector('#cloudAccount');
+  const accountEmail = document.querySelector('#accountEmail');
+  const password = document.querySelector('#accountPassword');
   const status = document.querySelector('#accountStatus');
   const signedOut = document.querySelector('#signedOutAccount');
   const signedIn = document.querySelector('#signedInAccount');
-  const password = document.querySelector('#accountPassword');
+  const passwordRecovery = document.querySelector('#passwordRecovery');
+  const legacyRecovery = document.querySelector('#legacyRecovery');
   let session = null;
+  let activeUserId = null;
   let syncing = false;
   let syncTimer = null;
+  let emailDraftTimer = null;
+  let pendingEmailDraft = null;
+  let currentEmailDraftId = null;
+
+  const localPersist = persist;
+  const localSaveProfile = saveProfile;
 
   function setStatus(message, isError = false) {
     status.textContent = message || '';
     status.classList.toggle('error', isError);
   }
 
+  function safeParse(value, fallback) {
+    try { return JSON.parse(value) ?? fallback; } catch { return fallback; }
+  }
+
+  function isDemoOpportunity(item) {
+    return seed.some(demo => demo.id === item.id && demo.title === item.title);
+  }
+
+  function snapshotLegacyData() {
+    return {
+      capturedAt: new Date().toISOString(),
+      profile: safeParse(localStorage.getItem(PROFILE_KEY), null),
+      opportunities: safeParse(localStorage.getItem(STORAGE_KEY), []).filter(item => !isDemoOpportunity(item)),
+      workEmail: localStorage.getItem(WORK_EMAIL_KEY) || ''
+    };
+  }
+
+  function captureLegacyRecovery() {
+    if (localStorage.getItem(LEGACY_BACKUP_KEY) || localStorage.getItem(CACHE_OWNER_KEY)) return;
+    const snapshot = snapshotLegacyData();
+    if (snapshot.profile || snapshot.opportunities.length || snapshot.workEmail) {
+      localStorage.setItem(LEGACY_BACKUP_KEY, JSON.stringify(snapshot));
+    }
+  }
+
+  function clearActiveBrowserCache() {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(WORK_EMAIL_KEY);
+    localStorage.removeItem(CACHE_OWNER_KEY);
+    currentEmailDraftId = null;
+    opportunities = structuredClone(seed);
+    resumeProfile = null;
+    liveJobs = [];
+    selectedLiveJobId = null;
+    for (const selector of ['#workEmail','#emailFrom','#emailTo','#emailSubject','#emailBody','#proposalOutput','#resumeText','#liveSearchQuery']) {
+      const field = document.querySelector(selector);
+      if (field) field.value = '';
+    }
+    document.querySelector('#approveEmail').checked = false;
+    document.querySelector('#openGmailDraft').disabled = true;
+    renderProfile();
+    renderDashboard();
+    renderLiveJobs();
+  }
+
+  function showLegacyRecovery() {
+    const importedKey = session?.user ? `scope-legacy-imported-v1:${session.user.id}` : '';
+    legacyRecovery.hidden = !session?.user || !localStorage.getItem(LEGACY_BACKUP_KEY) || Boolean(localStorage.getItem(importedKey));
+  }
+
   function renderAccount() {
     const connected = Boolean(session?.user);
     signedOut.hidden = connected;
     signedIn.hidden = !connected;
+    if (!passwordRecovery.hidden) {
+      signedOut.hidden = true;
+      signedIn.hidden = true;
+    }
     accountButton.classList.toggle('connected', connected);
     accountButton.querySelector('span').textContent = connected ? 'Private cloud connected' : 'Connect private cloud';
     if (connected) document.querySelector('#signedInEmail').textContent = session.user.email;
+    showLegacyRecovery();
   }
 
-  function isDemoOpportunity(item) {
-    return seed.some(demo => demo.id === item.id && demo.title === item.title && demo.url === item.url);
+  function requireEmail() {
+    const email = accountEmail.value.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setStatus('Enter a valid invited email address.', true);
+      return '';
+    }
+    return email;
   }
 
   function cloudOpportunity(item, userId) {
+    const publicUrl = window.ScopeSecurity.safeHttpUrl(item.url);
     return {
       user_id: userId,
       source: item.platform || 'Scope',
       source_id: String(item.id),
-      source_url: item.url || `scope://local/${item.id}`,
-      title: item.title,
-      company: item.client || null,
-      description: item.brief || null,
+      source_url: publicUrl || `scope://local/${item.id}`,
+      title: window.ScopeSecurity.boundedText(item.title, 500),
+      company: window.ScopeSecurity.boundedText(item.client, 500) || null,
+      description: window.ScopeSecurity.boundedText(item.brief, 50000) || null,
       contact_email: item.contactEmail || null,
       status: (item.status || 'Saved').toLowerCase().replaceAll(' ', '_'),
       match_score: Number.isFinite(item.skill) ? Math.max(0, Math.min(100, Math.round(item.skill))) : null,
-      analysis: { scope_record: item, synced_from: 'scope-web' }
+      analysis: { scope_record: { ...item, url: publicUrl }, synced_from: 'scope-web' },
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  function localOpportunity(row, index) {
+    const saved = row.analysis?.scope_record || {};
+    return {
+      ...saved,
+      id: Number(saved.id) || Date.now() + index,
+      title: saved.title || row.title,
+      client: saved.client || row.company || 'Unknown',
+      brief: saved.brief || row.description || '',
+      url: window.ScopeSecurity.safeHttpUrl(saved.url || row.source_url),
+      platform: saved.platform || row.source,
+      status: saved.status || 'Saved',
+      skill: Number.isFinite(saved.skill) ? saved.skill : row.match_score || 60
     };
   }
 
   async function syncNow(options = {}) {
-    if (!session?.user || syncing) return;
+    if (!session?.user || syncing) return false;
     syncing = true;
     setStatus('Syncing your private workspace…');
     try {
       const userId = session.user.id;
       if (resumeProfile) {
-        const portfolio = resumeProfile.portfolioUrl ? [resumeProfile.portfolioUrl] : [];
+        const portfolio = resumeProfile.portfolioUrl ? [window.ScopeSecurity.safeHttpUrl(resumeProfile.portfolioUrl)].filter(Boolean) : [];
         const preferences = { ...resumeProfile };
         delete preferences.text;
         const { error } = await cloud.from('profiles').upsert({
           user_id: userId,
-          display_name: 'Mayank Chauhan',
-          work_email: ownerEmail,
-          resume_text: resumeProfile.text || null,
+          display_name: resumeProfile.fullName || resumeProfile.displayName || session.user.user_metadata?.full_name || null,
+          work_email: localStorage.getItem(WORK_EMAIL_KEY) || session.user.email,
+          resume_text: window.ScopeSecurity.boundedText(resumeProfile.text, 30000) || null,
           portfolio_urls: portfolio,
           preferences,
           updated_at: new Date().toISOString()
@@ -79,48 +171,89 @@
         const { error } = await cloud.from('opportunities').upsert(records, { onConflict: 'user_id,source_url' });
         if (error) throw error;
       }
+      localStorage.setItem(CACHE_OWNER_KEY, userId);
       const timestamp = new Date();
       document.querySelector('#lastCloudSync').textContent = `Last synced ${timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       setStatus('Private cloud sync complete.');
       if (!options.silent) toast('Private cloud synced');
+      return true;
     } catch (error) {
       setStatus(error.message || 'Cloud sync failed.', true);
       if (!options.silent) toast('Cloud sync needs attention');
+      return false;
     } finally {
       syncing = false;
     }
   }
 
-  async function loadCloud() {
+  async function loadCloudCanonical() {
     if (!session?.user) return;
+    const userId = session.user.id;
     try {
-      const userId = session.user.id;
       const [{ data: profile, error: profileError }, { data: cloudItems, error: itemsError }] = await Promise.all([
         cloud.from('profiles').select('*').eq('user_id', userId).maybeSingle(),
         cloud.from('opportunities').select('*').eq('user_id', userId).order('created_at', { ascending: false })
       ]);
       if (profileError) throw profileError;
       if (itemsError) throw itemsError;
-      if (profile) {
-        resumeProfile = { ...(profile.preferences || {}), text: profile.resume_text || '', portfolioUrl: profile.portfolio_urls?.[0] || profile.preferences?.portfolioUrl || '' };
-        localStorage.setItem(PROFILE_KEY, JSON.stringify(resumeProfile));
-        renderProfile();
-      }
-      if (cloudItems?.length) {
-        const existingUrls = new Set(opportunities.map(item => item.url).filter(Boolean));
-        const restored = cloudItems.map((row, index) => {
-          const saved = row.analysis?.scope_record || {};
-          return { ...saved, id: Number(saved.id) || Date.now() + index, title: saved.title || row.title, client: saved.client || row.company || 'Unknown', brief: saved.brief || row.description || '', url: saved.url || row.source_url, platform: saved.platform || row.source, status: saved.status || 'Saved', skill: Number.isFinite(saved.skill) ? saved.skill : row.match_score || 60 };
-        }).filter(item => !existingUrls.has(item.url));
-        if (restored.length) {
-          opportunities = [...restored, ...opportunities];
-          persist();
-          renderDashboard();
-        }
-      }
-      setStatus('Your private cloud workspace is connected.');
+
+      resumeProfile = profile ? {
+        ...(profile.preferences || {}),
+        fullName: profile.display_name || profile.preferences?.fullName || '',
+        displayName: profile.display_name || '',
+        text: profile.resume_text || '',
+        portfolioUrl: window.ScopeSecurity.safeHttpUrl(profile.portfolio_urls?.[0] || profile.preferences?.portfolioUrl || '')
+      } : null;
+      opportunities = [...(cloudItems || []).map(localOpportunity), ...structuredClone(seed).map(item=>({...item,url:window.ScopeSecurity.safeHttpUrl(item.url)}))];
+
+      localStorage.setItem(CACHE_OWNER_KEY, userId);
+      const activeEmail = profile?.work_email || session.user.email || '';
+      if (activeEmail) localStorage.setItem(WORK_EMAIL_KEY, activeEmail);
+      document.querySelector('#workEmail').value = activeEmail;
+      document.querySelector('#emailFrom').value = activeEmail;
+      if (resumeProfile) localSaveProfile(); else localStorage.removeItem(PROFILE_KEY);
+      localPersist();
+      renderProfile();
+      updateIdentityWarnings();
+      renderDashboard();
+      setStatus('Supabase is the source of truth for this signed-in workspace.');
     } catch (error) {
       setStatus(error.message || 'Could not load cloud data.', true);
+    }
+  }
+
+  async function importLegacyData() {
+    if (!session?.user) return;
+    const backup = safeParse(localStorage.getItem(LEGACY_BACKUP_KEY), null);
+    if (!backup) return setStatus('No legacy recovery data was found.', true);
+    setStatus('Importing the selected legacy recovery copy…');
+    try {
+      if (backup.profile) {
+        const profile = backup.profile;
+        const preferences = { ...profile };
+        delete preferences.text;
+        const { error } = await cloud.from('profiles').upsert({
+          user_id: session.user.id,
+          display_name: profile.fullName || profile.displayName || session.user.user_metadata?.full_name || null,
+          work_email: backup.workEmail || session.user.email,
+          resume_text: window.ScopeSecurity.boundedText(profile.text, 30000) || null,
+          portfolio_urls: [window.ScopeSecurity.safeHttpUrl(profile.portfolioUrl)].filter(Boolean),
+          preferences,
+          updated_at: new Date().toISOString()
+        });
+        if (error) throw error;
+      }
+      const rows = (backup.opportunities || []).map(item => cloudOpportunity(item, session.user.id));
+      if (rows.length) {
+        const { error } = await cloud.from('opportunities').upsert(rows, { onConflict: 'user_id,source_url' });
+        if (error) throw error;
+      }
+      localStorage.setItem(`scope-legacy-imported-v1:${session.user.id}`, new Date().toISOString());
+      showLegacyRecovery();
+      await loadCloudCanonical();
+      toast('Legacy browser data imported');
+    } catch (error) {
+      setStatus(error.message || 'Legacy import failed.', true);
     }
   }
 
@@ -130,48 +263,164 @@
     syncTimer = setTimeout(() => syncNow({ silent: true }), 900);
   }
 
-  const localPersist = persist;
   persist = function () { localPersist(); scheduleSync(); };
-  const localSaveProfile = saveProfile;
   saveProfile = function () { localSaveProfile(); scheduleSync(); };
+  window.ScopeCloudSync = Object.freeze({ syncNow: () => syncNow() });
+
+  async function initializeSession(nextSession) {
+    session = nextSession;
+    if (!session?.user) {
+      activeUserId = null;
+      captureLegacyRecovery();
+      clearActiveBrowserCache();
+      renderAccount();
+      document.documentElement.classList.remove('auth-pending');
+      return;
+    }
+    if (activeUserId === session.user.id) return;
+    activeUserId = session.user.id;
+    currentEmailDraftId = null;
+    accountEmail.value = session.user.email || '';
+    renderAccount();
+    await loadCloudCanonical();
+    document.documentElement.classList.remove('auth-pending');
+  }
+
+  async function writeEmailDraft(fields) {
+    if (!session?.user) return null;
+    const payload = {
+      kind: 'email',
+      recipient: window.ScopeSecurity.boundedText(fields.recipient, 500),
+      subject: window.ScopeSecurity.boundedText(fields.subject, 1000),
+      body: window.ScopeSecurity.boundedText(fields.body, 50000),
+      destination: { recipient: window.ScopeSecurity.boundedText(fields.recipient, 500) },
+      content: { subject: window.ScopeSecurity.boundedText(fields.subject, 1000), body: window.ScopeSecurity.boundedText(fields.body, 50000) }
+    };
+    const query = currentEmailDraftId
+      ? cloud.from('drafts').update(payload).eq('id', currentEmailDraftId).select('*').single()
+      : cloud.from('drafts').insert({ ...payload, user_id: session.user.id }).select('*').single();
+    const { data, error } = await query;
+    if (error) throw error;
+    currentEmailDraftId = data.id;
+    return data;
+  }
+
+  function queueEmailDraft(fields) {
+    pendingEmailDraft = fields;
+    clearTimeout(emailDraftTimer);
+    emailDraftTimer = setTimeout(() => {
+      const queued = pendingEmailDraft;
+      pendingEmailDraft = null;
+      writeEmailDraft(queued).catch(error => setStatus(error.message, true));
+    }, 450);
+    return Promise.resolve(true);
+  }
+
+  async function flushEmailDraft(fields) {
+    clearTimeout(emailDraftTimer);
+    pendingEmailDraft = null;
+    return writeEmailDraft(fields);
+  }
+
+  window.ScopeCloudApproval = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    saveEmailDraft: queueEmailDraft,
+    approveEmailDraft: async fields => {
+      const draft = await flushEmailDraft(fields);
+      if (!draft) return null;
+      const { data, error } = await cloud.rpc('approve_draft', { p_draft_id: draft.id });
+      if (error) throw error;
+      return data;
+    },
+    revokeEmailDraft: async reason => {
+      if (!session?.user || !currentEmailDraftId) return null;
+      const { data, error } = await cloud.rpc('revoke_draft_approval', { p_draft_id: currentEmailDraftId, p_reason: reason || 'user_revoked' });
+      if (error) throw error;
+      return data;
+    },
+    verifyEmailDraft: async fields => {
+      const draft = await flushEmailDraft(fields);
+      if (!draft) return false;
+      const { data, error } = await cloud.from('drafts').select('recipient,subject,body,approval_state,content_hash').eq('id', draft.id).single();
+      if (error) throw error;
+      return data.approval_state === 'user_approved' && Boolean(data.content_hash) && data.recipient === fields.recipient && data.subject === fields.subject && data.body === fields.body;
+    },
+    logComposeOpened: async () => {
+      if (!session?.user || !currentEmailDraftId) return null;
+      const { data, error } = await cloud.rpc('create_activity_log', { p_event_type: 'email.compose_opened', p_entity_type: 'draft', p_entity_id: currentEmailDraftId, p_metadata: { sent: false } });
+      if (error) throw error;
+      return data;
+    }
+  });
 
   accountButton.addEventListener('click', () => accountDialog.showModal());
   document.querySelector('#createAccount').addEventListener('click', async () => {
+    const email = requireEmail();
+    if (!email) return;
     if (password.value.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
-    setStatus('Creating your private account…');
-    const { error } = await cloud.auth.signUp({ email: ownerEmail, password: password.value, options: { emailRedirectTo: `${location.origin}${location.pathname}` } });
-    if (error) return setStatus(error.message, true);
+    setStatus('Requesting beta account…');
+    const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: `${location.origin}${location.pathname}` } });
     password.value = '';
-    setStatus('Account created. Open the Supabase confirmation email, then return and sign in.');
+    if (error) return setStatus(error.message.includes('Beta access') ? 'This email has not been invited to the beta.' : error.message, true);
+    setStatus('Account created. Open the confirmation email, then return and sign in.');
   });
+
   document.querySelector('#signInAccount').addEventListener('click', async () => {
-    if (!password.value) return setStatus('Enter your private Scope password.', true);
+    const email = requireEmail();
+    if (!email) return;
+    if (!password.value) return setStatus('Enter your password.', true);
     setStatus('Signing in…');
-    const { data, error } = await cloud.auth.signInWithPassword({ email: ownerEmail, password: password.value });
-    if (error) return setStatus(error.message, true);
+    const { data, error } = await cloud.auth.signInWithPassword({ email, password: password.value });
     password.value = '';
-    session = data.session;
-    renderAccount();
-    await loadCloud();
-    await syncNow({ silent: true });
+    if (error) return setStatus(error.message, true);
+    await initializeSession(data.session);
   });
+
+  document.querySelector('#resetPassword').addEventListener('click', async () => {
+    const email = requireEmail();
+    if (!email) return;
+    const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}${location.pathname}` });
+    setStatus(error ? error.message : 'Password reset email requested. Check your inbox.', Boolean(error));
+  });
+
+  document.querySelector('#updateRecoveredPassword').addEventListener('click', async () => {
+    const nextPassword = document.querySelector('#recoveryPassword').value;
+    if (nextPassword.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
+    const { error } = await cloud.auth.updateUser({ password: nextPassword });
+    if (error) return setStatus(error.message, true);
+    document.querySelector('#recoveryPassword').value = '';
+    passwordRecovery.hidden = true;
+    setStatus('Password updated.');
+    renderAccount();
+  });
+
   document.querySelector('#signOutAccount').addEventListener('click', async () => {
+    await syncNow({ silent: true });
     await cloud.auth.signOut();
     session = null;
+    activeUserId = null;
+    clearActiveBrowserCache();
     renderAccount();
-    setStatus('Signed out. Local browser data remains available.');
+    setStatus('Signed out. The account cache was cleared from this browser.');
   });
   document.querySelector('#syncCloudNow').addEventListener('click', () => syncNow());
+  document.querySelector('#importLegacyData').addEventListener('click', importLegacyData);
 
-  cloud.auth.onAuthStateChange((_event, nextSession) => {
-    const wasDisconnected = !session?.user;
-    session = nextSession;
-    renderAccount();
-    if (wasDisconnected && session?.user) setTimeout(() => loadCloud(), 0);
+  cloud.auth.onAuthStateChange((event, nextSession) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      session = nextSession;
+      passwordRecovery.hidden = false;
+      renderAccount();
+      accountDialog.showModal();
+      document.documentElement.classList.remove('auth-pending');
+      return;
+    }
+    setTimeout(() => initializeSession(nextSession), 0);
   });
-  cloud.auth.getSession().then(({ data }) => {
-    session = data.session;
-    renderAccount();
-    if (session?.user) loadCloud();
+
+  captureLegacyRecovery();
+  cloud.auth.getSession().then(({ data }) => initializeSession(data.session)).catch(error => {
+    setStatus(error.message || 'Authentication could not initialize.', true);
+    document.documentElement.classList.remove('auth-pending');
   });
 })();

@@ -4,6 +4,5 @@
   "version": "0.1.0",
   "description": "Inspect application forms and fill reviewed draft answers without submitting.",
   "permissions": ["activeTab", "scripting", "storage"],
-  "action": {"default_popup": "popup.html", "default_title": "Scope Application Companion"},
-  "content_scripts": [{"matches": ["http://*/*", "https://*/*"], "js": ["content.js"], "run_at": "document_idle"}]
+  "action": {"default_popup": "popup.html", "default_title": "Scope Application Companion"}
 }

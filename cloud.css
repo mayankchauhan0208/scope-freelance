@@ -10,4 +10,8 @@
 .signed-in-card div{display:grid}
 .signed-in-card small{color:var(--muted)}
 .parse-status.error{color:var(--red)}
+.auth-pending .app-shell{visibility:hidden}
+.legacy-recovery{display:grid;gap:6px;margin-top:12px;padding:12px;border:1px solid var(--yellow);border-radius:11px;background:#fff4cd}
+.legacy-recovery small{color:var(--muted)}
+.legacy-recovery .button{justify-self:start;margin-top:3px}
 @media(max-width:760px){.cloud-button span{display:none}.cloud-button{padding:11px}.top-actions{flex-wrap:wrap}}
