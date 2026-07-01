@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="styles.css?v=16" />
   <link rel="stylesheet" href="cloud.css" />
   <link rel="stylesheet" href="resume-builder.css?v=2" />
+  <link rel="stylesheet" href="smart-engine.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -122,10 +123,11 @@
 
       <section class="view" id="smartView">
         <div class="workspace-header smart-heading">
-          <span class="eyebrow coral">Real opportunities · supervised AI workflow</span>
+          <span class="eyebrow coral">Smart Draft Mode — Free local intelligence</span>
           <h2>Search broadly. Decide carefully.</h2>
           <p>RoleDesk retrieves permitted live listings, ranks the full description against your résumé, finds public contact details, and prepares every next step as a draft.</p>
         </div>
+        <div class="smart-mode-banner"><b>RoleDesk is using Smart Draft Mode.</b><span>It works locally without paid AI and keeps every output editable.</span></div>
         <section class="smart-console">
           <div class="smart-controls">
             <label>Search description<input id="liveSearchQuery" placeholder="e.g. brand identity, AI creative advertising, pitch deck" /></label>
@@ -164,6 +166,7 @@
 
       <section class="view" id="studioView">
         <div class="workspace-header"><span class="eyebrow coral">Write less generic</span><h2>Proposal Studio</h2><p>Client-focused drafts built from the actual brief. Nothing is sent without you.</p></div>
+        <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>Profile rules and templates improve this editable draft without sending data to an external model.</span></div>
         <div class="studio-grid">
           <div class="form-card">
             <div class="identity-warning" id="proposalIdentityWarning" hidden></div>
@@ -173,7 +176,7 @@
             <label>One useful question<input id="questionInput" placeholder="e.g. Is copy already finalized?" /></label>
             <button class="button primary wide" id="generateProposal">Generate proposal</button>
           </div>
-          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft</span><button class="text-button copy" data-copy="proposalOutput">Copy</button></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="identity-warning" id="proposalDataWarning" hidden></div><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
+          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft · <b id="proposalConfidence">Not generated</b></span><div class="smart-output-actions"><button class="text-button" id="proposalEdit">Edit</button><button class="text-button" id="proposalSave">Save</button><button class="text-button copy" data-copy="proposalOutput">Copy</button></div></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="identity-warning" id="proposalDataWarning" hidden></div><ul class="smart-warning-list" id="proposalTruthWarnings" hidden></ul><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
         </div>
         <div class="followup-section"><div class="section-heading"><div><span class="eyebrow">After the pitch</span><h3>Message kit</h3></div></div><div class="message-grid" id="messageGrid"></div></div>
       </section>
@@ -184,6 +187,7 @@
           <h2>Your approval desk.</h2>
           <p>Prepare outreach from your dedicated work inbox. RoleDesk opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
         </div>
+        <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>Email drafts stay editable and require your exact approval. No message is sent automatically.</span></div>
         <div class="email-layout">
           <aside class="mail-account-card">
             <div class="mail-mark">M</div>
@@ -199,6 +203,7 @@
           <section class="email-composer">
             <div class="composer-top"><div><span class="eyebrow">New approved draft</span><h3>Client outreach</h3></div><button class="button secondary" id="useProposalEmail">Use Proposal Studio draft</button></div>
             <div class="identity-warning" id="emailIdentityWarning" hidden></div>
+            <div class="smart-confidence" id="emailConfidence">Smart Draft confidence: not generated</div>
             <div class="email-fields">
               <label>From<input id="emailFrom" type="email" readonly /></label>
               <label>To<input id="emailTo" type="email" placeholder="client@company.com" autocomplete="off" /></label>
@@ -206,7 +211,8 @@
               <label>Message<textarea id="emailBody" placeholder="Write or import your reviewed email here…"></textarea></label>
             </div>
             <label class="approval-check"><input id="approveEmail" type="checkbox" /><span><b>I approve this exact recipient, subject, and message.</b><small>Changing any field removes approval automatically.</small></span></label>
-            <div class="composer-actions"><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open approved draft in Gmail ↗</button></div>
+            <ul class="smart-warning-list" id="emailTruthWarnings" hidden></ul>
+            <div class="composer-actions"><button class="button secondary" id="emailEdit">Edit</button><button class="button secondary" id="emailSave">Save draft</button><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open approved draft in Gmail ↗</button></div>
             <div class="notice">Opening Gmail creates a compose window—it does not send. For connector-based sending, ask Codex to send the reviewed draft and confirm at that moment.</div>
           </section>
         </div>
@@ -236,6 +242,7 @@
           <h2>ATS Resume Builder</h2>
           <p>Turn reviewed resume facts into a clean, recruiter-readable version. Nothing is invented or sent to AI.</p>
         </div>
+        <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>RoleDesk improves resumes with local profile rules and templates. It does not use paid AI or send resume data to an external model.</span></div>
         <section class="ats-onboarding">
           <div><b>1</b><span>Import or paste</span></div><div><b>2</b><span>Analyze gaps</span></div><div><b>3</b><span>Review the improved draft</span></div><div><b>4</b><span>Save or export</span></div>
         </section>
@@ -249,7 +256,7 @@
         </section>
         <div class="ats-editor-grid">
           <section class="ats-editor-card"><div class="ats-card-head"><div><span class="eyebrow">Original</span><h3>Resume source</h3></div></div><textarea id="atsOriginal" placeholder="Paste your resume text here, or import it from My Profile."></textarea></section>
-          <section class="ats-editor-card improved"><div class="ats-card-head"><div><span class="eyebrow">Improved</span><h3>ATS-friendly draft</h3></div><button class="text-button" id="atsCopy">Copy</button></div><textarea id="atsImproved" placeholder="Your generated ATS-friendly resume will appear here."></textarea><div class="truth-warning" id="atsTruthWarning"></div></section>
+          <section class="ats-editor-card improved"><div class="ats-card-head"><div><span class="eyebrow">Improved · <b id="atsSmartConfidence">Not generated</b></span><h3>ATS-friendly draft</h3></div><div class="smart-output-actions"><button class="text-button" id="atsEdit">Edit</button><button class="text-button" id="atsCopy">Copy</button></div></div><textarea id="atsImproved" placeholder="Your generated ATS-friendly resume will appear here."></textarea><div class="truth-warning" id="atsTruthWarning"></div></section>
         </div>
         <div class="ats-review-grid">
           <section class="ats-score-card"><div class="ats-score"><strong id="atsScore">—</strong><span>ATS score</span><small id="atsScoreLabel">Not analyzed</small></div><div class="ats-section-scores" id="atsSectionScores"><div class="ats-empty">Section scores appear after analysis.</div></div></section>
@@ -340,8 +347,9 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js?v=21"></script>
-  <script src="resume-builder.js?v=2"></script>
-  <script src="supabase-sync.js?v=18"></script>
+  <script src="app.js?v=22"></script>
+  <script src="resume-builder.js?v=3"></script>
+  <script src="smart-engine.js?v=1"></script>
+  <script src="supabase-sync.js?v=19"></script>
 </body>
 </html>

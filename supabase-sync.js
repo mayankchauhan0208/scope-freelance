@@ -323,6 +323,33 @@
     }
   });
 
+  window.RoleDeskSmartDraftCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    save: async payload => {
+      if (!session?.user) return null;
+      const allowedKinds = ['proposal','email','form','reply','negotiation'];
+      const kind = allowedKinds.includes(payload.kind) ? payload.kind : 'proposal';
+      const body = window.ScopeSecurity.boundedText(payload.body, 50000);
+      const subject = window.ScopeSecurity.boundedText(payload.subject, 1000);
+      const { data, error } = await cloud.from('drafts').insert({
+        user_id: session.user.id,
+        kind,
+        subject,
+        body,
+        destination: {},
+        content: {
+          subject,
+          body,
+          mode: 'smart-draft-local',
+          warnings: Array.isArray(payload.warnings) ? payload.warnings.slice(0, 20) : [],
+          confidence: window.ScopeSecurity.boundedText(payload.confidenceText, 100)
+        }
+      }).select('*').single();
+      if (error) throw error;
+      return data;
+    }
+  });
+
   async function initializeSession(nextSession) {
     session = nextSession;
     if (!session?.user) {
@@ -381,6 +408,7 @@
   window.ScopeCloudApproval = Object.freeze({
     isSignedIn: () => Boolean(session?.user),
     saveEmailDraft: queueEmailDraft,
+    saveEmailDraftNow: flushEmailDraft,
     approveEmailDraft: async fields => {
       const draft = await flushEmailDraft(fields);
       if (!draft) return null;

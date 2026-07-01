@@ -6,6 +6,8 @@ The Phase 1 branch is designed for multiple users. Supabase Auth establishes ide
 
 Resume extraction and ATS scoring run locally. Resume text is not sent to an AI provider. Signed-in users may save resume originals and generated versions only to their own RLS-protected `resumes` rows.
 
+RoleDesk Smart Engine is local rule-based code. It makes no external AI requests, exposes no model credentials, and never sends or submits its drafts. Signed-in users can explicitly save proposal and email drafts to their own RLS-protected `drafts` rows.
+
 Frontend email checks are convenience validation only. They are not a security boundary.
 
 ## Beta access
