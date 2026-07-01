@@ -1,5 +1,5 @@
-const CACHE='scope-v5';
-const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
+const CACHE='scope-v6';
+const ASSETS=['./','./index.html','./styles.css','./cloud.css','./app.js','./supabase.min.js','./supabase-config.js','./supabase-sync.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;event.respondWith(fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match(event.request).then(hit=>hit||caches.match('./index.html'))))});

@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="cloud.css" />
 </head>
 <body>
   <div class="app-shell">
@@ -44,6 +45,7 @@
         </div>
         <div class="top-actions">
           <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search projects, skills, clients…" /></label>
+          <button class="button cloud-button" id="cloudAccount" type="button"><i></i><span>Connect private cloud</span></button>
           <button class="button primary" id="addOpportunity">+ Add opportunity</button>
         </div>
       </header>
@@ -277,7 +279,27 @@
       <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & add</button></div>
     </form>
   </dialog>
+  <dialog id="accountDialog" class="account-dialog">
+    <form method="dialog" id="accountForm">
+      <div class="dialog-head"><div><span class="eyebrow coral">Private Scope account</span><h2>Sync across your devices</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <p class="account-copy">Your résumé profile and reviewed opportunities are protected by Supabase row-level security. Only the signed-in account can read them.</p>
+      <div id="signedOutAccount">
+        <label>Email<input id="accountEmail" type="email" value="connect.mayankchauhan@gmail.com" readonly /></label>
+        <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
+        <div class="account-actions"><button class="button secondary" type="button" id="createAccount">Create my private account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
+        <p class="account-hint">First time only: create the account, confirm the email from Supabase, then sign in. Never share this password with Scope or Codex.</p>
+      </div>
+      <div id="signedInAccount" hidden>
+        <div class="signed-in-card"><i></i><div><strong id="signedInEmail">Signed in</strong><small id="lastCloudSync">Cloud sync ready</small></div></div>
+        <div class="account-actions"><button class="button secondary" type="button" id="syncCloudNow">Sync now</button><button class="button secondary" type="button" id="signOutAccount">Sign out</button></div>
+      </div>
+      <p class="parse-status" id="accountStatus"></p>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status"></div>
+  <script src="supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
   <script src="app.js"></script>
+  <script src="supabase-sync.js"></script>
 </body>
 </html>
