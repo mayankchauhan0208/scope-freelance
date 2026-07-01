@@ -14,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=16" />
   <link rel="stylesheet" href="cloud.css" />
+  <link rel="stylesheet" href="resume-builder.css?v=2" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -27,6 +28,7 @@
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
         <button class="nav-item" data-view="pricing"><span>₹</span> Pricing Lab</button>
+        <button class="nav-item" data-view="ats"><span>▤</span> ATS Resume Builder</button>
         <button class="nav-item" data-view="profile"><span>◎</span> My Profile</button>
       </nav>
       <div class="sidebar-spacer"></div>
@@ -228,6 +230,35 @@
         </div>
       </section>
 
+      <section class="view" id="atsView">
+        <div class="workspace-header ats-heading">
+          <span class="eyebrow coral">Truthful by design · local rule-based analysis</span>
+          <h2>ATS Resume Builder</h2>
+          <p>Turn reviewed resume facts into a clean, recruiter-readable version. Nothing is invented or sent to AI.</p>
+        </div>
+        <section class="ats-onboarding">
+          <div><b>1</b><span>Import or paste</span></div><div><b>2</b><span>Analyze gaps</span></div><div><b>3</b><span>Review the improved draft</span></div><div><b>4</b><span>Save or export</span></div>
+        </section>
+        <section class="ats-controls-card">
+          <div class="ats-controls">
+            <label>Resume tone<select id="atsTone"><option>Corporate</option><option>Creative Professional</option><option>MNC-focused</option><option>Freelance-focused</option><option>Design/Marketing-focused</option></select></label>
+            <label>Target role<input id="atsTargetRole" placeholder="e.g. Graphic Designer" /></label>
+            <label>Version name<input id="atsVersionName" placeholder="e.g. Brand Designer - July" /></label>
+          </div>
+          <div class="ats-actions"><button class="button secondary" id="atsImportProfile">Import current profile</button><button class="button primary" id="atsAnalyze">Analyze &amp; generate</button><span id="atsBuilderStatus">Paste a resume or import your current profile.</span></div>
+        </section>
+        <div class="ats-editor-grid">
+          <section class="ats-editor-card"><div class="ats-card-head"><div><span class="eyebrow">Original</span><h3>Resume source</h3></div></div><textarea id="atsOriginal" placeholder="Paste your resume text here, or import it from My Profile."></textarea></section>
+          <section class="ats-editor-card improved"><div class="ats-card-head"><div><span class="eyebrow">Improved</span><h3>ATS-friendly draft</h3></div><button class="text-button" id="atsCopy">Copy</button></div><textarea id="atsImproved" placeholder="Your generated ATS-friendly resume will appear here."></textarea><div class="truth-warning" id="atsTruthWarning"></div></section>
+        </div>
+        <div class="ats-review-grid">
+          <section class="ats-score-card"><div class="ats-score"><strong id="atsScore">—</strong><span>ATS score</span><small id="atsScoreLabel">Not analyzed</small></div><div class="ats-section-scores" id="atsSectionScores"><div class="ats-empty">Section scores appear after analysis.</div></div></section>
+          <section class="ats-issues-card"><span class="eyebrow">Improvement plan</span><h3>Issues and warnings</h3><ul id="atsIssues"><li>Analyze the resume to see practical recommendations.</li></ul><p id="atsMissingKeywords"></p></section>
+        </div>
+        <section class="ats-save-bar"><div><strong>Reviewed output only</strong><span>Resolve every “Missing” placeholder before use.</span></div><button class="button secondary" id="atsSyncProfile">Import extracted fields to My Profile</button><button class="button secondary" id="atsExportText">Export TXT</button><button class="button secondary" id="atsExportMarkdown">Export Markdown</button><button class="button primary" id="atsSaveVersion">Save cloud version</button></section>
+        <section class="ats-version-card"><div class="section-heading"><div><span class="eyebrow">Private Supabase history</span><h3>Saved resume versions</h3></div></div><div class="ats-versions" id="atsVersions"><div class="ats-empty">Sign in to load saved versions.</div></div></section>
+      </section>
+
       <section class="view" id="profileView">
         <div class="workspace-header profile-heading">
           <span class="eyebrow coral">Your search intelligence</span>
@@ -309,7 +340,8 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js?v=19"></script>
-  <script src="supabase-sync.js?v=16"></script>
+  <script src="app.js?v=21"></script>
+  <script src="resume-builder.js?v=2"></script>
+  <script src="supabase-sync.js?v=18"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 const CACHE_PREFIX='scope-static-';
-const CACHE_VERSION='v12';
+const CACHE_VERSION='v15';
 const CACHE=`${CACHE_PREFIX}${CACHE_VERSION}`;
-const ASSETS=['./','./index.html','./styles.css','./cloud.css','./security-utils.js','./app.js','./supabase.min.js','./supabase-config.js','./supabase-sync.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
+const ASSETS=['./','./index.html','./styles.css','./cloud.css','./resume-builder.css','./security-utils.js','./app.js','./resume-builder.js','./supabase.min.js','./supabase-config.js','./supabase-sync.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
 const APPROVED_URLS=new Set(ASSETS.map(asset=>new URL(asset,self.location.href).href));
 
 self.addEventListener('install',event=>event.waitUntil(

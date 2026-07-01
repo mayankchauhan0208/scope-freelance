@@ -4,6 +4,8 @@
 
 The Phase 1 branch is designed for multiple users. Supabase Auth establishes identity and row-level security isolates every user's profile, resumes, opportunities, drafts, applications, portal-connection metadata and activity logs.
 
+Resume extraction and ATS scoring run locally. Resume text is not sent to an AI provider. Signed-in users may save resume originals and generated versions only to their own RLS-protected `resumes` rows.
+
 Frontend email checks are convenience validation only. They are not a security boundary.
 
 ## Beta access

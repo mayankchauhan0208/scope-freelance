@@ -8,9 +8,9 @@ RoleDesk is a private career command center for ATS-friendly resumes, job search
 
 - Remotive and Arbeitnow provide permitted live job data.
 - LinkedIn, Naukri, Upwork, and restricted platforms use guided links unless approved API access is available.
-- Resume parsing, profile-aware matching, draft templates, pricing calculations, and manual tracking run in the browser.
+- Resume parsing, profile completeness, rule-based ATS scoring, ATS-friendly resume generation, profile-aware matching, draft templates, pricing calculations, and manual tracking run in the browser.
 - Supabase provides beta access, authentication, per-user data, RLS, cloud sync, and database-backed draft approval.
-- A full ATS resume builder, OpenAI-backed drafting, Gmail monitoring/sending, and automated applications are not implemented.
+- OpenAI-backed drafting, Gmail monitoring/sending, automated applications, and PDF/DOCX resume export are not implemented.
 
 ## Safety contract
 
@@ -31,6 +31,7 @@ Apply migrations in order:
 
 1. `supabase/migrations/001_scope_v2.sql`
 2. `supabase/migrations/002_security_data_foundation.sql`
+3. `supabase/migrations/003_resume_profile_ats_builder.sql`
 
 Migration 002 is additive and does not delete existing user data. It provides owner-isolated tables, beta access, append-only activity logs, approval protection, and these controlled RPCs:
 
@@ -38,6 +39,8 @@ Migration 002 is additive and does not delete existing user data. It provides ow
 - `revoke_draft_approval(draft_id, reason)`
 
 Authenticated users cannot directly update approval columns. Editing important draft content automatically revokes approval.
+
+Migration 003 adds user-owned resume version fields for original text, extracted facts, ATS score, issues, generated text, tone, target role, and version name. Existing resume rows and table names remain unchanged.
 
 ## Browser extension
 

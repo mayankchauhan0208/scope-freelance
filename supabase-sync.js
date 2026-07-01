@@ -201,6 +201,7 @@
         ...(profile.preferences || {}),
         fullName: profile.display_name || profile.preferences?.fullName || '',
         displayName: profile.display_name || '',
+        email: profile.preferences?.email || session.user.email || '',
         text: profile.resume_text || '',
         portfolioUrl: window.ScopeSecurity.safeHttpUrl(profile.portfolio_urls?.[0] || profile.preferences?.portfolioUrl || '')
       } : null;
@@ -217,6 +218,7 @@
       updateIdentityWarnings();
       renderDashboard();
       setStatus('Supabase is the source of truth for this signed-in workspace.');
+      document.dispatchEvent(new CustomEvent('roledesk:cloud-ready'));
     } catch (error) {
       setStatus(error.message || 'Could not load cloud data.', true);
     }
@@ -266,6 +268,60 @@
   persist = function () { localPersist(); scheduleSync(); };
   saveProfile = function () { localSaveProfile(); scheduleSync(); };
   window.ScopeCloudSync = Object.freeze({ syncNow: () => syncNow() });
+
+  window.RoleDeskResumeCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    saveOriginal: async payload => {
+      if (!session?.user) return null;
+      const { rawText, text, ...facts } = payload.extractedData || {};
+      const { data, error } = await cloud.from('resumes').insert({
+        user_id: session.user.id,
+        file_name: window.ScopeSecurity.boundedText(payload.fileName, 255) || 'Imported resume',
+        mime_type: 'text/plain',
+        extracted_text: window.ScopeSecurity.boundedText(payload.originalText, 50000),
+        original_text: window.ScopeSecurity.boundedText(payload.originalText, 50000),
+        extracted_data: facts,
+        status: 'reviewed',
+        metadata: { source: 'profile-import', ai_used: false }
+      }).select('*').single();
+      if (error) throw error;
+      document.dispatchEvent(new CustomEvent('roledesk:cloud-ready'));
+      return data;
+    },
+    saveVersion: async payload => {
+      if (!session?.user) return null;
+      const { rawText, text, ...facts } = payload.extractedData || {};
+      const record = {
+        user_id: session.user.id,
+        file_name: window.ScopeSecurity.boundedText(payload.versionName, 255) || 'RoleDesk resume',
+        version_name: window.ScopeSecurity.boundedText(payload.versionName, 255) || 'RoleDesk resume',
+        mime_type: 'text/markdown',
+        extracted_text: window.ScopeSecurity.boundedText(payload.originalText, 50000),
+        original_text: window.ScopeSecurity.boundedText(payload.originalText, 50000),
+        extracted_data: facts,
+        ats_score: Number.isFinite(payload.atsScore) ? Math.max(0, Math.min(100, Math.round(payload.atsScore))) : null,
+        issues: payload.issues || {},
+        generated_text: window.ScopeSecurity.boundedText(payload.generatedText, 50000),
+        tone: payload.tone || 'Corporate',
+        target_role: window.ScopeSecurity.boundedText(payload.targetRole, 300) || null,
+        status: 'reviewed',
+        metadata: { generator: 'local-rule-based-v1', ai_used: false }
+      };
+      const { data, error } = await cloud.from('resumes').insert(record).select('*').single();
+      if (error) throw error;
+      return data;
+    },
+    listVersions: async () => {
+      if (!session?.user) return [];
+      const { data, error } = await cloud.from('resumes')
+        .select('id,version_name,original_text,extracted_text,extracted_data,ats_score,issues,generated_text,tone,target_role,created_at,updated_at')
+        .eq('user_id', session.user.id)
+        .not('version_name', 'is', null)
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   async function initializeSession(nextSession) {
     session = nextSession;
