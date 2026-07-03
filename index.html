@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="resume-builder.css?v=2" />
   <link rel="stylesheet" href="smart-engine.css?v=1" />
   <link rel="stylesheet" href="portal-center.css?v=1" />
+  <link rel="stylesheet" href="email-desk.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -200,7 +201,7 @@
             <label>One useful question<input id="questionInput" placeholder="e.g. Is copy already finalized?" /></label>
             <button class="button primary wide" id="generateProposal">Generate proposal</button>
           </div>
-          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft · <b id="proposalConfidence">Not generated</b></span><div class="smart-output-actions"><button class="text-button" id="proposalEdit">Edit</button><button class="text-button" id="proposalSave">Save</button><button class="text-button copy" data-copy="proposalOutput">Copy</button></div></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="identity-warning" id="proposalDataWarning" hidden></div><ul class="smart-warning-list" id="proposalTruthWarnings" hidden></ul><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
+          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft · <b id="proposalConfidence">Not generated</b></span><div class="smart-output-actions"><button class="text-button" id="proposalEdit">Edit</button><button class="text-button" id="proposalSave">Save</button><button class="text-button copy" data-copy="proposalOutput">Copy</button><button class="text-button" id="proposalToEmail">Open in Email Desk</button></div></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="identity-warning" id="proposalDataWarning" hidden></div><ul class="smart-warning-list" id="proposalTruthWarnings" hidden></ul><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
         </div>
         <div class="followup-section"><div class="section-heading"><div><span class="eyebrow">After the pitch</span><h3>Message kit</h3></div></div><div class="message-grid" id="messageGrid"></div></div>
       </section>
@@ -212,6 +213,13 @@
           <p>Prepare outreach from your dedicated work inbox. RoleDesk opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
         </div>
         <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>Email drafts stay editable and require your exact approval. No message is sent automatically.</span></div>
+        <section class="email-context-card">
+          <div class="section-heading"><div><span class="eyebrow">Communication context</span><h3>Selected opportunity</h3></div><span class="communication-badge" id="communicationBadge">Draft Prepared</span></div>
+          <div class="email-context-grid"><label>Opportunity<select id="emailOpportunity"></select></label><label>Recipient name<input id="emailRecipientName" placeholder="Leave blank if unknown" /></label><label>Company / client<input id="emailCompany" readonly /></label></div>
+          <div class="communication-grid"><label>Communication status<select id="communicationStatus"><option>Draft Prepared</option><option>Reviewed</option><option>Sent Manually</option><option>Reply Received</option><option>Follow-up Needed</option><option>No Response</option><option>Closed</option></select></label><label>Follow-up date<input id="emailFollowUpDate" type="date" /></label><label class="wide">Private notes<textarea id="emailCommunicationNotes" placeholder="Record context or next steps without inventing a reply."></textarea></label></div>
+          <div class="email-manual-actions"><button class="button secondary" id="saveCommunication">Save tracking</button><button class="button secondary" id="markEmailSent">Mark sent manually</button><button class="button secondary" id="markEmailReply">Mark reply received</button><button class="button secondary" id="markFollowUpNeeded">Schedule follow-up</button></div>
+          <p class="manual-verification">Manual statuses are user-reported. They do not prove Gmail delivery or a client reply.</p>
+        </section>
         <div class="email-layout">
           <aside class="mail-account-card">
             <div class="mail-mark">M</div>
@@ -228,6 +236,7 @@
             <div class="composer-top"><div><span class="eyebrow">New approved draft</span><h3>Client outreach</h3></div><button class="button secondary" id="useProposalEmail">Use Proposal Studio draft</button></div>
             <div class="identity-warning" id="emailIdentityWarning" hidden></div>
             <div class="smart-confidence" id="emailConfidence">Smart Draft confidence: not generated</div>
+            <ul class="smart-warning-list email-warning-panel" id="emailValidationWarnings" hidden></ul>
             <div class="email-fields">
               <label>From<input id="emailFrom" type="email" readonly /></label>
               <label>To<input id="emailTo" type="email" placeholder="client@company.com" autocomplete="off" /></label>
@@ -236,10 +245,13 @@
             </div>
             <label class="approval-check"><input id="approveEmail" type="checkbox" /><span><b>I approve this exact recipient, subject, and message.</b><small>Changing any field removes approval automatically.</small></span></label>
             <ul class="smart-warning-list" id="emailTruthWarnings" hidden></ul>
-            <div class="composer-actions"><button class="button secondary" id="emailEdit">Edit</button><button class="button secondary" id="emailSave">Save draft</button><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open approved draft in Gmail ↗</button></div>
-            <div class="notice">Opening Gmail creates a compose window—it does not send. For connector-based sending, ask Codex to send the reviewed draft and confirm at that moment.</div>
+            <div class="composer-actions"><button class="button secondary" id="emailEdit">Edit</button><button class="button secondary" id="emailSave">Save draft</button><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open reviewed draft in Gmail ↗</button></div>
+            <div class="notice">RoleDesk opens Gmail compose with your reviewed draft. You must send it yourself.</div>
+            <div class="email-privacy">Email drafts are private to your account. RoleDesk does not send emails automatically.</div>
           </section>
         </div>
+        <section class="email-followup-card"><div class="section-heading"><div><span class="eyebrow">Editable Smart Draft</span><h3>Follow-up preparation</h3></div><span class="communication-badge" id="followUpConfidence">Not generated</span></div><div class="followup-controls"><label>Follow-up type<select id="followUpType"><option>First follow-up</option><option>Polite reminder</option><option>Reply after interest</option><option>Negotiation follow-up</option><option>Thank-you after interview/call</option></select></label><button class="button primary" id="generateFollowUp">Generate follow-up</button></div><textarea id="followUpOutput" placeholder="Your editable follow-up draft will appear here."></textarea><ul class="smart-warning-list" id="followUpWarnings" hidden></ul><div class="followup-actions"><button class="button secondary" id="editFollowUp">Edit</button><button class="button secondary" id="copyFollowUp">Copy</button><button class="button secondary" id="saveFollowUp">Save follow-up draft</button></div></section>
+        <section class="email-history-card"><div class="section-heading"><div><span class="eyebrow">Private Supabase history</span><h3>Saved email drafts</h3></div></div><div class="email-history-list" id="savedEmailDrafts"><div class="smart-empty">Sign in to load saved email drafts.</div></div></section>
       </section>
 
       <section class="view" id="pricingView">
@@ -379,7 +391,8 @@
   <script src="resume-builder.js?v=3"></script>
   <script src="smart-engine.js?v=1"></script>
   <script src="portal-center.js?v=1"></script>
-  <script src="app.js?v=23"></script>
-  <script src="supabase-sync.js?v=19"></script>
+  <script src="email-desk.js?v=1"></script>
+  <script src="app.js?v=24"></script>
+  <script src="supabase-sync.js?v=20"></script>
 </body>
 </html>

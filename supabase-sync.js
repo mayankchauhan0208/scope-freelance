@@ -380,7 +380,16 @@
       subject: window.ScopeSecurity.boundedText(fields.subject, 1000),
       body: window.ScopeSecurity.boundedText(fields.body, 50000),
       destination: { recipient: window.ScopeSecurity.boundedText(fields.recipient, 500) },
-      content: { subject: window.ScopeSecurity.boundedText(fields.subject, 1000), body: window.ScopeSecurity.boundedText(fields.body, 50000) }
+      content: {
+        subject: window.ScopeSecurity.boundedText(fields.subject, 1000),
+        body: window.ScopeSecurity.boundedText(fields.body, 50000),
+        recipient_name: window.ScopeSecurity.boundedText(fields.recipientName, 300),
+        company: window.ScopeSecurity.boundedText(fields.company, 500),
+        local_opportunity_id: fields.opportunityRef || null,
+        warnings: Array.isArray(fields.warnings) ? fields.warnings.slice(0, 20) : [],
+        confidence_score: Number.isFinite(fields.confidenceScore) ? fields.confidenceScore : null,
+        mode: 'manual-gmail-compose'
+      }
     };
     const query = currentEmailDraftId
       ? cloud.from('drafts').update(payload).eq('id', currentEmailDraftId).select('*').single()
@@ -410,6 +419,7 @@
 
   window.ScopeCloudApproval = Object.freeze({
     isSignedIn: () => Boolean(session?.user),
+    beginEmailDraft: () => { currentEmailDraftId = null; },
     saveEmailDraft: queueEmailDraft,
     saveEmailDraftNow: flushEmailDraft,
     approveEmailDraft: async fields => {
@@ -432,10 +442,29 @@
       if (error) throw error;
       return data.approval_state === 'user_approved' && Boolean(data.content_hash) && data.recipient === fields.recipient && data.subject === fields.subject && data.body === fields.body;
     },
+    recordEmailEvent: async (eventType, metadata = {}) => {
+      if (!session?.user || !currentEmailDraftId) return null;
+      const { data, error } = await cloud.rpc('record_email_client_event', { p_draft_id: currentEmailDraftId, p_event_type: eventType, p_metadata: metadata });
+      if (error) throw error;
+      return data;
+    },
     logComposeOpened: async () => {
       if (!session?.user || !currentEmailDraftId) return null;
-      const { data, error } = await cloud.rpc('create_activity_log', { p_event_type: 'email.compose_opened', p_entity_type: 'draft', p_entity_id: currentEmailDraftId, p_metadata: { sent: false } });
+      const { data, error } = await cloud.rpc('record_email_client_event', { p_draft_id: currentEmailDraftId, p_event_type: 'email.compose_opened', p_metadata: { compose_opened: true } });
       if (error) throw error;
+      return data;
+    },
+    listEmailDrafts: async () => {
+      if (!session?.user) return [];
+      const { data, error } = await cloud.from('drafts').select('id,recipient,subject,body,content,approval_state,created_at,updated_at').eq('user_id', session.user.id).eq('kind','email').order('updated_at',{ ascending:false }).limit(30);
+      if (error) throw error;
+      return data || [];
+    },
+    loadEmailDraft: async id => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.from('drafts').select('id,recipient,subject,body,content,approval_state,created_at,updated_at').eq('user_id', session.user.id).eq('id',id).eq('kind','email').single();
+      if (error) throw error;
+      currentEmailDraftId = data.id;
       return data;
     }
   });

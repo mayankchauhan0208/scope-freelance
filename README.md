@@ -37,6 +37,7 @@ Apply migrations in order:
 1. `supabase/migrations/001_scope_v2.sql`
 2. `supabase/migrations/002_security_data_foundation.sql`
 3. `supabase/migrations/003_resume_profile_ats_builder.sql`
+4. `supabase/migrations/004_email_communication_tracking.sql`
 
 Migration 002 is additive and does not delete existing user data. It provides owner-isolated tables, beta access, append-only activity logs, approval protection, and these controlled RPCs:
 
@@ -46,6 +47,10 @@ Migration 002 is additive and does not delete existing user data. It provides ow
 Authenticated users cannot directly update approval columns. Editing important draft content automatically revokes approval.
 
 Migration 003 adds user-owned resume version fields for original text, extracted facts, ATS score, issues, generated text, tone, target role, and version name. Existing resume rows and table names remain unchanged.
+
+Migration 004 adds an owner-checked RPC for append-only, user-reported email activity. `email.marked_sent` and `email.reply_marked` explicitly store `provider_confirmed: false`; they are not proof of Gmail delivery or a real reply.
+
+Email Desk currently supports supervised manual Gmail compose, private Supabase draft history, manual communication statuses, follow-up dates, and editable follow-up drafts. Live Gmail OAuth, inbox reading, API draft creation, and reply monitoring are not implemented. See `docs/GMAIL_OAUTH_FUTURE.md`.
 
 ## Browser extension
 

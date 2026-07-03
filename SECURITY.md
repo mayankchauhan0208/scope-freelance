@@ -10,6 +10,8 @@ RoleDesk Smart Engine is local rule-based code. It makes no external AI requests
 
 Portal Center uses permitted public feeds, official guided links, and manual imports only. Restricted portals are not scraped or automated. Imported source/apply URLs must pass the shared HTTP/HTTPS validator, and no portal credentials or OAuth tokens are stored in browser-readable metadata.
 
+Email Desk opens a prefilled Gmail compose URL only after database-backed approval of the exact recipient, subject, and body. It never sends mail. Manual sent/reply statuses are labeled `user_reported` and `provider_confirmed: false`. Future Gmail OAuth tokens must remain server-side as described in `docs/GMAIL_OAUTH_FUTURE.md`.
+
 Frontend email checks are convenience validation only. They are not a security boundary.
 
 ## Beta access
