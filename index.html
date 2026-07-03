@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="cloud.css" />
   <link rel="stylesheet" href="resume-builder.css?v=2" />
   <link rel="stylesheet" href="smart-engine.css?v=1" />
+  <link rel="stylesheet" href="portal-center.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -25,6 +26,7 @@
       <nav aria-label="Primary navigation">
         <button class="nav-item active" data-view="discover"><span>⌁</span> Discover</button>
         <button class="nav-item" data-view="smart"><span>◉</span> Smart Search</button>
+        <button class="nav-item" data-view="portals"><span>⌘</span> Portal Center</button>
         <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
@@ -147,9 +149,25 @@
           <a id="smartLinkedIn" target="_blank" rel="noopener"><b>LinkedIn</b><span>Open focused jobs ↗</span></a>
           <a id="smartNaukri" target="_blank" rel="noopener"><b>Naukri</b><span>Open focused jobs ↗</span></a>
           <a id="smartUpwork" target="_blank" rel="noopener"><b>Upwork</b><span>Open focused projects ↗</span></a>
+          <a id="smartContra" target="_blank" rel="noopener"><b>Contra</b><span>Open opportunities ↗</span></a>
+          <a id="smartFiverr" target="_blank" rel="noopener"><b>Fiverr</b><span>Open official search ↗</span></a>
+          <a id="smartBehance" target="_blank" rel="noopener"><b>Behance</b><span>Open jobs ↗</span></a>
+          <a id="smartDribbble" target="_blank" rel="noopener"><b>Dribbble</b><span>Open jobs ↗</span></a>
           <button id="importOpportunityFromSmart"><b>Any URL</b><span>Import brief manually +</span></button>
         </div>
+        <p class="guided-search-note">Guided Search opens the official platform with your search terms. RoleDesk does not scrape or submit applications automatically.</p>
         <div class="smart-status" id="liveSearchStatus">Enter the work you want, or create your résumé profile first for automatic targeting.</div>
+        <div class="search-filter-bar" id="liveFilters">
+          <label>Source<select id="filterSource"><option value="all">All sources</option><option>Remotive</option><option>Arbeitnow</option><option>Manual Import</option></select></label>
+          <label>Work mode<select id="filterMode"><option value="all">Remote / hybrid / onsite</option><option value="remote">Remote</option><option value="onsite">Onsite / hybrid</option></select></label>
+          <label>Employment<select id="filterEmployment"><option value="all">All work types</option><option value="full-time">Full-time</option><option value="freelance">Freelance</option><option value="contract">Contract</option><option value="internship">Internship</option></select></label>
+          <label>Compensation<select id="filterCompensation"><option value="all">With or without</option><option value="present">Salary / budget present</option><option value="missing">Salary / budget missing</option></select></label>
+          <label>Location<input id="filterLocation" placeholder="City, country, worldwide" /></label>
+          <label>Freshness<select id="filterFreshness"><option value="all">Any date</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></label>
+          <label>Tracker status<select id="filterStatus"><option value="all">All statuses</option><option value="unsaved">Not saved</option><option value="saved">Saved</option><option value="drafted">Drafted</option><option value="skipped">Skipped</option></select></label>
+          <label>Sort<select id="liveSort"><option value="match">Best match</option><option value="newest">Newest</option><option value="source">Source</option><option value="compensation">Salary / budget</option><option value="remote">Remote first</option></select></label>
+        </div>
+        <div class="search-metrics" id="searchMetrics"><span><b id="metricFetched">0</b>Total fetched</span><span><b id="metricDuplicates">0</b>Duplicates removed</span><span><b id="metricReviewable">0</b>Reviewable</span><span><b id="metricHidden">0</b>Low relevance hidden</span></div>
         <div class="smart-results-layout">
           <section>
             <div class="section-heading"><div><span class="eyebrow">Review queue</span><h3>Real opportunities</h3></div><span class="muted" id="liveResultCount">Not searched</span></div>
@@ -157,6 +175,12 @@
           </section>
           <aside class="live-detail empty" id="liveDetail"><div class="smart-empty"><span>↗</span><h3>Select an opportunity</h3><p>Review the brief, fit, public email, application route, and prepared next steps.</p></div></aside>
         </div>
+      </section>
+
+      <section class="view" id="portalsView">
+        <div class="workspace-header portal-heading"><span class="eyebrow coral">Honest source connections</span><h2>Portal Center</h2><p>See exactly which sources are live, guided, or manual—without fake integrations or hidden automation.</p></div>
+        <div class="portal-overview"><div><strong>Use official routes, keep final control.</strong><p>No portal passwords, OAuth tokens, API keys, or automatic applications are stored here.</p></div><span id="portalSummary">Loading source registry…</span></div>
+        <div class="portal-grid" id="portalGrid"></div>
       </section>
 
       <section class="view" id="trackerView">
@@ -311,15 +335,20 @@
 
   <dialog id="opportunityDialog">
     <form method="dialog" id="opportunityForm">
-      <div class="dialog-head"><div><span class="eyebrow coral">Manual URL or brief</span><h2>Add opportunity</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <div class="dialog-head"><div><span class="eyebrow coral">Safe manual import</span><h2>Import Opportunity</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <p class="import-help">Paste public details you are allowed to use. RoleDesk validates URLs and ranks the description locally; it does not scrape the page.</p>
       <div class="form-row"><label>Project title<input name="title" required placeholder="Brand identity for climate startup" /></label><label>Platform<select name="platform"><option>Upwork</option><option>Fiverr</option><option>Freelancer</option><option>Contra</option><option>PeoplePerHour</option><option>Behance</option><option>Dribbble</option><option>LinkedIn</option><option>Direct company</option><option>Manual URL</option></select></label></div>
-      <div class="form-row"><label>Opportunity type<select name="type"><option>Freelance project</option><option>Contract role</option><option>Remote contract</option><option>Retainer client</option><option>One-time project</option><option>Long-term client opportunity</option><option>Agency outsourcing opportunity</option><option>Full-time job</option><option>Part-time job</option></select></label><label>Client / company<input name="client" required placeholder="Northstar Labs" /></label></div>
-      <div class="form-row"><label>Budget (USD equivalent)<input name="budget" type="number" min="0" required placeholder="1800" /></label><label>Client country<input name="country" placeholder="United States" /></label></div>
+      <div class="form-row"><label>Opportunity type<select name="type"><option>Freelance project</option><option>Contract role</option><option>Remote contract</option><option>Retainer client</option><option>One-time project</option><option>Long-term client opportunity</option><option>Agency outsourcing opportunity</option><option>Full-time job</option><option>Part-time job</option><option>Internship</option></select></label><label>Client / company<input name="client" required placeholder="Northstar Labs" /></label></div>
+      <div class="form-row"><label>Salary / budget (USD equivalent)<input name="budget" type="number" min="0" placeholder="1800" /></label><label>Location<input name="country" placeholder="United States or Remote" /></label></div>
+      <div class="form-row"><label>Work mode<select name="workMode"><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">Onsite</option><option value="unknown">Not stated</option></select></label><label>Public contact email<input name="publicEmail" type="email" placeholder="jobs@company.com" /></label></div>
       <label>Source URL<input name="url" type="url" placeholder="https://…" /></label>
+      <label>Official apply URL<input name="applyUrl" type="url" placeholder="https://company.com/careers/apply" /></label>
       <label>Project brief<textarea name="brief" required placeholder="Paste the project requirements, deliverables, and deadline…"></textarea></label>
+      <label>Notes<textarea name="notes" placeholder="Your private review notes…"></textarea></label>
       <div class="form-row"><label>Skill match<select name="skill"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label><label>Portfolio match<select name="portfolio"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label></div>
       <label class="check"><input type="checkbox" name="verified" /> Client payment/reputation is verified</label>
-      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & add</button></div>
+      <div class="import-result" id="importAnalysis" hidden></div>
+      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & save to Tracker</button></div>
     </form>
   </dialog>
   <dialog id="accountDialog" class="account-dialog">
@@ -347,9 +376,10 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js?v=22"></script>
   <script src="resume-builder.js?v=3"></script>
   <script src="smart-engine.js?v=1"></script>
+  <script src="portal-center.js?v=1"></script>
+  <script src="app.js?v=23"></script>
   <script src="supabase-sync.js?v=19"></script>
 </body>
 </html>

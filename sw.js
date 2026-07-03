@@ -1,7 +1,7 @@
 const CACHE_PREFIX='scope-static-';
-const CACHE_VERSION='v16';
+const CACHE_VERSION='v17';
 const CACHE=`${CACHE_PREFIX}${CACHE_VERSION}`;
-const ASSETS=['./','./index.html','./styles.css','./cloud.css','./resume-builder.css','./smart-engine.css','./security-utils.js','./app.js','./resume-builder.js','./smart-engine.js','./supabase.min.js','./supabase-config.js','./supabase-sync.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
+const ASSETS=['./','./index.html','./styles.css','./cloud.css','./resume-builder.css','./smart-engine.css','./portal-center.css','./security-utils.js','./app.js','./resume-builder.js','./smart-engine.js','./portal-center.js','./supabase.min.js','./supabase-config.js','./supabase-sync.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
 const APPROVED_URLS=new Set(ASSETS.map(asset=>new URL(asset,self.location.href).href));
 
 self.addEventListener('install',event=>event.waitUntil(

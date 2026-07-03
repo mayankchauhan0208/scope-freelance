@@ -72,6 +72,8 @@
     opportunities = structuredClone(seed);
     resumeProfile = null;
     liveJobs = [];
+    allLiveJobs = [];
+    liveSearchStats = { fetched:0, duplicates:0, reviewable:0, hidden:0 };
     selectedLiveJobId = null;
     for (const selector of ['#workEmail','#emailFrom','#emailTo','#emailSubject','#emailBody','#proposalOutput','#resumeText','#liveSearchQuery']) {
       const field = document.querySelector(selector);
@@ -82,6 +84,7 @@
     renderProfile();
     renderDashboard();
     renderLiveJobs();
+    updateSearchMetrics();
   }
 
   function showLegacyRecovery() {

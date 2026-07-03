@@ -7,12 +7,15 @@ RoleDesk is a private career command center for ATS-friendly resumes, job search
 ## Current release state
 
 - Remotive and Arbeitnow provide permitted live job data.
-- LinkedIn, Naukri, Upwork, and restricted platforms use guided links unless approved API access is available.
+- Portal Center labels Remotive and Arbeitnow as live public APIs; LinkedIn, Naukri, Indeed, Upwork, Contra, Fiverr, Freelancer, Behance, and Dribbble remain guided official links.
+- Company careers, job URLs, client briefs, and freelance leads use manual import with URL validation and local Smart Engine ranking.
 - Resume parsing, profile completeness, rule-based ATS scoring, ATS-friendly resume generation, opportunity ranking, truth warnings, and editable proposal/email templates run locally through RoleDesk Smart Engine.
 - Supabase provides beta access, authentication, per-user data, RLS, cloud sync, and database-backed draft approval.
 - OpenAI-backed drafting, Gmail monitoring/sending, automated applications, and PDF/DOCX resume export are not implemented.
 
 Smart Draft Mode is deterministic and template-based. It does not call an external model, requires no AI key, and keeps every generated output editable and subject to manual review.
+
+Portal status currently comes from a static registry. The existing `portal_connections` table is reserved for future backend-managed connection metadata; the browser does not write tokens, passwords, API keys, or OAuth secrets to it.
 
 ## Safety contract
 
