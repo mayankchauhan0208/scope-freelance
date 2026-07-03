@@ -12,6 +12,8 @@ Portal Center uses permitted public feeds, official guided links, and manual imp
 
 Email Desk opens a prefilled Gmail compose URL only after database-backed approval of the exact recipient, subject, and body. It never sends mail. Manual sent/reply statuses are labeled `user_reported` and `provider_confirmed: false`. Future Gmail OAuth tokens must remain server-side as described in `docs/GMAIL_OAUTH_FUTURE.md`.
 
+Tracker follow-ups are in-app records only. Migration 005 adds user-scoped follow-up fields and an owner-checked RPC with a narrow event allowlist. It cannot create authoritative `email.sent`, application submission, payment, or approval events.
+
 Frontend email checks are convenience validation only. They are not a security boundary.
 
 ## Beta access
@@ -50,10 +52,11 @@ Activation deletes obsolete caches whose names start with `scope-`, while preser
 - Only the owner can approve or revoke a draft.
 - Recipient, subject, body, destination, content or opportunity changes automatically revoke approval and clear its hash.
 - Approval creates a SHA-256 content hash and activity-log record.
+- `approve_draft` uses `extensions.digest(...)`; the extension schema is explicit and does not depend on a mutable caller search path.
 - Frontend users cannot directly update approval columns.
 - Activity logs are append-only for authenticated frontend users: owner read access only, with insertion through the controlled RPC.
 
-These guarantees apply after migration 002 has been successfully applied.
+These guarantees apply after migrations 002–005 have been successfully applied where relevant.
 
 ## URLs and rendered content
 
@@ -82,6 +85,7 @@ Server-side integration credentials must use Supabase secrets or another managed
 ## Not implemented
 
 - OpenAI integration
+- External AI gateway
 - Gmail OAuth, monitoring or sending
 - Automated job applications
 - Automated form submission

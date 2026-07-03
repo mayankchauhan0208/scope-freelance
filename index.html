@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="portal-center.css?v=1" />
   <link rel="stylesheet" href="email-desk.css?v=1" />
   <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
+  <link rel="stylesheet" href="mvp-polish.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -82,6 +83,13 @@
             <span class="trend">↗ Build stability</span>
           </article>
         </div>
+
+        <section class="setup-center" aria-labelledby="setupTitle">
+          <div class="setup-center-head"><div><span class="eyebrow coral">MVP setup</span><h3 id="setupTitle">Your RoleDesk launchpad</h3><p>Complete what helps you now. Nothing here sends, applies, or publishes on your behalf.</p></div><div class="setup-progress"><strong id="setupProgressValue">0%</strong><span>ready</span></div></div>
+          <div class="setup-progress-track" aria-hidden="true"><i id="setupProgressBar"></i></div>
+          <div class="mvp-setup-list" id="mvpSetupList"></div>
+          <div class="setup-next"><span id="setupNextText">Start with a private beta account.</span><button class="button primary" id="setupNextAction">Continue setup</button></div>
+        </section>
 
         <div class="toolbar">
           <div class="filter-group" id="typeFilters">
@@ -325,7 +333,7 @@
         <div class="workspace-header profile-heading">
           <span class="eyebrow coral">Your search intelligence</span>
           <h2>Let your résumé do the filtering.</h2>
-          <p>Upload once. RoleDesk turns your experience into targeted job and client searches, while keeping the file in this browser.</p>
+          <p>Your file is parsed in this browser. When signed in, only your reviewed profile and saved resume versions sync to your RLS-protected workspace.</p>
         </div>
 
         <div class="profile-grid">
@@ -361,6 +369,7 @@
           <div class="search-safety"><strong>How searching works:</strong> RoleDesk creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
         </section>
       </section>
+      <footer class="product-footer"><b>RoleDesk</b><span>Build your resume. Find better roles. Apply with confidence.</span><small>Draft-first and approval-first: RoleDesk never sends, applies, submits, bids, signs, or contacts anyone for you.</small></footer>
     </main>
   </div>
 
@@ -412,7 +421,7 @@
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=25"></script>
-  <script src="supabase-sync.js?v=21"></script>
+  <script src="app.js?v=26"></script>
+  <script src="supabase-sync.js?v=22"></script>
 </body>
 </html>

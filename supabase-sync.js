@@ -104,6 +104,7 @@
     accountButton.querySelector('span').textContent = connected ? 'Private cloud connected' : 'Connect private cloud';
     if (connected) document.querySelector('#signedInEmail').textContent = session.user.email;
     showLegacyRecovery();
+    document.dispatchEvent(new CustomEvent('roledesk:auth-changed', { detail: { connected } }));
   }
 
   function requireEmail() {
