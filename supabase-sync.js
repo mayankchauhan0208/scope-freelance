@@ -117,6 +117,7 @@
 
   function cloudOpportunity(item, userId) {
     const publicUrl = window.ScopeSecurity.safeHttpUrl(item.url);
+    const followup = item.followup || {};
     return {
       user_id: userId,
       source: item.platform || 'RoleDesk',
@@ -126,8 +127,17 @@
       company: window.ScopeSecurity.boundedText(item.client, 500) || null,
       description: window.ScopeSecurity.boundedText(item.brief, 50000) || null,
       contact_email: item.contactEmail || null,
-      status: (item.status || 'Saved').toLowerCase().replaceAll(' ', '_'),
+      status: (item.status || 'Saved').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''),
       match_score: Number.isFinite(item.skill) ? Math.max(0, Math.min(100, Math.round(item.skill))) : null,
+      next_followup_at: followup.nextAt || item.communication?.followUpDate || null,
+      followup_reason: window.ScopeSecurity.boundedText(followup.reason, 500) || null,
+      followup_status: ['scheduled','completed','snoozed'].includes(followup.status) ? followup.status : null,
+      last_contacted_at: item.lastContactedAt || null,
+      reply_received_at: item.replyReceivedAt || null,
+      followup_notes: window.ScopeSecurity.boundedText(followup.notes || item.communication?.notes, 5000) || null,
+      communication_status: item.communication?.status ? item.communication.status.toLowerCase().replaceAll(' ', '_').replace('follow-up','follow_up') : null,
+      pipeline_value: window.RoleDeskTracker?.amount(item) || null,
+      currency: window.RoleDeskTracker?.amount(item) ? window.RoleDeskTracker.currency(item) : null,
       analysis: { scope_record: { ...item, url: publicUrl }, synced_from: 'scope-web' },
       updated_at: new Date().toISOString()
     };
@@ -144,7 +154,13 @@
       url: window.ScopeSecurity.safeHttpUrl(saved.url || row.source_url),
       platform: saved.platform || row.source,
       status: saved.status || 'Saved',
-      skill: Number.isFinite(saved.skill) ? saved.skill : row.match_score || 60
+      skill: Number.isFinite(saved.skill) ? saved.skill : row.match_score || 60,
+      pipelineValue: saved.pipelineValue || row.pipeline_value || saved.budget || 0,
+      currency: saved.currency || row.currency || 'USD',
+      lastContactedAt: saved.lastContactedAt || row.last_contacted_at || '',
+      replyReceivedAt: saved.replyReceivedAt || row.reply_received_at || '',
+      followup: saved.followup || { nextAt:row.next_followup_at || '', reason:row.followup_reason || '', status:row.followup_status || '', notes:row.followup_notes || '' },
+      communication: saved.communication || (row.communication_status ? { status:row.communication_status.split('_').map(word=>word[0].toUpperCase()+word.slice(1)).join(' '), followUpDate:String(row.next_followup_at||'').slice(0,10), notes:row.followup_notes || '', verification:'user_reported', providerConfirmed:false } : undefined)
     };
   }
 
@@ -271,6 +287,18 @@
   persist = function () { localPersist(); scheduleSync(); };
   saveProfile = function () { localSaveProfile(); scheduleSync(); };
   window.ScopeCloudSync = Object.freeze({ syncNow: () => syncNow() });
+
+  window.ScopeTrackerCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    recordEvent: async (opportunity, eventType, metadata = {}) => {
+      if (!session?.user || !opportunity) return null;
+      await syncNow({ silent: true });
+      const sourceUrl = window.ScopeSecurity.safeHttpUrl(opportunity.url) || `scope://local/${opportunity.id}`;
+      const { data, error } = await cloud.rpc('record_tracker_client_event', { p_source_url: sourceUrl, p_event_type: eventType, p_metadata: metadata });
+      if (error) throw error;
+      return data;
+    }
+  });
 
   window.RoleDeskResumeCloud = Object.freeze({
     isSignedIn: () => Boolean(session?.user),

@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="smart-engine.css?v=1" />
   <link rel="stylesheet" href="portal-center.css?v=1" />
   <link rel="stylesheet" href="email-desk.css?v=1" />
+  <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -185,8 +186,26 @@
       </section>
 
       <section class="view" id="trackerView">
-        <div class="section-heading"><div><span class="eyebrow">From saved to paid</span><h2>Application tracker</h2></div><button class="button secondary" id="exportCsv">Export CSV</button></div>
-        <div class="kanban" id="kanbanBoard"></div>
+        <div class="tracker-heading"><div><span class="eyebrow coral">From saved to won</span><h2>Pipeline command center</h2><p>See what needs attention next. Every sent, reply, and payment status is manually confirmed by you.</p></div><div class="tracker-heading-actions"><button class="button secondary" id="exportCsv">Export CSV</button></div></div>
+        <div class="tracker-analytics" id="trackerAnalytics"></div>
+        <div class="conversion-strip" id="conversionMetrics"></div>
+        <div class="pipeline-value-panel" id="pipelineValuePanel"></div>
+        <div class="tracker-toolbar">
+          <div class="tracker-view-toggle" role="group" aria-label="Tracker view"><button class="active" data-tracker-view="kanban">Kanban</button><button data-tracker-view="list">List</button><button data-tracker-view="table">Compact</button></div>
+          <div class="tracker-filters">
+            <select id="trackerStatusFilter" aria-label="Filter status"><option value="all">All statuses</option></select>
+            <select id="trackerSourceFilter" aria-label="Filter source"><option value="all">All sources</option></select>
+            <select id="trackerTypeFilter" aria-label="Filter opportunity type"><option value="all">All types</option></select>
+            <select id="trackerFollowupFilter" aria-label="Filter follow-ups"><option value="all">All follow-ups</option><option value="due">Due now</option><option value="overdue">Overdue</option></select>
+            <select id="trackerCommunicationFilter" aria-label="Filter communication"><option value="all">All communication</option></select>
+            <select id="trackerScoreFilter" aria-label="Filter match score"><option value="0">Any match</option><option value="50">50%+</option><option value="70">70%+</option><option value="85">85%+</option></select>
+            <select id="trackerBudgetFilter" aria-label="Filter budget"><option value="all">Any budget</option><option value="present">Budget present</option><option value="missing">Budget missing</option></select>
+            <select id="trackerLocationFilter" aria-label="Filter location"><option value="all">Any location</option><option value="remote">Remote</option><option value="india">India</option><option value="international">International</option></select>
+            <select id="trackerSavedFilter" aria-label="Filter saved date"><option value="all">Any saved date</option><option value="7">Saved in 7 days</option><option value="30">Saved in 30 days</option></select>
+            <select id="trackerSort" aria-label="Sort tracker"><option value="updated">Latest updated</option><option value="score">Highest match</option><option value="followup">Follow-up due soon</option><option value="overdue">Overdue first</option><option value="source">Source</option><option value="status">Status</option><option value="budget">Budget</option></select>
+          </div>
+        </div>
+        <div class="tracker-layout"><div id="trackerResults"><div class="kanban" id="kanbanBoard"></div></div><aside class="tracker-detail empty" id="trackerDetail"><div><span>◎</span><h3>Select an opportunity</h3><p>Review its status, follow-up, notes, and activity timeline.</p></div></aside></div>
       </section>
 
       <section class="view" id="studioView">
@@ -392,7 +411,8 @@
   <script src="smart-engine.js?v=1"></script>
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
-  <script src="app.js?v=24"></script>
-  <script src="supabase-sync.js?v=20"></script>
+  <script src="tracker-engine.js?v=1"></script>
+  <script src="app.js?v=25"></script>
+  <script src="supabase-sync.js?v=21"></script>
 </body>
 </html>
