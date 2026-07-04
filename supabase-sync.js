@@ -44,7 +44,12 @@
 
   function friendlyAuthError(error, fallback) {
     const message = String(error?.message || error || '');
-    return /refresh token|jwt|session.*expired|token.*expired/i.test(message) ? 'Your session expired. Please sign in again.' : fallback;
+    if (/refresh token|jwt|session.*expired|token.*expired/i.test(message)) return 'Your session expired. Please sign in again.';
+    if (/invalid login|invalid credentials|email.*password/i.test(message)) return 'Email or password is incorrect. Try again.';
+    if (/email not confirmed/i.test(message)) return 'Confirm your email before signing in.';
+    if (/rate limit|too many requests/i.test(message)) return 'Too many attempts. Wait a moment and try again.';
+    if (/network|fetch|timeout|connection/i.test(message)) return 'Unable to connect right now. Try again.';
+    return fallback;
   }
 
   function safeParse(value, fallback) {
@@ -294,7 +299,7 @@
       await loadCloudCanonical();
       toast('Legacy browser data imported');
     } catch (error) {
-      setStatus(error.message || 'Legacy import failed.', true);
+      setStatus(friendlyAuthError(error, 'Unable to import legacy browser data right now. Try again.'), true);
     }
   }
 
@@ -470,7 +475,7 @@
     emailDraftTimer = setTimeout(() => {
       const queued = pendingEmailDraft;
       pendingEmailDraft = null;
-      writeEmailDraft(queued).catch(error => setStatus(error.message, true));
+      writeEmailDraft(queued).catch(error => setStatus(friendlyAuthError(error, 'Draft saved locally. Sign in to sync.'), true));
     }, 450);
     return Promise.resolve(true);
   }
@@ -541,7 +546,10 @@
     setStatus('Requesting beta account…');
     const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
     password.value = '';
-    if (error) return setStatus(error.message.includes('Beta access') ? 'This email has not been invited to the beta.' : error.message, true);
+    if (error) {
+      const betaBlocked = String(error?.message || '').includes('Beta access');
+      return setStatus(betaBlocked ? 'This email has not been invited to the beta.' : friendlyAuthError(error, 'Unable to create the account right now. Try again.'), true);
+    }
     setStatus('Account created. Open the confirmation email, then return and sign in.');
   });
 
@@ -552,7 +560,7 @@
     setStatus('Signing in…');
     const { data, error } = await cloud.auth.signInWithPassword({ email, password: password.value });
     password.value = '';
-    if (error) return setStatus(error.message, true);
+    if (error) return setStatus(friendlyAuthError(error, 'Unable to sign in right now. Try again.'), true);
     await initializeSession(data.session);
   });
 
@@ -560,14 +568,14 @@
     const email = requireEmail();
     if (!email) return;
     const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
-    setStatus(error ? error.message : 'Password reset email requested. Check your inbox.', Boolean(error));
+    setStatus(error ? friendlyAuthError(error, 'Unable to request a password reset right now. Try again.') : 'Password reset email requested. Check your inbox.', Boolean(error));
   });
 
   document.querySelector('#updateRecoveredPassword').addEventListener('click', async () => {
     const nextPassword = document.querySelector('#recoveryPassword').value;
     if (nextPassword.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
     const { error } = await cloud.auth.updateUser({ password: nextPassword });
-    if (error) return setStatus(error.message, true);
+    if (error) return setStatus(friendlyAuthError(error, 'Unable to update the password right now. Request a new reset link.'), true);
     document.querySelector('#recoveryPassword').value = '';
     passwordRecovery.hidden = true;
     setStatus('Password updated.');

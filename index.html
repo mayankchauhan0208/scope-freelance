@@ -114,7 +114,7 @@
           <div class="setup-progress-track" aria-hidden="true"><i id="setupProgressBar"></i></div>
           <div class="mvp-setup-list" id="mvpSetupList"></div>
           <div class="setup-next"><span id="setupNextText">Start with a private beta account.</span><button class="button primary" id="setupNextAction">Continue setup</button></div>
-          <details class="first-week-checklist"><summary>First week checklist for Mayank</summary><ol><li>Sign in</li><li>Add or paste your resume</li><li>Confirm name and contact details</li><li>Generate an ATS resume</li><li>Search Graphic Designer, Visual Designer, and Brand Designer roles</li><li>Save 3–5 useful opportunities</li><li>Generate and review drafts</li><li>Track follow-ups</li><li>Submit feedback for issues</li><li>Invite 2–5 beta users</li></ol></details>
+          <details class="first-week-checklist"><summary>Your first-week checklist</summary><ol><li>Sign in</li><li>Add or paste your resume</li><li>Confirm name and contact details</li><li>Generate an ATS resume</li><li>Search roles supported by your profile</li><li>Save 3–5 useful opportunities</li><li>Generate and review drafts</li><li>Track follow-ups</li><li>Submit feedback for issues</li></ol></details>
         </section>
 
         <div class="toolbar">
@@ -128,7 +128,6 @@
           <select id="sortSelect" aria-label="Sort opportunities">
             <option value="rank">Best match first</option>
             <option value="budget">Highest budget</option>
-            <option value="chance">Winning chance</option>
             <option value="risk">Lowest risk</option>
           </select>
         </div>
@@ -154,7 +153,7 @@
             <div class="opportunity-list" id="opportunityList"></div>
           </div>
           <aside class="detail-panel empty" id="detailPanel">
-            <div class="empty-state"><span>↗</span><h3>Start with one useful opportunity</h3><p>Select a demo item, run Smart Search, or add a public opportunity manually to review fit and risks.</p></div>
+            <div class="empty-state"><span>↗</span><h3>No opportunity selected</h3><p>Run Smart Search or import a public opportunity, then select it to review fit, risks, and the next step.</p></div>
           </aside>
         </div>
       </section>
@@ -416,7 +415,7 @@
         </section>
         <section class="admin-card">
           <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewed</option><option value="planned">Planned</option><option value="fixed">Fixed</option><option value="archived">Archived</option></select></div></div>
-          <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty">No feedback loaded.</div></div>
+          <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty"><h3>No feedback loaded</h3><p>Select Refresh to check for beta feedback.</p></div></div>
         </section>
         <div class="admin-two-column">
           <section class="admin-card"><span class="eyebrow">Launch Notes</span><h3>Safe operations</h3><ul><li>Add or deactivate beta access here; changes are enforced by RPC and RLS.</li><li>Review feedback without opening private resumes or application data.</li><li>Confirm password redirect settings in <a href="docs/DEPLOYMENT.md" target="_blank" rel="noopener">deployment notes</a>.</li><li>Rollback by reverting the release commit; preserve database rows.</li></ul></section>

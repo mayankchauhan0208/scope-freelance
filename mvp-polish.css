@@ -10,3 +10,19 @@
 @media(max-width:900px){.landing-hero,.landing-safety{grid-template-columns:1fr}.landing-features{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.landing-nav,.landing-main{padding-left:16px;padding-right:16px}.landing-hero>div,.landing-hero>aside{padding:26px}.landing-hero h1{font-size:42px}.landing-steps,.landing-features{grid-template-columns:1fr}.landing-section{padding-top:56px}.landing-beta-note{align-items:flex-start;flex-direction:column}.landing-beta-note .button{margin-left:0}.first-week-checklist ol{columns:1}}
 .dashboard-empty-state,.demo-mode-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:14px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--white)}.dashboard-empty-state[hidden],.demo-mode-banner[hidden]{display:none}.dashboard-empty-state h3{margin:4px 0}.dashboard-empty-state p,.demo-mode-banner span{margin:0;color:var(--muted);font-size:11px}.dashboard-empty-state>div:last-child{display:flex;gap:8px;flex-wrap:wrap}.demo-mode-banner{border-color:#e7b8aa;background:#fff0ea}.demo-mode-banner div{display:grid;gap:3px}.demo-mode-banner strong,.demo-tag{color:#9b351f}.demo-record{border-color:#e7b8aa}.mini-card #pipelineValue,.mini-card #retainerCount{font-size:21px;line-height:1.15}.spark-bars i{position:relative;min-height:18px}.spark-bars i span{position:absolute;top:-15px;left:0;font-size:8px;color:#ddd}.chance-block{display:none}#pipelineChart[hidden]{display:none}
 @media(max-width:760px){.dashboard-empty-state,.demo-mode-banner{align-items:flex-start;flex-direction:column}#loadDemoData{display:none}}
+@media(max-width:760px){
+  .button,.chip,.tracker-view-toggle button{min-height:44px}
+  .top-actions,.profile-actions,.dialog-actions,.section-heading,.output-top{align-items:stretch;flex-wrap:wrap}
+  .top-actions>*{min-width:0}.search{width:100%}
+  .coverage-card,.career-directory,.email-context-card,.email-followup-card,.email-history-card,.email-composer,.mail-account-card,.admin-card{padding:15px}
+  .coverage-cta-row .button,.packet-actions .button,.profile-actions .button,.dialog-actions .button{width:100%}
+  .coverage-analytics{grid-template-columns:1fr}.career-grid{max-height:none}
+  .tracker-view-toggle{max-width:100%;overflow-x:auto}.tracker-view-toggle button{white-space:nowrap}
+  .tracker-filters{display:grid;grid-template-columns:1fr 1fr;width:100%}.tracker-filters select{max-width:none;width:100%}
+  .kanban{display:flex;overflow-x:auto;scroll-snap-type:x proximity}.kanban-column{flex:0 0 min(82vw,300px);scroll-snap-align:start;min-height:360px}
+  .admin-filters{width:100%;flex-wrap:wrap}.admin-filters select{flex:1 1 160px;min-width:0}
+  .admin-table input{min-width:110px}.feedback-dialog form{padding:16px}
+  .landing-footer,.product-footer{flex-wrap:wrap}.toast{right:12px;bottom:68px;max-width:calc(100vw - 24px)}
+  .opp-main,.tracker-list-card>div,.packet-section,.admin-feedback-item{min-width:0;overflow-wrap:anywhere}
+}
+@media(max-width:430px){.tracker-filters{grid-template-columns:1fr}.message-grid{grid-template-columns:1fr}.landing-actions{align-items:stretch;flex-direction:column}.landing-actions .button{width:100%}}

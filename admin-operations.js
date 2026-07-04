@@ -59,7 +59,7 @@
     feedbackList.innerHTML = filtered.length ? filtered.map(item => {
       const originalIndex = feedback.findIndex(entry => entry.id === item.id);
       return `<article class="admin-feedback-item"><div class="admin-feedback-head"><div><span class="tag">${escapeHtml(item.feedback_type)}</span><strong>${escapeHtml(item.page || 'Unknown page')}</strong></div><time>${escapeHtml(displayDate(item.created_at))}</time></div><p>${escapeHtml(item.message)}</p><small>${escapeHtml(item.email || 'No email supplied')}</small><div class="admin-feedback-action"><select data-feedback-status="${originalIndex}" aria-label="Feedback status"><option value="new" ${item.status === 'new' ? 'selected' : ''}>New</option><option value="reviewed" ${item.status === 'reviewed' ? 'selected' : ''}>Reviewed</option><option value="planned" ${item.status === 'planned' ? 'selected' : ''}>Planned</option><option value="fixed" ${item.status === 'fixed' ? 'selected' : ''}>Fixed</option><option value="archived" ${item.status === 'archived' ? 'selected' : ''}>Archived</option></select><button class="button secondary" data-feedback-save="${originalIndex}" type="button">Update</button></div></article>`;
-    }).join('') : '<div class="smart-empty">No feedback matches these filters.</div>';
+    }).join('') : `<div class="smart-empty"><h3>${feedback.length ? 'No feedback matches these filters' : 'No beta feedback yet'}</h3><p>${feedback.length ? 'Clear a filter to see other feedback.' : 'Ask beta users to select Send beta feedback, then refresh this page.'}</p></div>`;
     feedbackList.querySelectorAll('[data-feedback-save]').forEach(button => button.addEventListener('click', () => updateFeedback(Number(button.dataset.feedbackSave))));
   }
 
