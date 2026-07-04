@@ -3,33 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Scope — a private freelance opportunity command center for designers." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://mnvcgtjbdywrenmnktem.supabase.co https://remotive.com https://www.arbeitnow.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self' https://mail.google.com; upgrade-insecure-requests" />
+  <meta name="description" content="RoleDesk helps users build ATS-friendly resumes, discover jobs and freelance opportunities, draft applications, and track every career conversation with full approval control." />
   <meta name="theme-color" content="#171816" />
-  <title>Scope — Freelance Opportunity Intelligence</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="scope-icon.svg" type="image/svg+xml" />
+  <title>RoleDesk — Resume, Job Search &amp; Application Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest?v=2" />
+  <link rel="icon" href="scope-icon.svg?v=2" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="cloud.css" />
+  <link rel="stylesheet" href="resume-builder.css?v=2" />
+  <link rel="stylesheet" href="smart-engine.css?v=1" />
+  <link rel="stylesheet" href="portal-center.css?v=1" />
+  <link rel="stylesheet" href="email-desk.css?v=1" />
+  <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
+  <link rel="stylesheet" href="mvp-polish.css?v=1" />
+  <script src="security-utils.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="#" aria-label="Scope home"><span class="brand-mark">S</span><span>scope</span></a>
+      <a class="brand" href="#" aria-label="RoleDesk home"><span class="brand-mark">RD</span><span>RoleDesk</span></a>
       <nav aria-label="Primary navigation">
         <button class="nav-item active" data-view="discover"><span>⌁</span> Discover</button>
+        <button class="nav-item" data-view="smart"><span>◉</span> Smart Search</button>
+        <button class="nav-item" data-view="portals"><span>⌘</span> Portal Center</button>
         <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
         <button class="nav-item" data-view="pricing"><span>₹</span> Pricing Lab</button>
+        <button class="nav-item" data-view="ats"><span>▤</span> ATS Resume Builder</button>
         <button class="nav-item" data-view="profile"><span>◎</span> My Profile</button>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="guardrail-card">
         <span class="eyebrow">Safety mode</span>
         <strong>Approval required</strong>
-        <p>Scope never applies, accepts work, or contacts clients for you.</p>
+        <p>RoleDesk never applies, sends, submits, bids, signs, accepts work, or contacts anyone without your explicit approval.</p>
         <span class="status-pill safe">● Active</span>
       </div>
       <button class="nav-item" id="resetData"><span>↻</span> Reset demo data</button>
@@ -43,6 +55,7 @@
         </div>
         <div class="top-actions">
           <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search projects, skills, clients…" /></label>
+          <button class="button cloud-button" id="cloudAccount" type="button"><i></i><span>Connect private cloud</span></button>
           <button class="button primary" id="addOpportunity">+ Add opportunity</button>
         </div>
       </header>
@@ -53,7 +66,7 @@
             <div>
               <span class="eyebrow coral">Opportunity radar</span>
               <h2><span id="strongMatchCount">0</span> strong matches<br>worth your attention.</h2>
-              <p>Ranked by fit, earning potential, client trust, and the odds of a healthy project.</p>
+              <p>Build your resume. Find better roles. Apply with confidence.</p>
             </div>
             <div class="hero-score"><small>Best match</small><strong id="bestScore">—</strong><span>/100</span></div>
           </article>
@@ -70,6 +83,13 @@
             <span class="trend">↗ Build stability</span>
           </article>
         </div>
+
+        <section class="setup-center" aria-labelledby="setupTitle">
+          <div class="setup-center-head"><div><span class="eyebrow coral">MVP setup</span><h3 id="setupTitle">Your RoleDesk launchpad</h3><p>Complete what helps you now. Nothing here sends, applies, or publishes on your behalf.</p></div><div class="setup-progress"><strong id="setupProgressValue">0%</strong><span>ready</span></div></div>
+          <div class="setup-progress-track" aria-hidden="true"><i id="setupProgressBar"></i></div>
+          <div class="mvp-setup-list" id="mvpSetupList"></div>
+          <div class="setup-next"><span id="setupNextText">Start with a private beta account.</span><button class="button primary" id="setupNextAction">Continue setup</button></div>
+        </section>
 
         <div class="toolbar">
           <div class="filter-group" id="typeFilters">
@@ -113,22 +133,102 @@
         </div>
       </section>
 
+      <section class="view" id="smartView">
+        <div class="workspace-header smart-heading">
+          <span class="eyebrow coral">Smart Draft Mode — Free local intelligence</span>
+          <h2>Search broadly. Decide carefully.</h2>
+          <p>RoleDesk retrieves permitted live listings, ranks the full description against your résumé, finds public contact details, and prepares every next step as a draft.</p>
+        </div>
+        <div class="smart-mode-banner"><b>RoleDesk is using Smart Draft Mode.</b><span>It works locally without paid AI and keeps every output editable.</span></div>
+        <section class="smart-console">
+          <div class="smart-controls">
+            <label>Search description<input id="liveSearchQuery" placeholder="e.g. brand identity, AI creative advertising, pitch deck" /></label>
+            <label>Opportunity type<select id="liveSearchType"><option value="all">Jobs + freelance</option><option value="design">Design roles</option><option value="marketing">Marketing creative</option><option value="product">Product / UI/UX</option></select></label>
+            <label>Minimum match<select id="liveMinScore"><option value="0">Show all</option><option value="50" selected>50+ relevant</option><option value="70">70+ strong</option><option value="85">85+ exceptional</option></select></label>
+            <button class="button primary" id="runLiveSearch">Search real opportunities</button>
+          </div>
+          <div class="source-health">
+            <span><i class="ready"></i><b>Remotive</b> Live API</span>
+            <span><i class="ready"></i><b>Arbeitnow</b> Live API</span>
+            <span><i class="guided"></i><b>LinkedIn</b> Guided search</span>
+            <span><i class="guided"></i><b>Naukri</b> Guided search</span>
+            <span><i class="guided"></i><b>Upwork</b> Guided search</span>
+          </div>
+        </section>
+        <div class="smart-platforms">
+          <a id="smartLinkedIn" target="_blank" rel="noopener"><b>LinkedIn</b><span>Open focused jobs ↗</span></a>
+          <a id="smartNaukri" target="_blank" rel="noopener"><b>Naukri</b><span>Open focused jobs ↗</span></a>
+          <a id="smartUpwork" target="_blank" rel="noopener"><b>Upwork</b><span>Open focused projects ↗</span></a>
+          <a id="smartContra" target="_blank" rel="noopener"><b>Contra</b><span>Open opportunities ↗</span></a>
+          <a id="smartFiverr" target="_blank" rel="noopener"><b>Fiverr</b><span>Open official search ↗</span></a>
+          <a id="smartBehance" target="_blank" rel="noopener"><b>Behance</b><span>Open jobs ↗</span></a>
+          <a id="smartDribbble" target="_blank" rel="noopener"><b>Dribbble</b><span>Open jobs ↗</span></a>
+          <button id="importOpportunityFromSmart"><b>Any URL</b><span>Import brief manually +</span></button>
+        </div>
+        <p class="guided-search-note">Guided Search opens the official platform with your search terms. RoleDesk does not scrape or submit applications automatically.</p>
+        <div class="smart-status" id="liveSearchStatus">Enter the work you want, or create your résumé profile first for automatic targeting.</div>
+        <div class="search-filter-bar" id="liveFilters">
+          <label>Source<select id="filterSource"><option value="all">All sources</option><option>Remotive</option><option>Arbeitnow</option><option>Manual Import</option></select></label>
+          <label>Work mode<select id="filterMode"><option value="all">Remote / hybrid / onsite</option><option value="remote">Remote</option><option value="onsite">Onsite / hybrid</option></select></label>
+          <label>Employment<select id="filterEmployment"><option value="all">All work types</option><option value="full-time">Full-time</option><option value="freelance">Freelance</option><option value="contract">Contract</option><option value="internship">Internship</option></select></label>
+          <label>Compensation<select id="filterCompensation"><option value="all">With or without</option><option value="present">Salary / budget present</option><option value="missing">Salary / budget missing</option></select></label>
+          <label>Location<input id="filterLocation" placeholder="City, country, worldwide" /></label>
+          <label>Freshness<select id="filterFreshness"><option value="all">Any date</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></label>
+          <label>Tracker status<select id="filterStatus"><option value="all">All statuses</option><option value="unsaved">Not saved</option><option value="saved">Saved</option><option value="drafted">Drafted</option><option value="skipped">Skipped</option></select></label>
+          <label>Sort<select id="liveSort"><option value="match">Best match</option><option value="newest">Newest</option><option value="source">Source</option><option value="compensation">Salary / budget</option><option value="remote">Remote first</option></select></label>
+        </div>
+        <div class="search-metrics" id="searchMetrics"><span><b id="metricFetched">0</b>Total fetched</span><span><b id="metricDuplicates">0</b>Duplicates removed</span><span><b id="metricReviewable">0</b>Reviewable</span><span><b id="metricHidden">0</b>Low relevance hidden</span></div>
+        <div class="smart-results-layout">
+          <section>
+            <div class="section-heading"><div><span class="eyebrow">Review queue</span><h3>Real opportunities</h3></div><span class="muted" id="liveResultCount">Not searched</span></div>
+            <div class="live-job-list" id="liveJobList"><div class="smart-empty"><span>◉</span><h3>Your search queue is empty</h3><p>RoleDesk will show full descriptions and rank each opportunity after you search.</p></div></div>
+          </section>
+          <aside class="live-detail empty" id="liveDetail"><div class="smart-empty"><span>↗</span><h3>Select an opportunity</h3><p>Review the brief, fit, public email, application route, and prepared next steps.</p></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="portalsView">
+        <div class="workspace-header portal-heading"><span class="eyebrow coral">Honest source connections</span><h2>Portal Center</h2><p>See exactly which sources are live, guided, or manual—without fake integrations or hidden automation.</p></div>
+        <div class="portal-overview"><div><strong>Use official routes, keep final control.</strong><p>No portal passwords, OAuth tokens, API keys, or automatic applications are stored here.</p></div><span id="portalSummary">Loading source registry…</span></div>
+        <div class="portal-grid" id="portalGrid"></div>
+      </section>
+
       <section class="view" id="trackerView">
-        <div class="section-heading"><div><span class="eyebrow">From saved to paid</span><h2>Application tracker</h2></div><button class="button secondary" id="exportCsv">Export CSV</button></div>
-        <div class="kanban" id="kanbanBoard"></div>
+        <div class="tracker-heading"><div><span class="eyebrow coral">From saved to won</span><h2>Pipeline command center</h2><p>See what needs attention next. Every sent, reply, and payment status is manually confirmed by you.</p></div><div class="tracker-heading-actions"><button class="button secondary" id="exportCsv">Export CSV</button></div></div>
+        <div class="tracker-analytics" id="trackerAnalytics"></div>
+        <div class="conversion-strip" id="conversionMetrics"></div>
+        <div class="pipeline-value-panel" id="pipelineValuePanel"></div>
+        <div class="tracker-toolbar">
+          <div class="tracker-view-toggle" role="group" aria-label="Tracker view"><button class="active" data-tracker-view="kanban">Kanban</button><button data-tracker-view="list">List</button><button data-tracker-view="table">Compact</button></div>
+          <div class="tracker-filters">
+            <select id="trackerStatusFilter" aria-label="Filter status"><option value="all">All statuses</option></select>
+            <select id="trackerSourceFilter" aria-label="Filter source"><option value="all">All sources</option></select>
+            <select id="trackerTypeFilter" aria-label="Filter opportunity type"><option value="all">All types</option></select>
+            <select id="trackerFollowupFilter" aria-label="Filter follow-ups"><option value="all">All follow-ups</option><option value="due">Due now</option><option value="overdue">Overdue</option></select>
+            <select id="trackerCommunicationFilter" aria-label="Filter communication"><option value="all">All communication</option></select>
+            <select id="trackerScoreFilter" aria-label="Filter match score"><option value="0">Any match</option><option value="50">50%+</option><option value="70">70%+</option><option value="85">85%+</option></select>
+            <select id="trackerBudgetFilter" aria-label="Filter budget"><option value="all">Any budget</option><option value="present">Budget present</option><option value="missing">Budget missing</option></select>
+            <select id="trackerLocationFilter" aria-label="Filter location"><option value="all">Any location</option><option value="remote">Remote</option><option value="india">India</option><option value="international">International</option></select>
+            <select id="trackerSavedFilter" aria-label="Filter saved date"><option value="all">Any saved date</option><option value="7">Saved in 7 days</option><option value="30">Saved in 30 days</option></select>
+            <select id="trackerSort" aria-label="Sort tracker"><option value="updated">Latest updated</option><option value="score">Highest match</option><option value="followup">Follow-up due soon</option><option value="overdue">Overdue first</option><option value="source">Source</option><option value="status">Status</option><option value="budget">Budget</option></select>
+          </div>
+        </div>
+        <div class="tracker-layout"><div id="trackerResults"><div class="kanban" id="kanbanBoard"></div></div><aside class="tracker-detail empty" id="trackerDetail"><div><span>◎</span><h3>Select an opportunity</h3><p>Review its status, follow-up, notes, and activity timeline.</p></div></aside></div>
       </section>
 
       <section class="view" id="studioView">
         <div class="workspace-header"><span class="eyebrow coral">Write less generic</span><h2>Proposal Studio</h2><p>Client-focused drafts built from the actual brief. Nothing is sent without you.</p></div>
+        <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>Profile rules and templates improve this editable draft without sending data to an external model.</span></div>
         <div class="studio-grid">
           <div class="form-card">
+            <div class="identity-warning" id="proposalIdentityWarning" hidden></div>
             <label>Opportunity<select id="proposalOpportunity"></select></label>
             <label>Format<select id="proposalFormat"><option>Short proposal</option><option>Premium proposal</option><option>Upwork-style proposal</option><option>Fiverr buyer-request response</option><option>LinkedIn DM pitch</option><option>Email pitch</option><option>Retainer pitch</option><option>International client pitch</option></select></label>
             <label>Your relevant portfolio example<input id="portfolioInput" placeholder="e.g. Fintech rebrand + launch campaign" /></label>
             <label>One useful question<input id="questionInput" placeholder="e.g. Is copy already finalized?" /></label>
             <button class="button primary wide" id="generateProposal">Generate proposal</button>
           </div>
-          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft</span><button class="text-button copy" data-copy="proposalOutput">Copy</button></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
+          <div class="output-card"><div class="output-top"><span class="eyebrow">Editable draft · <b id="proposalConfidence">Not generated</b></span><div class="smart-output-actions"><button class="text-button" id="proposalEdit">Edit</button><button class="text-button" id="proposalSave">Save</button><button class="text-button copy" data-copy="proposalOutput">Copy</button><button class="text-button" id="proposalToEmail">Open in Email Desk</button></div></div><textarea id="proposalOutput" placeholder="Your tailored draft will appear here."></textarea><div class="identity-warning" id="proposalDataWarning" hidden></div><ul class="smart-warning-list" id="proposalTruthWarnings" hidden></ul><div class="notice">Review the scope, claims, pricing, and platform rules before sending.</div></div>
         </div>
         <div class="followup-section"><div class="section-heading"><div><span class="eyebrow">After the pitch</span><h3>Message kit</h3></div></div><div class="message-grid" id="messageGrid"></div></div>
       </section>
@@ -137,13 +237,22 @@
         <div class="workspace-header email-heading">
           <span class="eyebrow coral">Review before anything leaves</span>
           <h2>Your approval desk.</h2>
-          <p>Prepare outreach from your dedicated work inbox. Scope opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
+          <p>Prepare outreach from your dedicated work inbox. RoleDesk opens an exact Gmail draft only after you approve the recipient, subject, and message.</p>
         </div>
+        <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>Email drafts stay editable and require your exact approval. No message is sent automatically.</span></div>
+        <section class="email-context-card">
+          <div class="section-heading"><div><span class="eyebrow">Communication context</span><h3>Selected opportunity</h3></div><span class="communication-badge" id="communicationBadge">Draft Prepared</span></div>
+          <div class="email-context-grid"><label>Opportunity<select id="emailOpportunity"></select></label><label>Recipient name<input id="emailRecipientName" placeholder="Leave blank if unknown" /></label><label>Company / client<input id="emailCompany" readonly /></label></div>
+          <div class="communication-grid"><label>Communication status<select id="communicationStatus"><option>Draft Prepared</option><option>Reviewed</option><option>Sent Manually</option><option>Reply Received</option><option>Follow-up Needed</option><option>No Response</option><option>Closed</option></select></label><label>Follow-up date<input id="emailFollowUpDate" type="date" /></label><label class="wide">Private notes<textarea id="emailCommunicationNotes" placeholder="Record context or next steps without inventing a reply."></textarea></label></div>
+          <div class="email-manual-actions"><button class="button secondary" id="saveCommunication">Save tracking</button><button class="button secondary" id="markEmailSent">Mark sent manually</button><button class="button secondary" id="markEmailReply">Mark reply received</button><button class="button secondary" id="markFollowUpNeeded">Schedule follow-up</button></div>
+          <p class="manual-verification">Manual statuses are user-reported. They do not prove Gmail delivery or a client reply.</p>
+        </section>
         <div class="email-layout">
           <aside class="mail-account-card">
             <div class="mail-mark">M</div>
             <span class="eyebrow">Work inbox</span>
-            <input id="workEmail" type="email" value="connect.mayankchauhan@gmail.com" aria-label="Work email address" />
+            <input id="workEmail" type="email" placeholder="you@example.com" aria-label="Work email address" />
+            <div class="mail-signature" id="emailSignaturePreview">Signature: [Your name]</div>
             <div class="connection-state"><i></i><span><b>Approval handoff ready</b><small>Gmail opens separately; no credentials live here</small></span></div>
             <div class="mail-rules">
               <strong>Non-negotiable controls</strong>
@@ -152,17 +261,24 @@
           </aside>
           <section class="email-composer">
             <div class="composer-top"><div><span class="eyebrow">New approved draft</span><h3>Client outreach</h3></div><button class="button secondary" id="useProposalEmail">Use Proposal Studio draft</button></div>
+            <div class="identity-warning" id="emailIdentityWarning" hidden></div>
+            <div class="smart-confidence" id="emailConfidence">Smart Draft confidence: not generated</div>
+            <ul class="smart-warning-list email-warning-panel" id="emailValidationWarnings" hidden></ul>
             <div class="email-fields">
-              <label>From<input id="emailFrom" type="email" value="connect.mayankchauhan@gmail.com" readonly /></label>
+              <label>From<input id="emailFrom" type="email" readonly /></label>
               <label>To<input id="emailTo" type="email" placeholder="client@company.com" autocomplete="off" /></label>
               <label>Subject<input id="emailSubject" placeholder="Design support for [project/company]" /></label>
               <label>Message<textarea id="emailBody" placeholder="Write or import your reviewed email here…"></textarea></label>
             </div>
             <label class="approval-check"><input id="approveEmail" type="checkbox" /><span><b>I approve this exact recipient, subject, and message.</b><small>Changing any field removes approval automatically.</small></span></label>
-            <div class="composer-actions"><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open approved draft in Gmail ↗</button></div>
-            <div class="notice">Opening Gmail creates a compose window—it does not send. For connector-based sending, ask Codex to send the reviewed draft and confirm at that moment.</div>
+            <ul class="smart-warning-list" id="emailTruthWarnings" hidden></ul>
+            <div class="composer-actions"><button class="button secondary" id="emailEdit">Edit</button><button class="button secondary" id="emailSave">Save draft</button><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open reviewed draft in Gmail ↗</button></div>
+            <div class="notice">RoleDesk opens Gmail compose with your reviewed draft. You must send it yourself.</div>
+            <div class="email-privacy">Email drafts are private to your account. RoleDesk does not send emails automatically.</div>
           </section>
         </div>
+        <section class="email-followup-card"><div class="section-heading"><div><span class="eyebrow">Editable Smart Draft</span><h3>Follow-up preparation</h3></div><span class="communication-badge" id="followUpConfidence">Not generated</span></div><div class="followup-controls"><label>Follow-up type<select id="followUpType"><option>First follow-up</option><option>Polite reminder</option><option>Reply after interest</option><option>Negotiation follow-up</option><option>Thank-you after interview/call</option></select></label><button class="button primary" id="generateFollowUp">Generate follow-up</button></div><textarea id="followUpOutput" placeholder="Your editable follow-up draft will appear here."></textarea><ul class="smart-warning-list" id="followUpWarnings" hidden></ul><div class="followup-actions"><button class="button secondary" id="editFollowUp">Edit</button><button class="button secondary" id="copyFollowUp">Copy</button><button class="button secondary" id="saveFollowUp">Save follow-up draft</button></div></section>
+        <section class="email-history-card"><div class="section-heading"><div><span class="eyebrow">Private Supabase history</span><h3>Saved email drafts</h3></div></div><div class="email-history-list" id="savedEmailDrafts"><div class="smart-empty">Sign in to load saved email drafts.</div></div></section>
       </section>
 
       <section class="view" id="pricingView">
@@ -183,11 +299,41 @@
         </div>
       </section>
 
+      <section class="view" id="atsView">
+        <div class="workspace-header ats-heading">
+          <span class="eyebrow coral">Truthful by design · local rule-based analysis</span>
+          <h2>ATS Resume Builder</h2>
+          <p>Turn reviewed resume facts into a clean, recruiter-readable version. Nothing is invented or sent to AI.</p>
+        </div>
+        <div class="smart-mode-banner"><b>Smart Draft Mode — Free local intelligence</b><span>RoleDesk improves resumes with local profile rules and templates. It does not use paid AI or send resume data to an external model.</span></div>
+        <section class="ats-onboarding">
+          <div><b>1</b><span>Import or paste</span></div><div><b>2</b><span>Analyze gaps</span></div><div><b>3</b><span>Review the improved draft</span></div><div><b>4</b><span>Save or export</span></div>
+        </section>
+        <section class="ats-controls-card">
+          <div class="ats-controls">
+            <label>Resume tone<select id="atsTone"><option>Corporate</option><option>Creative Professional</option><option>MNC-focused</option><option>Freelance-focused</option><option>Design/Marketing-focused</option></select></label>
+            <label>Target role<input id="atsTargetRole" placeholder="e.g. Graphic Designer" /></label>
+            <label>Version name<input id="atsVersionName" placeholder="e.g. Brand Designer - July" /></label>
+          </div>
+          <div class="ats-actions"><button class="button secondary" id="atsImportProfile">Import current profile</button><button class="button primary" id="atsAnalyze">Analyze &amp; generate</button><span id="atsBuilderStatus">Paste a resume or import your current profile.</span></div>
+        </section>
+        <div class="ats-editor-grid">
+          <section class="ats-editor-card"><div class="ats-card-head"><div><span class="eyebrow">Original</span><h3>Resume source</h3></div></div><textarea id="atsOriginal" placeholder="Paste your resume text here, or import it from My Profile."></textarea></section>
+          <section class="ats-editor-card improved"><div class="ats-card-head"><div><span class="eyebrow">Improved · <b id="atsSmartConfidence">Not generated</b></span><h3>ATS-friendly draft</h3></div><div class="smart-output-actions"><button class="text-button" id="atsEdit">Edit</button><button class="text-button" id="atsCopy">Copy</button></div></div><textarea id="atsImproved" placeholder="Your generated ATS-friendly resume will appear here."></textarea><div class="truth-warning" id="atsTruthWarning"></div></section>
+        </div>
+        <div class="ats-review-grid">
+          <section class="ats-score-card"><div class="ats-score"><strong id="atsScore">—</strong><span>ATS score</span><small id="atsScoreLabel">Not analyzed</small></div><div class="ats-section-scores" id="atsSectionScores"><div class="ats-empty">Section scores appear after analysis.</div></div></section>
+          <section class="ats-issues-card"><span class="eyebrow">Improvement plan</span><h3>Issues and warnings</h3><ul id="atsIssues"><li>Analyze the resume to see practical recommendations.</li></ul><p id="atsMissingKeywords"></p></section>
+        </div>
+        <section class="ats-save-bar"><div><strong>Reviewed output only</strong><span>Resolve every “Missing” placeholder before use.</span></div><button class="button secondary" id="atsSyncProfile">Import extracted fields to My Profile</button><button class="button secondary" id="atsExportText">Export TXT</button><button class="button secondary" id="atsExportMarkdown">Export Markdown</button><button class="button primary" id="atsSaveVersion">Save cloud version</button></section>
+        <section class="ats-version-card"><div class="section-heading"><div><span class="eyebrow">Private Supabase history</span><h3>Saved resume versions</h3></div></div><div class="ats-versions" id="atsVersions"><div class="ats-empty">Sign in to load saved versions.</div></div></section>
+      </section>
+
       <section class="view" id="profileView">
         <div class="workspace-header profile-heading">
           <span class="eyebrow coral">Your search intelligence</span>
           <h2>Let your résumé do the filtering.</h2>
-          <p>Upload once. Scope turns your experience into targeted job and client searches, while keeping the file in this browser.</p>
+          <p>Your file is parsed in this browser. When signed in, only your reviewed profile and saved resume versions sync to your RLS-protected workspace.</p>
         </div>
 
         <div class="profile-grid">
@@ -220,28 +366,62 @@
             <button class="button primary" id="buildSearches">Build my searches</button>
           </div>
           <div class="search-results" id="searchResults"></div>
-          <div class="search-safety"><strong>How searching works:</strong> Scope creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
+          <div class="search-safety"><strong>How searching works:</strong> RoleDesk creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
         </section>
       </section>
+      <footer class="product-footer"><b>RoleDesk</b><span>Build your resume. Find better roles. Apply with confidence.</span><small>Draft-first and approval-first: RoleDesk never sends, applies, submits, bids, signs, or contacts anyone for you.</small></footer>
     </main>
   </div>
 
   <dialog id="opportunityDialog">
     <form method="dialog" id="opportunityForm">
-      <div class="dialog-head"><div><span class="eyebrow coral">Manual URL or brief</span><h2>Add opportunity</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <div class="dialog-head"><div><span class="eyebrow coral">Safe manual import</span><h2>Import Opportunity</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <p class="import-help">Paste public details you are allowed to use. RoleDesk validates URLs and ranks the description locally; it does not scrape the page.</p>
       <div class="form-row"><label>Project title<input name="title" required placeholder="Brand identity for climate startup" /></label><label>Platform<select name="platform"><option>Upwork</option><option>Fiverr</option><option>Freelancer</option><option>Contra</option><option>PeoplePerHour</option><option>Behance</option><option>Dribbble</option><option>LinkedIn</option><option>Direct company</option><option>Manual URL</option></select></label></div>
-      <div class="form-row"><label>Opportunity type<select name="type"><option>Freelance project</option><option>Contract role</option><option>Remote contract</option><option>Retainer client</option><option>One-time project</option><option>Long-term client opportunity</option><option>Agency outsourcing opportunity</option><option>Full-time job</option><option>Part-time job</option></select></label><label>Client / company<input name="client" required placeholder="Northstar Labs" /></label></div>
-      <div class="form-row"><label>Budget (USD equivalent)<input name="budget" type="number" min="0" required placeholder="1800" /></label><label>Client country<input name="country" placeholder="United States" /></label></div>
+      <div class="form-row"><label>Opportunity type<select name="type"><option>Freelance project</option><option>Contract role</option><option>Remote contract</option><option>Retainer client</option><option>One-time project</option><option>Long-term client opportunity</option><option>Agency outsourcing opportunity</option><option>Full-time job</option><option>Part-time job</option><option>Internship</option></select></label><label>Client / company<input name="client" required placeholder="Northstar Labs" /></label></div>
+      <div class="form-row"><label>Salary / budget (USD equivalent)<input name="budget" type="number" min="0" placeholder="1800" /></label><label>Location<input name="country" placeholder="United States or Remote" /></label></div>
+      <div class="form-row"><label>Work mode<select name="workMode"><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">Onsite</option><option value="unknown">Not stated</option></select></label><label>Public contact email<input name="publicEmail" type="email" placeholder="jobs@company.com" /></label></div>
       <label>Source URL<input name="url" type="url" placeholder="https://…" /></label>
+      <label>Official apply URL<input name="applyUrl" type="url" placeholder="https://company.com/careers/apply" /></label>
       <label>Project brief<textarea name="brief" required placeholder="Paste the project requirements, deliverables, and deadline…"></textarea></label>
+      <label>Notes<textarea name="notes" placeholder="Your private review notes…"></textarea></label>
       <div class="form-row"><label>Skill match<select name="skill"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label><label>Portfolio match<select name="portfolio"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label></div>
       <label class="check"><input type="checkbox" name="verified" /> Client payment/reputation is verified</label>
-      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & add</button></div>
+      <div class="import-result" id="importAnalysis" hidden></div>
+      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & save to Tracker</button></div>
+    </form>
+  </dialog>
+  <dialog id="accountDialog" class="account-dialog">
+    <form method="dialog" id="accountForm">
+      <div class="dialog-head"><div><span class="eyebrow coral">Private RoleDesk account</span><h2>Sync across your devices</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <p class="account-copy">Your résumé profile and reviewed opportunities are protected by Supabase row-level security. Only the signed-in account can read them.</p>
+      <div id="signedOutAccount">
+        <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
+        <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
+        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="createAccount">Request beta account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
+        <p class="account-hint">Beta access requires an invited email. Confirm the Supabase email after signup. Never share your password with RoleDesk or Codex.</p>
+      </div>
+      <div id="passwordRecovery" hidden>
+        <label>New password<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" /></label>
+        <div class="account-actions"><button class="button primary" type="button" id="updateRecoveredPassword">Update password</button></div>
+      </div>
+      <div id="signedInAccount" hidden>
+        <div class="signed-in-card"><i></i><div><strong id="signedInEmail">Signed in</strong><small id="lastCloudSync">Cloud sync ready</small></div></div>
+        <div id="legacyRecovery" class="legacy-recovery" hidden><strong>Legacy browser data found</strong><small>A protected recovery copy of your old scope-* data is available. Import it only if it belongs to this account.</small><button class="button secondary" type="button" id="importLegacyData">Import legacy data</button></div>
+        <div class="account-actions"><button class="button secondary" type="button" id="syncCloudNow">Sync now</button><button class="button secondary" type="button" id="signOutAccount">Sign out</button></div>
+      </div>
+      <p class="parse-status" id="accountStatus"></p>
     </form>
   </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="pdf.min.js"></script>
-  <script src="mammoth.browser.min.js"></script>
-  <script src="app.js"></script>
+  <script src="supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="resume-builder.js?v=3"></script>
+  <script src="smart-engine.js?v=1"></script>
+  <script src="portal-center.js?v=1"></script>
+  <script src="email-desk.js?v=1"></script>
+  <script src="tracker-engine.js?v=1"></script>
+  <script src="app.js?v=26"></script>
+  <script src="supabase-sync.js?v=22"></script>
 </body>
 </html>

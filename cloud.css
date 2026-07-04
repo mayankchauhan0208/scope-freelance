@@ -1,0 +1,17 @@
+.cloud-button{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.cloud-button i{width:8px;height:8px;border-radius:50%;background:var(--yellow)}
+.cloud-button.connected i{background:var(--green);box-shadow:0 0 0 4px rgba(52,115,85,.12)}
+.account-dialog{max-width:520px}
+.account-copy{color:var(--muted);margin:0 0 4px}
+.account-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.account-hint{font-size:10px;color:var(--muted);margin:10px 0 0}
+.signed-in-card{display:flex;align-items:center;gap:12px;padding:14px;background:#edf7ef;border-radius:12px}
+.signed-in-card i{width:11px;height:11px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px rgba(52,115,85,.12)}
+.signed-in-card div{display:grid}
+.signed-in-card small{color:var(--muted)}
+.parse-status.error{color:var(--red)}
+.auth-pending .app-shell{visibility:hidden}
+.legacy-recovery{display:grid;gap:6px;margin-top:12px;padding:12px;border:1px solid var(--yellow);border-radius:11px;background:#fff4cd}
+.legacy-recovery small{color:var(--muted)}
+.legacy-recovery .button{justify-self:start;margin-top:3px}
+@media(max-width:760px){.cloud-button span{display:none}.cloud-button{padding:11px}.top-actions{flex-wrap:wrap}}

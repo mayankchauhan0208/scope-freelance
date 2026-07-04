@@ -1,7 +1,7 @@
 {
-  "name": "Scope — Freelance Opportunity Intelligence",
-  "short_name": "Scope",
-  "description": "A private, approval-first command center for freelance work, job searches, proposals, pricing, and client outreach.",
+  "name": "RoleDesk — Resume, Job Search & Application Tracker",
+  "short_name": "RoleDesk",
+  "description": "RoleDesk helps users build ATS-friendly resumes, discover jobs and freelance opportunities, draft applications, and track every career conversation with full approval control.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

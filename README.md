@@ -1,42 +1,82 @@
-# Scope
+# RoleDesk
 
-Scope is a private, approval-first command center for freelance projects, remote jobs, direct clients, proposals, pricing, outreach, and application tracking.
+**Build your resume. Find better roles. Apply with confidence.**
 
-## What it does
+RoleDesk is a private career command center for ATS resumes, job search, freelance opportunities, smart drafts, email preparation, and opportunity tracking.
 
-- Reads PDF, DOCX, TXT, and pasted-text résumés locally in the browser
-- Detects skills and recommends target roles
-- Builds focused searches for LinkedIn, Upwork, Contra, Freelancer, PeoplePerHour, remote boards, startups, and direct clients
-- Scores opportunities using skill fit, portfolio relevance, budget, client credibility, competition, deadline, long-term potential, and payment safety
-- Detects risky briefs, unpaid tests, unrealistic deadlines, low budgets, off-platform pressure, and unlimited revisions
-- Generates proposal and follow-up drafts
-- Calculates fixed, hourly, retainer, rush, revision, and milestone pricing in USD and INR
-- Opens Gmail drafts only after explicit recipient/message approval
-- Tracks opportunities through the complete saved-to-paid workflow and exports CSV
-- Installs as a PWA and works with cached assets after the first visit
+## MVP status
 
-## Run locally
+Working now:
 
-From this directory:
+- Supabase beta signup, login, password recovery, per-user cloud sync, and RLS
+- local resume parsing, profile extraction, ATS scoring, and ATS-friendly drafts
+- permitted live feeds from Remotive and Arbeitnow
+- guided official searches for LinkedIn, Naukri, Indeed, Upwork, Contra, Fiverr, Freelancer, Behance, and Dribbble
+- safe manual opportunity import with URL validation
+- local rule-based Smart Draft Mode for proposals, email, form answers, and follow-ups
+- database-backed exact-draft approval before Gmail compose handoff
+- tracker views, analytics, manual communication states, timeline, and in-app follow-up reminders
+
+Smart Draft Mode is deterministic local logic, not a hosted LLM. It requires no AI key and never claims to be an external AI provider.
+
+Not implemented: Gmail OAuth or inbox monitoring, an external AI gateway, auto-send, auto-apply, portal scraping, payment processing, PDF/DOCX resume export, or automatic reminders outside the app.
+
+## Safety contract
+
+RoleDesk never auto-applies, auto-sends email, auto-submits forms, auto-bids, signs contracts, accepts work, contacts clients, or makes final decisions. Every proposal, email, reply, negotiation message, application, bid, and form answer stays editable and requires the user's manual review. Nothing leaves silently.
+
+## Data model
+
+- Resume files are parsed in the browser.
+- Before sign-in, browser storage is temporary local state.
+- After sign-in, Supabase is the source of truth and local storage is a replaceable cache.
+- Existing `scope-*` keys remain supported for compatibility.
+- Legacy data is preserved in `scope-legacy-recovery-v1` and imported only by explicit user action.
+- Private user rows are protected by Supabase Auth and RLS.
+
+## Database setup
+
+Back up existing tables, then apply migrations in order:
+
+1. `supabase/migrations/001_scope_v2.sql`
+2. `supabase/migrations/002_security_data_foundation.sql`
+3. `supabase/migrations/003_resume_profile_ats_builder.sql`
+4. `supabase/migrations/004_email_communication_tracking.sql`
+5. `supabase/migrations/005_tracker_analytics_followups.sql`
+
+Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
+
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. They do not rename existing tables.
+
+## Local development
 
 ```powershell
-python -m http.server 8765
+python -m http.server 8766
 ```
 
-Open `http://127.0.0.1:8765`.
+Open `http://127.0.0.1:8766/`.
 
-## Deploy to GitHub Pages
+Run all JavaScript checks:
 
-This repository includes `.github/workflows/deploy-pages.yml`.
+```powershell
+node --check app.js
+node --check supabase-sync.js
+node --check resume-builder.js
+node --check smart-engine.js
+node --check portal-center.js
+node --check email-desk.js
+node --check tracker-engine.js
+node --test tests/*.test.mjs
+```
 
-1. Push the repository to a GitHub repository with `main` as the default branch.
-2. In **Settings → Pages**, choose **GitHub Actions** as the source.
-3. Run the **Deploy Scope to GitHub Pages** workflow or push to `main`.
+Run the SQL checks in `supabase/tests/` only against a non-production test project with the documented fixtures. See [MVP test checklist](docs/MVP_TEST_CHECKLIST.md).
 
-## Data and integrations
+## Deployment
 
-The public build is intentionally static. Data is stored per browser/device; it is not synchronized between devices. Gmail credentials and private API secrets are never embedded in the site.
+The current review branch is `codex/smart-opportunity-engine`. The likely GitHub Pages URL is `https://mayankchauhan0208.github.io/scope-freelance/`. The future intended domain is `roledesk.in`, but no `CNAME`, hardcoded domain, OAuth redirect, or production-domain configuration is included.
 
-True cross-device synchronization requires a user-owned database such as Supabase. Direct Gmail sending from the website requires a user-owned Google Cloud OAuth application and a secure backend. Until those are configured, Email Desk uses an approval-gated Gmail compose handoff.
+See [deployment readiness](docs/DEPLOYMENT.md), [MVP test checklist](docs/MVP_TEST_CHECKLIST.md), [release notes](docs/RELEASE_NOTES.md), and [security policy](SECURITY.md).
 
-All scores are decision support, not guarantees. Scope never applies, bids, accepts work, or sends mail automatically.
+## Secrets
+
+The Supabase URL and publishable/anon key are public client configuration only when RLS is correctly enabled. Never commit a Supabase `service_role` key, OpenAI key, OAuth client secret, access/refresh token, Gmail credential, marketplace credential, private resume, database backup, or production export.
