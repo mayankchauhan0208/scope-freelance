@@ -29,7 +29,11 @@ Use the **Invite Copy** card to add the tester's name and copy a reviewed invita
 
 ## Review feedback
 
-Admins can filter feedback and mark it `new`, `reviewed`, `planned`, `fixed`, or `archived` in **Beta Operations**. Normal signed-in users can read only their own feedback, anonymous users cannot read feedback, and only an admin-verified RPC can change review status.
+Admins can filter feedback and use the visible workflow labels **New**, **Reviewing**, **Fixed**, **Won't fix now**, or **Later** in **Beta Operations**. These map to the existing database values `new`, `reviewed`, `fixed`, `archived`, and `planned`; no schema change is required. The panel derives a Critical, High, Medium, or Low priority from the submitted type and blocker words. It is a triage aid, not an automated decision.
+
+The first-week checklist groups real feedback into ten categories: login/reset, resume identity extraction, ATS output, search quality, apply links, application packets, proposal/email drafts, tracker/follow-ups, mobile layout, and Supabase sync. Counts remain zero until submitted feedback matches a category.
+
+Normal signed-in users can read only their own feedback, anonymous users cannot read feedback, and only an admin-verified RPC can change review status.
 
 ## Deployment rollback
 
@@ -44,3 +48,26 @@ Never expose a Supabase `service_role` key, database password, OpenAI key, OAuth
 ## One-week operating mode
 
 For the next week, avoid major feature development, paid APIs, Gmail OAuth, and complex integrations. Use RoleDesk daily, log issues through **Send beta feedback**, and fix only high-priority blockers or live usability bugs with small, safe changes. Invite 2–5 beta users, review feedback after seven days, and then choose the next feature phase from real usage.
+
+### Mayank's daily RoleDesk workflow
+
+1. Sign in.
+2. Check profile completeness.
+3. Search two or three role clusters.
+4. Open guided searches.
+5. Check five to ten MNC career pages.
+6. Save useful opportunities.
+7. Generate application packets.
+8. Prepare and review drafts.
+9. Mark applications manually.
+10. Schedule follow-ups.
+11. Submit feedback when something breaks.
+
+### Fix priority
+
+- **Critical:** privacy/security exposure, approval bypass, or sign-in/reset blocked.
+- **High:** profile/save/sync, identity, application packet, Email Desk safety, Tracker, or mobile use blocked.
+- **Medium:** confusing workflow, poor match, resume output, or draft-quality issue with a workaround.
+- **Low:** feature request or cosmetic issue that does not block the beta workflow.
+
+Do not build Gmail OAuth, external AI, payments, auto-send, auto-apply, or restricted-platform scraping during this sprint.

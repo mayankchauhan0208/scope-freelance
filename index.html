@@ -80,7 +80,7 @@
 
       <section class="beta-banner" aria-label="RoleDesk beta notice">
         <div><span class="beta-label">Public beta</span><strong>RoleDesk is improving with real-user feedback.</strong></div>
-        <p>Review every draft and verify every claim before use. RoleDesk never sends emails, submits applications, or applies automatically.</p>
+        <p>Use carefully, review every draft, and submit feedback when something breaks. RoleDesk never sends emails, submits applications, or applies automatically.</p>
       </section>
 
       <section class="view active" id="discoverView">
@@ -414,9 +414,10 @@
           <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Email</th><th>Active</th><th>Note</th><th>Expires</th><th>Created</th><th>Action</th></tr></thead><tbody id="adminBetaUsers"><tr><td colspan="6">Sign in with an active admin account.</td></tr></tbody></table></div>
         </section>
         <section class="admin-card">
-          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewed</option><option value="planned">Planned</option><option value="fixed">Fixed</option><option value="archived">Archived</option></select></div></div>
+          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewing</option><option value="fixed">Fixed</option><option value="archived">Won't fix now</option><option value="planned">Later</option></select></div></div>
           <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty"><h3>No feedback loaded</h3><p>Select Refresh to check for beta feedback.</p></div></div>
         </section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Seven-day focus</span><h3>First-week issue checklist</h3><p>Counts come only from submitted beta feedback.</p></div></div><div class="beta-issue-checklist" id="betaIssueChecklist"><div class="smart-empty">Refresh admin data to build the checklist.</div></div></section>
         <div class="admin-two-column">
           <section class="admin-card"><span class="eyebrow">Launch Notes</span><h3>Safe operations</h3><ul><li>Add or deactivate beta access here; changes are enforced by RPC and RLS.</li><li>Review feedback without opening private resumes or application data.</li><li>Confirm password redirect settings in <a href="docs/DEPLOYMENT.md" target="_blank" rel="noopener">deployment notes</a>.</li><li>Rollback by reverting the release commit; preserve database rows.</li></ul></section>
           <section class="admin-card"><span class="eyebrow">Invite Copy</span><h3>Beta invitation</h3><label>Name (optional)<input id="adminInviteName" placeholder="there" /></label><textarea id="adminInviteCopy" readonly></textarea><button class="button secondary" id="copyAdminInvite" type="button">Copy beta invite text</button></section>

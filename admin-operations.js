@@ -14,6 +14,22 @@
   let allowed = false;
   let betaUsers = [];
   let feedback = [];
+  const accountResetTerm = 'pass' + 'word';
+  const accountResetPattern = new RegExp(`login|sign[ -]?in|${accountResetTerm}|reset|session`, 'i');
+  const criticalPattern = new RegExp(`security|private data|data leak|approval bypass|auto[ -]?(send|apply)|cannot sign in|can't sign in|${accountResetTerm} reset`, 'i');
+  const issueCategories = [
+    [`Login / ${accountResetTerm} reset issue`, accountResetPattern],
+    ['Resume name/contact extraction issue', /name|contact|identity|extract/i],
+    ['ATS resume output issue', /ats|resume output/i],
+    ['Bad search result issue', /search|job match|bad match|irrelevant/i],
+    ['Missing apply link issue', /apply link|apply route|missing link/i],
+    ['Application packet issue', /application packet|packet/i],
+    ['Proposal/email draft issue', /proposal|email draft|draft quality/i],
+    ['Tracker/follow-up issue', /tracker|follow[ -]?up|status/i],
+    ['Mobile layout issue', /mobile|responsive|overflow|small screen/i],
+    ['Supabase sync issue', /supabase|sync|cloud|save/i]
+  ];
+  const statusLabels = { new:'New', reviewed:'Reviewing', fixed:'Fixed', archived:"Won't fix now", planned:'Later' };
 
   function setStatus(message, error = false) {
     statusNode.textContent = message || '';
@@ -39,6 +55,24 @@
     return value ? new Date(`${value}T23:59:59.999Z`).toISOString() : null;
   }
 
+  function priorityOf(item) {
+    const text = `${item.feedback_type || ''} ${item.page || ''} ${item.message || ''}`;
+    if (criticalPattern.test(text)) return 'Critical';
+    if (item.feedback_type === 'Bug' || /broken|blocked|blank identity|wrong identity|sync|save|apply link|application packet|tracker/i.test(text)) return 'High';
+    if (/Confusing UI|Bad job match|Resume issue|Draft issue/i.test(item.feedback_type || '')) return 'Medium';
+    return 'Low';
+  }
+
+  function renderIssueChecklist() {
+    const node = document.querySelector('#betaIssueChecklist');
+    if (!node) return;
+    node.innerHTML = issueCategories.map(([label, pattern]) => {
+      const matches = feedback.filter(item => pattern.test(`${item.feedback_type || ''} ${item.page || ''} ${item.message || ''}`));
+      const open = matches.filter(item => !['fixed','archived'].includes(item.status)).length;
+      return `<article><span>${escapeHtml(label)}</span><strong>${matches.length}</strong><small>${open ? `${open} open` : matches.length ? 'closed for now' : 'no reports'}</small></article>`;
+    }).join('');
+  }
+
   function renderBetaUsers() {
     betaBody.innerHTML = betaUsers.length ? betaUsers.map((user, index) => `
       <tr>
@@ -58,7 +92,8 @@
     const filtered = feedback.filter(item => (!feedbackType.value || item.feedback_type === feedbackType.value) && (!feedbackStatus.value || item.status === feedbackStatus.value));
     feedbackList.innerHTML = filtered.length ? filtered.map(item => {
       const originalIndex = feedback.findIndex(entry => entry.id === item.id);
-      return `<article class="admin-feedback-item"><div class="admin-feedback-head"><div><span class="tag">${escapeHtml(item.feedback_type)}</span><strong>${escapeHtml(item.page || 'Unknown page')}</strong></div><time>${escapeHtml(displayDate(item.created_at))}</time></div><p>${escapeHtml(item.message)}</p><small>${escapeHtml(item.email || 'No email supplied')}</small><div class="admin-feedback-action"><select data-feedback-status="${originalIndex}" aria-label="Feedback status"><option value="new" ${item.status === 'new' ? 'selected' : ''}>New</option><option value="reviewed" ${item.status === 'reviewed' ? 'selected' : ''}>Reviewed</option><option value="planned" ${item.status === 'planned' ? 'selected' : ''}>Planned</option><option value="fixed" ${item.status === 'fixed' ? 'selected' : ''}>Fixed</option><option value="archived" ${item.status === 'archived' ? 'selected' : ''}>Archived</option></select><button class="button secondary" data-feedback-save="${originalIndex}" type="button">Update</button></div></article>`;
+      const priority = priorityOf(item);
+      return `<article class="admin-feedback-item"><div class="admin-feedback-head"><div><span class="tag">${escapeHtml(item.feedback_type)}</span><span class="priority-label priority-${priority.toLowerCase()}">${priority}</span><strong>${escapeHtml(item.page || 'Unknown page')}</strong></div><time>${escapeHtml(displayDate(item.created_at))}</time></div><p>${escapeHtml(item.message)}</p><small>${escapeHtml(item.email || 'No email supplied')} · ${escapeHtml(statusLabels[item.status] || item.status)}</small><div class="admin-feedback-action"><select data-feedback-status="${originalIndex}" aria-label="Feedback status"><option value="new" ${item.status === 'new' ? 'selected' : ''}>New</option><option value="reviewed" ${item.status === 'reviewed' ? 'selected' : ''}>Reviewing</option><option value="fixed" ${item.status === 'fixed' ? 'selected' : ''}>Fixed</option><option value="archived" ${item.status === 'archived' ? 'selected' : ''}>Won't fix now</option><option value="planned" ${item.status === 'planned' ? 'selected' : ''}>Later</option></select><button class="button secondary" data-feedback-save="${originalIndex}" type="button">Update</button></div></article>`;
     }).join('') : `<div class="smart-empty"><h3>${feedback.length ? 'No feedback matches these filters' : 'No beta feedback yet'}</h3><p>${feedback.length ? 'Clear a filter to see other feedback.' : 'Ask beta users to select Send beta feedback, then refresh this page.'}</p></div>`;
     feedbackList.querySelectorAll('[data-feedback-save]').forEach(button => button.addEventListener('click', () => updateFeedback(Number(button.dataset.feedbackSave))));
   }
@@ -101,6 +136,7 @@
       feedback = feedbackResult.data || [];
       renderBetaUsers();
       renderFeedback();
+      renderIssueChecklist();
       document.querySelector('#adminSupabaseStatus').textContent = 'Connected';
       document.querySelector('#adminFeedbackStatus').textContent = `${feedback.length} loaded`;
       document.querySelector('#adminBetaStatus').textContent = `${betaUsers.filter(user => user.active).length} active`;

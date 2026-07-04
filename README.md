@@ -23,6 +23,7 @@ Working now:
 - tracker views, analytics, manual communication states, timeline, and in-app follow-up reminders
 - real user-specific dashboard metrics with honest empty states; sample opportunities appear only after **Load demo data**, stay labeled, and are excluded from sync and analytics
 - Opportunity Coverage Engine with a structured source registry, profile-supported role clusters, guided searches, MNC Career Directory, weekly coverage checklist, Manual Import 2.0, application-route detection, Application Packets, and a truth-aware Form Answer Kit
+- admin-only beta feedback triage with honest priorities, existing-status workflow labels, and a first-week issue checklist
 
 Smart Draft Mode is deterministic local logic, not a hosted LLM. It requires no AI key and never claims to be an external AI provider.
 
