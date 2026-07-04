@@ -65,7 +65,7 @@
 
   function renderInvite() {
     const name = document.querySelector('#adminInviteName').value.trim() || 'there';
-    document.querySelector('#adminInviteCopy').value = `Hi ${name},\n\nYou’re invited to try RoleDesk beta.\n\nRoleDesk helps you build an ATS-friendly resume, discover job/freelance opportunities, prepare drafts, and track applications.\n\nPlease remember:\n- RoleDesk does not apply automatically.\n- RoleDesk does not send emails automatically.\n- Review every draft before using it.\n\nAccess:\n${liveUrl}\n\nThanks,\nRoleDesk Beta Team`;
+    document.querySelector('#adminInviteCopy').value = `Hi ${name},\n\nYou’re invited to try RoleDesk beta.\n\nRoleDesk helps you build an ATS-friendly resume, discover job and freelance opportunities, prepare application drafts, and track follow-ups in one private workspace.\n\nImportant:\n- RoleDesk does not send emails automatically.\n- RoleDesk does not apply automatically.\n- Please review every draft before using it.\n\nAccess:\n${liveUrl}\n\nThanks,\nRoleDesk Beta Team`;
   }
 
   async function requireAdmin() {

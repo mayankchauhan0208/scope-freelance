@@ -5,7 +5,7 @@
 - Review branch: `codex/smart-opportunity-engine`
 - Merge target after approval: `main`
 - GitHub Pages source after merge: deploy from `main` at repository root, or use a reviewed Pages workflow
-- Current likely URL: `https://mayankchauhan0208.github.io/scope-freelance/`
+- Current live URL: `https://mayankchauhan0208.github.io/scope-freelance/`
 - Local URL: `http://127.0.0.1:8766/`
 - Future intended domain: `roledesk.in` (not configured)
 

@@ -6,10 +6,13 @@ RoleDesk is a private career command center for ATS resumes, job search, freelan
 
 RoleDesk is currently in public beta. Features are improving, every generated draft needs manual review, and RoleDesk never sends or applies automatically.
 
+Live beta: https://mayankchauhan0208.github.io/scope-freelance/
+
 ## MVP status
 
 Working now:
 
+- auth-aware public landing page and private signed-in workspace
 - Supabase beta signup, login, password recovery, per-user cloud sync, and RLS
 - local resume parsing, profile extraction, ATS scoring, and ATS-friendly drafts
 - permitted live feeds from Remotive and Arbeitnow
@@ -77,7 +80,7 @@ Run the SQL checks in `supabase/tests/` only against a non-production test proje
 
 ## Deployment
 
-The current review branch is `codex/smart-opportunity-engine`. The likely GitHub Pages URL is `https://mayankchauhan0208.github.io/scope-freelance/`. The future intended domain is `roledesk.in`, but no `CNAME`, hardcoded domain, OAuth redirect, or production-domain configuration is included.
+GitHub Pages deploys reviewed `main` commits to `https://mayankchauhan0208.github.io/scope-freelance/`. The future intended domain is `roledesk.in`, but no `CNAME`, OAuth redirect, or production-domain configuration is included.
 
 See [deployment readiness](docs/DEPLOYMENT.md), [beta operations](docs/BETA_OPERATIONS.md), [MVP test checklist](docs/MVP_TEST_CHECKLIST.md), [release notes](docs/RELEASE_NOTES.md), and [security policy](SECURITY.md).
 

@@ -53,5 +53,6 @@ test('the product retains supervised send and apply boundaries', () => {
   const app = read('app.js');
   assert.match(html, /No automatic sending/);
   assert.match(app, /submit the form yourself/);
-  assert.doesNotMatch(html, /auto-apply/i);
+  assert.match(html, /No auto-send\. No auto-apply\./i);
+  assert.doesNotMatch(app, /function\s+auto(?:Apply|Send)|auto(?:Apply|Send)\s*=/i);
 });

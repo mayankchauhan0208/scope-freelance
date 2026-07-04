@@ -1,28 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="auth-pending">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://mnvcgtjbdywrenmnktem.supabase.co https://remotive.com https://www.arbeitnow.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self' https://mail.google.com; upgrade-insecure-requests" />
-  <meta name="description" content="RoleDesk helps users build ATS-friendly resumes, discover jobs and freelance opportunities, draft applications, and track every career conversation with full approval control." />
+  <meta name="description" content="RoleDesk helps users build ATS-friendly resumes, discover jobs and freelance opportunities, prepare smart drafts, and track applications with full approval control." />
   <meta name="theme-color" content="#171816" />
-  <title>RoleDesk — Resume, Job Search &amp; Application Tracker</title>
+  <title>RoleDesk — ATS Resume Builder, Job Search &amp; Application Tracker</title>
   <link rel="manifest" href="manifest.webmanifest?v=2" />
   <link rel="icon" href="scope-icon.svg?v=2" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=16" />
-  <link rel="stylesheet" href="cloud.css" />
+  <link rel="stylesheet" href="cloud.css?v=2" />
   <link rel="stylesheet" href="resume-builder.css?v=2" />
   <link rel="stylesheet" href="smart-engine.css?v=1" />
   <link rel="stylesheet" href="portal-center.css?v=1" />
   <link rel="stylesheet" href="email-desk.css?v=1" />
   <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
-  <link rel="stylesheet" href="mvp-polish.css?v=1" />
+  <link rel="stylesheet" href="mvp-polish.css?v=2" />
   <script src="security-utils.js"></script>
 </head>
 <body>
+  <div class="public-landing" id="publicLanding">
+    <header class="landing-nav"><a class="brand" href="#landingTop" aria-label="RoleDesk home"><span class="brand-mark">RD</span><span>RoleDesk</span></a><button class="button secondary" id="landingSignIn" type="button">Sign in</button></header>
+    <main class="landing-main" id="landingTop">
+      <section class="landing-hero"><div><span class="eyebrow coral">Private career command center · Beta</span><h1>Build your resume. Find better roles. Apply with confidence.</h1><p>RoleDesk helps you create ATS-friendly resumes, discover job and freelance opportunities, prepare smart drafts, and track follow-ups — while keeping every final action under your control.</p><div class="landing-actions"><button class="button primary" id="landingStartBeta" type="button">Start beta / Sign in</button><a class="button secondary" href="#howItWorks">See how it works</a></div><small>No auto-send. No auto-apply. Every draft stays under your approval.</small></div><aside><span class="landing-card-label">Your weekly workflow</span><strong>Resume → Search → Draft → Track</strong><p>One private place to review the facts, shortlist useful work, and keep the next action visible.</p></aside></section>
+
+      <section class="landing-section" id="howItWorks"><div class="landing-section-head"><span class="eyebrow">How it works</span><h2>A clear path from profile to follow-up.</h2></div><ol class="landing-steps"><li>Add your profile or resume</li><li>Generate an ATS-friendly resume</li><li>Search jobs and freelance opportunities</li><li>Save useful opportunities</li><li>Prepare proposal/email drafts</li><li>Track replies and follow-ups</li></ol></section>
+
+      <section class="landing-section"><div class="landing-section-head"><span class="eyebrow">What is ready now</span><h2>Practical tools, one approval-first workflow.</h2></div><div class="landing-features"><article><strong>ATS Resume Builder</strong><p>Review structure, missing facts, and target-role alignment.</p></article><article><strong>Smart Draft Mode</strong><p>Local, editable guidance without a paid external AI.</p></article><article><strong>Smart Search</strong><p>Rank permitted live listings against your reviewed profile.</p></article><article><strong>Portal Center</strong><p>Use honest live, guided, or manual source routes.</p></article><article><strong>Proposal Studio</strong><p>Prepare a tailored proposal without sending it.</p></article><article><strong>Email Desk</strong><p>Approve the exact recipient, subject, and message first.</p></article><article><strong>Tracker Analytics</strong><p>Keep statuses, replies, and follow-ups visible.</p></article><article><strong>Feedback</strong><p>Report beta issues directly from the app.</p></article></div></section>
+
+      <section class="landing-safety"><div><span class="eyebrow coral">Safety by design</span><h2>You keep the final say.</h2><p>RoleDesk is not an employer and does not guarantee jobs. It does not send emails or submit applications automatically. LinkedIn, Naukri, Upwork, and other restricted platforms remain guided/manual routes—not direct scraping.</p></div><ul><li>Review every draft before using it</li><li>Verify every claim, recipient, and application route</li><li>Submit, send, bid, and negotiate yourself</li></ul></section>
+
+      <section class="landing-beta-note"><strong>RoleDesk is currently in beta.</strong><span>Features are improving quickly. Use it carefully and submit feedback when something feels wrong.</span><button class="button secondary" id="landingBetaCta" type="button">Open beta access</button></section>
+    </main>
+    <footer class="landing-footer"><b>RoleDesk</b><span>Build your resume. Find better roles. Apply with confidence.</span></footer>
+  </div>
   <div class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="#" aria-label="RoleDesk home"><span class="brand-mark">RD</span><span>RoleDesk</span></a>
@@ -91,10 +106,11 @@
         </div>
 
         <section class="setup-center" aria-labelledby="setupTitle">
-          <div class="setup-center-head"><div><span class="eyebrow coral">MVP setup</span><h3 id="setupTitle">Your RoleDesk launchpad</h3><p>Complete what helps you now. Nothing here sends, applies, or publishes on your behalf.</p></div><div class="setup-progress"><strong id="setupProgressValue">0%</strong><span>ready</span></div></div>
+          <div class="setup-center-head"><div><span class="eyebrow coral">First-week setup</span><h3 id="setupTitle">Your RoleDesk launchpad</h3><p>Complete the essentials first. Nothing here sends, applies, or publishes on your behalf.</p></div><div class="setup-progress"><strong id="setupProgressValue">0%</strong><span>ready</span></div></div>
           <div class="setup-progress-track" aria-hidden="true"><i id="setupProgressBar"></i></div>
           <div class="mvp-setup-list" id="mvpSetupList"></div>
           <div class="setup-next"><span id="setupNextText">Start with a private beta account.</span><button class="button primary" id="setupNextAction">Continue setup</button></div>
+          <details class="first-week-checklist"><summary>First week checklist for Mayank</summary><ol><li>Sign in</li><li>Add or paste your resume</li><li>Confirm name and contact details</li><li>Generate an ATS resume</li><li>Search Graphic Designer, Visual Designer, and Brand Designer roles</li><li>Save 3–5 useful opportunities</li><li>Generate and review drafts</li><li>Track follow-ups</li><li>Submit feedback for issues</li><li>Invite 2–5 beta users</li></ol></details>
         </section>
 
         <div class="toolbar">
@@ -134,7 +150,7 @@
             <div class="opportunity-list" id="opportunityList"></div>
           </div>
           <aside class="detail-panel empty" id="detailPanel">
-            <div class="empty-state"><span>↗</span><h3>Pick an opportunity</h3><p>See its chance report, risks, proposal angle, and pricing guidance here.</p></div>
+            <div class="empty-state"><span>↗</span><h3>Start with one useful opportunity</h3><p>Select a demo item, run Smart Search, or add a public opportunity manually to review fit and risks.</p></div>
           </aside>
         </div>
       </section>
@@ -172,7 +188,7 @@
           <button id="importOpportunityFromSmart"><b>Any URL</b><span>Import brief manually +</span></button>
         </div>
         <p class="guided-search-note">Guided Search opens the official platform with your search terms. RoleDesk does not scrape or submit applications automatically.</p>
-        <div class="smart-status" id="liveSearchStatus">Enter the work you want, or create your résumé profile first for automatic targeting.</div>
+        <div class="smart-status" id="liveSearchStatus">Start with a reviewed profile, then search a specific role such as Graphic Designer, Visual Designer, or Brand Designer. Live feeds are ranked for review; guided sources open separately.</div>
         <div class="search-filter-bar" id="liveFilters">
           <label>Source<select id="filterSource"><option value="all">All sources</option><option>Remotive</option><option>Arbeitnow</option><option>Manual Import</option></select></label>
           <label>Work mode<select id="filterMode"><option value="all">Remote / hybrid / onsite</option><option value="remote">Remote</option><option value="onsite">Onsite / hybrid</option></select></label>
@@ -187,7 +203,7 @@
         <div class="smart-results-layout">
           <section>
             <div class="section-heading"><div><span class="eyebrow">Review queue</span><h3>Real opportunities</h3></div><span class="muted" id="liveResultCount">Not searched</span></div>
-            <div class="live-job-list" id="liveJobList"><div class="smart-empty"><span>◉</span><h3>Your search queue is empty</h3><p>RoleDesk will show full descriptions and rank each opportunity after you search.</p></div></div>
+            <div class="live-job-list" id="liveJobList"><div class="smart-empty"><span>◉</span><h3>Your search queue is empty</h3><p>Complete your profile, enter one specific role, then choose Search live sources. Use guided searches when a live source is unavailable.</p></div></div>
           </section>
           <aside class="live-detail empty" id="liveDetail"><div class="smart-empty"><span>↗</span><h3>Select an opportunity</h3><p>Review the brief, fit, public email, application route, and prepared next steps.</p></div></aside>
         </div>
@@ -195,7 +211,7 @@
 
       <section class="view" id="portalsView">
         <div class="workspace-header portal-heading"><span class="eyebrow coral">Honest source connections</span><h2>Portal Center</h2><p>See exactly which sources are live, guided, or manual—without fake integrations or hidden automation.</p></div>
-        <div class="portal-overview"><div><strong>Use official routes, keep final control.</strong><p>No portal passwords, OAuth tokens, API keys, or automatic applications are stored here.</p></div><span id="portalSummary">Loading source registry…</span></div>
+        <div class="portal-overview"><div><strong>Use official routes, keep final control.</strong><p>“Live” uses a permitted public feed. “Guided” opens an official search for you. “Manual” lets you paste public details you may use. No portal passwords, scraping, or automatic applications are stored here.</p></div><span id="portalSummary">Loading source registry…</span></div>
         <div class="portal-grid" id="portalGrid"></div>
       </section>
 
@@ -276,7 +292,7 @@
               <label>Subject<input id="emailSubject" placeholder="Design support for [project/company]" /></label>
               <label>Message<textarea id="emailBody" placeholder="Write or import your reviewed email here…"></textarea></label>
             </div>
-            <label class="approval-check"><input id="approveEmail" type="checkbox" /><span><b>I approve this exact recipient, subject, and message.</b><small>Changing any field removes approval automatically.</small></span></label>
+            <label class="approval-check"><input id="approveEmail" type="checkbox" /><span><b>I approve this exact recipient, subject, and message.</b><small>This is required before Gmail compose can open. RoleDesk never sends the email; changing any field removes approval automatically.</small></span></label>
             <ul class="smart-warning-list" id="emailTruthWarnings" hidden></ul>
             <div class="composer-actions"><button class="button secondary" id="emailEdit">Edit</button><button class="button secondary" id="emailSave">Save draft</button><button class="button secondary" id="copyApprovedEmail">Copy message</button><button class="button primary" id="openGmailDraft" disabled>Open reviewed draft in Gmail ↗</button></div>
             <div class="notice">RoleDesk opens Gmail compose with your reviewed draft. You must send it yourself.</div>
@@ -349,7 +365,7 @@
             <label class="resume-drop" for="resumeFile" id="resumeDrop">
               <span class="upload-icon">⇧</span>
               <strong id="resumeFileLabel">Upload PDF, DOCX, or TXT</strong>
-              <small>Maximum 10 MB · Nothing is submitted anywhere</small>
+              <small>Maximum 10 MB · Nothing is submitted anywhere · Paste the text below if file parsing fails</small>
               <span class="button primary">Choose résumé</span>
             </label>
             <div class="resume-or"><span>or paste the résumé text</span></div>
@@ -359,7 +375,7 @@
           </section>
 
           <section class="profile-result" id="profileResult">
-            <div class="empty-profile"><span>◎</span><h3>No résumé profile yet</h3><p>Upload your résumé to identify the work you should search for—and the work you should ignore.</p></div>
+            <div class="empty-profile"><span>◎</span><h3>No résumé profile yet</h3><p>Upload a PDF, DOCX, or TXT file—or paste resume text. Review every extracted field before using search or drafts.</p></div>
           </section>
         </div>
 
@@ -398,7 +414,7 @@
     </main>
   </div>
 
-  <button class="feedback-button" id="feedbackButton" type="button">Beta feedback</button>
+  <button class="feedback-button" id="feedbackButton" type="button">Send beta feedback</button>
   <dialog id="feedbackDialog" class="feedback-dialog">
     <form id="feedbackForm">
       <div class="dialog-head"><div><span class="eyebrow coral">Help improve RoleDesk</span><h2>Send beta feedback</h2></div><button class="icon-button" type="button" id="closeFeedback" aria-label="Close">×</button></div>
@@ -460,8 +476,8 @@
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=28"></script>
-  <script src="supabase-sync.js?v=23"></script>
-  <script src="admin-operations.js?v=1"></script>
+  <script src="app.js?v=29"></script>
+  <script src="supabase-sync.js?v=24"></script>
+  <script src="admin-operations.js?v=2"></script>
 </body>
 </html>

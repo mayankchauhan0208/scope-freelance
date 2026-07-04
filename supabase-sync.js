@@ -2,6 +2,7 @@
   const config = window.SCOPE_SUPABASE_CONFIG;
   const sdk = window.supabase;
   if (!config?.url || !config?.publishableKey || !sdk?.createClient) {
+    document.documentElement.classList.add('signed-out-mode');
     document.documentElement.classList.remove('auth-pending');
     return;
   }
@@ -102,6 +103,8 @@
 
   function renderAccount() {
     const connected = Boolean(session?.user);
+    document.documentElement.classList.toggle('signed-in-mode', connected);
+    document.documentElement.classList.toggle('signed-out-mode', !connected);
     signedOut.hidden = connected;
     signedIn.hidden = !connected;
     if (!passwordRecovery.hidden) {
