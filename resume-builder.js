@@ -17,11 +17,39 @@
   const unique = values => [...new Set(values.map(value => clean(value)).filter(Boolean))];
   const safeUrl = value => root?.ScopeSecurity?.safeHttpUrl ? root.ScopeSecurity.safeHttpUrl(value) : (/^https?:\/\//i.test(clean(value)) ? clean(value) : '');
   const lines = text => String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const titleStart = /\b(?:senior|sr\.?|junior|jr\.?|lead|principal|creative|graphic|visual|product|ui|ux|web|brand|marketing|motion|art|design|designer|developer|engineer|manager|director|specialist|consultant|strategist|analyst|coordinator|executive|officer|intern)\b/i;
+  const nonName = /\b(?:resume|curriculum|vitae|profile|summary|experience|education|skills|portfolio|contact|objective)\b/i;
+  function normalizeName(value) {
+    const name = clean(value).replace(/\s+/g, ' ').replace(/[,:;|\-]+$/g, '').trim();
+    if (!name || name !== name.toUpperCase()) return name;
+    return name.toLowerCase().replace(/(^|[\s.'-])([a-z])/g, (_, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+  }
+  function nameCandidate(value) {
+    const candidate = clean(value).replace(/\s+/g, ' ').replace(/[,:;|\-]+$/g, '').trim();
+    const words = candidate.split(/\s+/);
+    if (words.length < 2 || words.length > 4 || candidate.length > 60 || nonName.test(candidate)) return '';
+    if (!words.every(word => /^[A-Za-z][A-Za-z.'-]*$/.test(word))) return '';
+    return normalizeName(candidate);
+  }
+  function extractNameResult(text) {
+    const first = lines(text).slice(0, 12);
+    const labeled = first.map(line => line.match(/^(?:full\s+name|name)\s*[:\-]\s*(.+)$/i)).find(Boolean);
+    if (labeled) {
+      const name = nameCandidate(labeled[1].split(/[|•·–—]/)[0]);
+      if (name) return { name, confidence: 'Found in resume' };
+    }
+    for (const line of first) {
+      let prefix = line.split(/[|•·–—]/)[0].trim();
+      const boundary = prefix.match(titleStart);
+      if (boundary?.index === 0) continue;
+      if (boundary?.index > 0) prefix = prefix.slice(0, boundary.index).trim();
+      const name = nameCandidate(prefix);
+      if (name) return { name, confidence: boundary?.index > 0 ? 'Needs review' : 'Found in resume' };
+    }
+    return { name: '', confidence: 'Needs review' };
+  }
   function extractName(text) {
-    const first = lines(text).slice(0,12);
-    const labeled = first.map(line => line.match(/^(?:full\s+name|name)\s*[:\-]\s*([a-z][a-z .'-]{2,60})$/i)).find(Boolean);
-    if (labeled) return labeled[1].trim();
-    return first.find(line => /^[a-z][a-z .'-]{2,60}$/i.test(line) && line.split(/\s+/).length >= 2 && line.split(/\s+/).length <= 4 && !/resume|curriculum|designer|developer|manager|profile|summary/i.test(line)) || '';
+    return extractNameResult(text).name;
   }
   function extractSection(text, aliases) {
     const all = String(text || '').split(/\r?\n/), headings = Object.values(sectionAliases).flat(); let active = false, found = [];
@@ -35,8 +63,10 @@
   }
   function extractProfile(text, existing = {}) {
     const raw = clean(text), resumeLines = lines(text), urls = [...raw.matchAll(/https?:\/\/[^\s,;)]+/gi)].map(match => safeUrl(match[0])).filter(Boolean);
+    const nameResult = extractNameResult(text);
+    const existingName = [existing.fullName, existing.displayName].map(clean).find(value => value && !/^\[?your name\]?$/i.test(value) && value !== 'Needs review') || '';
     const found = {
-      fullName: extractName(text),
+      fullName: nameResult.name,
       email: (raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [''])[0],
       phone: (raw.match(/(?:\+?\d[\d\s().-]{8,}\d)/) || [''])[0].trim(),
       location: (resumeLines.map(line => line.match(/^(?:location|address|based in)\s*[:\-]\s*(.{2,100})$/i)).find(Boolean) || [,''])[1],
@@ -49,7 +79,9 @@
     };
     const skills = root?.findSkills ? root.findSkills(raw) : unique((raw.match(/(?:skills?|expertise)\s*[:\-]\s*([^\n]+)/i)?.[1] || '').split(/[,|•]/));
     const roles = root?.inferRoles ? root.inferRoles(skills).map(role => role.name) : unique(existing.roles || []);
-    const profile = { ...existing, ...Object.fromEntries(Object.entries(found).map(([key,value]) => [key, value || existing[key] || ''])), skills: unique([...(existing.skills || []), ...skills]), roles: unique([...(existing.roles || []), ...roles]), targetRole: existing.targetRole || roles[0] || '', rawText: raw, text: raw, extractionVersion: 4 };
+    const profile = { ...existing, ...Object.fromEntries(Object.entries(found).map(([key,value]) => [key, value || existing[key] || ''])), skills: unique([...(existing.skills || []), ...skills]), roles: unique([...(existing.roles || []), ...roles]), targetRole: existing.targetRole || roles[0] || '', rawText: raw, text: raw, extractionVersion: 5 };
+    profile.fullName = existingName || nameResult.name || '';
+    profile.displayName = existing.displayName && existingName ? existing.displayName : profile.fullName;
     profile.confidence = {};
     for (const [,key] of requiredProfileFields) {
       const value = profile[key], hasValue = Array.isArray(value) ? value.length > 0 : !!clean(value);
@@ -57,6 +89,7 @@
     }
     if (skills.length) profile.confidence.skills = 'Found in resume';
     if (roles.length) profile.confidence.roles = 'Needs review';
+    profile.confidence.fullName = existingName ? (existing.confidence?.fullName || 'User-added') : nameResult.confidence;
     profile.confidence.githubUrl = found.githubUrl ? 'Found in resume' : profile.githubUrl ? 'User-added' : 'Missing';
     profile.confidence.sections = Object.fromEntries(Object.keys(sectionAliases).map(key => [key, found.sections[key] ? 'Found in resume' : 'Missing']));
     return profile;
@@ -153,7 +186,7 @@
     async function loadVersions(){const node=root.document.querySelector('#atsVersions');let list=[];try{list=await root.RoleDeskResumeCloud?.listVersions?.()||[]}catch(error){node.innerHTML='<div class="ats-empty">Cloud resume versions need migration 003.</div>';return}node.innerHTML=list.length?list.map(item=>`<button type="button" data-resume-id="${item.id}"><b>${root.ScopeSecurity.escapeHtml(item.version_name||'Resume version')}</b><span>${item.ats_score??'-'} ATS · ${root.ScopeSecurity.escapeHtml(item.tone||'')}</span></button>`).join(''):'<div class="ats-empty">No saved cloud versions yet.</div>';node.querySelectorAll('[data-resume-id]').forEach(button=>button.onclick=()=>{const item=list.find(row=>row.id===button.dataset.resumeId);if(!item)return;const originalText=item.original_text||item.extracted_text||'',extracted={...currentProfile(),...(item.extracted_data||{})},targetRole=item.target_role||'',tone=item.tone||'Corporate';current={originalText,extracted,targetRole,tone,generated:item.generated_text||generateAtsResume(extracted,tone,targetRole),analysis:item.issues?.factors?item.issues:analyzeAts(originalText,extracted,targetRole)};original.value=originalText;root.document.querySelector('#atsTargetRole').value=targetRole;root.document.querySelector('#atsTone').value=tone;render();root.toast('Saved version loaded')})}
     root.document.addEventListener('roledesk:cloud-ready',loadVersions);loadVersions();
   }
-  const api={extractProfile,profileCompleteness,analyzeAts,generateAtsResume,mergeProfileForm,enhanceProfileView,initBuilder};
-  if (root.document) root.addEventListener('DOMContentLoaded',()=>{const profile=currentProfile();if(profile.rawText||profile.text){root.RoleDeskState?.setProfile?.(extractProfile(profile.rawText||profile.text,profile));root.RoleDeskState?.render?.()}initBuilder()});
+  const api={extractName,extractProfile,profileCompleteness,analyzeAts,generateAtsResume,mergeProfileForm,enhanceProfileView,initBuilder};
+  if (root.document) root.addEventListener('DOMContentLoaded',()=>{const profile=currentProfile();if(profile.rawText||profile.text){const refreshed=extractProfile(profile.rawText||profile.text,profile);root.RoleDeskState?.setProfile?.(refreshed);root.RoleDeskState?.save?.();root.RoleDeskState?.render?.()}initBuilder()});
   return api;
 });

@@ -29,6 +29,9 @@
   let emailDraftTimer = null;
   let pendingEmailDraft = null;
   let currentEmailDraftId = null;
+  const authParams = new URLSearchParams(window.location.search);
+  const invalidResetLink = authParams.get('error') === 'access_denied' || /otp_expired|expired|invalid/i.test(authParams.get('error_code') || authParams.get('error_description') || '');
+  const resetLinkMessage = 'This password reset link has expired or is invalid. Please request a new reset link.';
 
   const localPersist = persist;
   const localSaveProfile = saveProfile;
@@ -36,6 +39,11 @@
   function setStatus(message, isError = false) {
     status.textContent = message || '';
     status.classList.toggle('error', isError);
+  }
+
+  function friendlyAuthError(error, fallback) {
+    const message = String(error?.message || error || '');
+    return /refresh token|jwt|session.*expired|token.*expired/i.test(message) ? 'Your session expired. Please sign in again.' : fallback;
   }
 
   function safeParse(value, fallback) {
@@ -198,8 +206,8 @@
       if (!options.silent) toast('Private cloud synced');
       return true;
     } catch (error) {
-      setStatus(error.message || 'Cloud sync failed.', true);
-      if (!options.silent) toast('Cloud sync needs attention');
+      setStatus('Unable to sync right now. Try again.', true);
+      if (!options.silent) toast('Unable to sync right now. Try again.');
       return false;
     } finally {
       syncing = false;
@@ -209,6 +217,7 @@
   async function loadCloudCanonical() {
     if (!session?.user) return;
     const userId = session.user.id;
+    let recoveredProfileName = false;
     try {
       const [{ data: profile, error: profileError }, { data: cloudItems, error: itemsError }] = await Promise.all([
         cloud.from('profiles').select('*').eq('user_id', userId).maybeSingle(),
@@ -225,6 +234,12 @@
         text: profile.resume_text || '',
         portfolioUrl: window.ScopeSecurity.safeHttpUrl(profile.portfolio_urls?.[0] || profile.preferences?.portfolioUrl || '')
       } : null;
+      if (resumeProfile?.text && window.RoleDeskResume?.extractProfile) {
+        const previousName = resumeProfile.fullName || resumeProfile.displayName || '';
+        const previousNameMissing = !previousName || /^\[?your name\]?$/i.test(previousName) || previousName === 'Needs review';
+        resumeProfile = window.RoleDeskResume.extractProfile(resumeProfile.text, resumeProfile);
+        recoveredProfileName = previousNameMissing && Boolean(resumeProfile.fullName) && resumeProfile.fullName !== 'Needs review';
+      }
       opportunities = [...(cloudItems || []).map(localOpportunity), ...structuredClone(seed).map(item=>({...item,url:window.ScopeSecurity.safeHttpUrl(item.url)}))];
 
       localStorage.setItem(CACHE_OWNER_KEY, userId);
@@ -237,10 +252,11 @@
       renderProfile();
       updateIdentityWarnings();
       renderDashboard();
+      if (recoveredProfileName) await syncNow({ silent: true });
       setStatus('Supabase is the source of truth for this signed-in workspace.');
       document.dispatchEvent(new CustomEvent('roledesk:cloud-ready'));
     } catch (error) {
-      setStatus(error.message || 'Could not load cloud data.', true);
+      setStatus(friendlyAuthError(error, 'Unable to sync right now. Try again.'), true);
     }
   }
 
@@ -382,6 +398,22 @@
     }
   });
 
+  window.RoleDeskFeedbackCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    submit: async payload => {
+      const record = {
+        user_id: session?.user?.id || null,
+        email: window.ScopeSecurity.boundedText(payload.email || session?.user?.email, 320) || null,
+        feedback_type: payload.feedbackType,
+        page: window.ScopeSecurity.boundedText(payload.page, 200) || null,
+        message: window.ScopeSecurity.boundedText(payload.message, 5000)
+      };
+      const { error } = await cloud.from('feedback').insert(record);
+      if (error) throw error;
+      return true;
+    }
+  });
+
   async function initializeSession(nextSession) {
     session = nextSession;
     if (!session?.user) {
@@ -504,7 +536,7 @@
     if (!email) return;
     if (password.value.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
     setStatus('Requesting beta account…');
-    const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: `${location.origin}${location.pathname}` } });
+    const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
     password.value = '';
     if (error) return setStatus(error.message.includes('Beta access') ? 'This email has not been invited to the beta.' : error.message, true);
     setStatus('Account created. Open the confirmation email, then return and sign in.');
@@ -524,7 +556,7 @@
   document.querySelector('#resetPassword').addEventListener('click', async () => {
     const email = requireEmail();
     if (!email) return;
-    const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}${location.pathname}` });
+    const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
     setStatus(error ? error.message : 'Password reset email requested. Check your inbox.', Boolean(error));
   });
 
@@ -560,12 +592,22 @@
       document.documentElement.classList.remove('auth-pending');
       return;
     }
+    if (event === 'SIGNED_OUT' && session?.user) setStatus('Your session expired. Please sign in again.', true);
     setTimeout(() => initializeSession(nextSession), 0);
   });
 
   captureLegacyRecovery();
-  cloud.auth.getSession().then(({ data }) => initializeSession(data.session)).catch(error => {
-    setStatus(error.message || 'Authentication could not initialize.', true);
+  cloud.auth.getSession().then(async ({ data }) => {
+    await initializeSession(data.session);
+    if (invalidResetLink) {
+      passwordRecovery.hidden = true;
+      renderAccount();
+      setStatus(resetLinkMessage, true);
+      if (!accountDialog.open) accountDialog.showModal();
+      history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+  }).catch(error => {
+    setStatus(friendlyAuthError(error, 'Authentication could not initialize.'), true);
     document.documentElement.classList.remove('auth-pending');
   });
 })();

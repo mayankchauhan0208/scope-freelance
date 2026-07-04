@@ -13,10 +13,10 @@ test('MVP positioning and approval-first safety copy are consistent',()=>{
   assert.doesNotMatch(`${html}\n${read('app.js')}`,/autoSend|autoApply|\.submit\(\)/);
 });
 
-test('dashboard setup center covers the eleven MVP onboarding steps',()=>{
+test('dashboard setup center covers the eight beta onboarding steps',()=>{
   const html=read('index.html'),app=read('app.js');
   for(const id of ['setupProgressValue','setupProgressBar','mvpSetupList','setupNextText','setupNextAction'])assert.match(html,new RegExp(`id="${id}"`));
-  for(const label of ['Create account','Add contact details','Add résumé','Review profile','Add portfolio','Set target roles','Generate ATS résumé','Run Smart Search','Save opportunity','Generate first draft','Track follow-up'])assert.match(app,new RegExp(label));
+  for(const label of ['Create account','Add profile details','Paste or upload résumé','Generate ATS résumé','Search jobs','Save opportunity','Draft proposal/email','Track follow-up'])assert.match(app,new RegExp(label));
   assert.match(app,/roledesk-mvp-progress-v1/);
   assert.match(app,/scope-cache-owner-v1/);
 });

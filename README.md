@@ -4,6 +4,8 @@
 
 RoleDesk is a private career command center for ATS resumes, job search, freelance opportunities, smart drafts, email preparation, and opportunity tracking.
 
+RoleDesk is currently in public beta. Features are improving, every generated draft needs manual review, and RoleDesk never sends or applies automatically.
+
 ## MVP status
 
 Working now:
@@ -43,10 +45,11 @@ Back up existing tables, then apply migrations in order:
 3. `supabase/migrations/003_resume_profile_ats_builder.sql`
 4. `supabase/migrations/004_email_communication_tracking.sql`
 5. `supabase/migrations/005_tracker_analytics_followups.sql`
+6. `supabase/migrations/006_public_beta_feedback.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. They do not rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. They do not rename existing tables.
 
 ## Local development
 
@@ -75,7 +78,7 @@ Run the SQL checks in `supabase/tests/` only against a non-production test proje
 
 The current review branch is `codex/smart-opportunity-engine`. The likely GitHub Pages URL is `https://mayankchauhan0208.github.io/scope-freelance/`. The future intended domain is `roledesk.in`, but no `CNAME`, hardcoded domain, OAuth redirect, or production-domain configuration is included.
 
-See [deployment readiness](docs/DEPLOYMENT.md), [MVP test checklist](docs/MVP_TEST_CHECKLIST.md), [release notes](docs/RELEASE_NOTES.md), and [security policy](SECURITY.md).
+See [deployment readiness](docs/DEPLOYMENT.md), [beta operations](docs/BETA_OPERATIONS.md), [MVP test checklist](docs/MVP_TEST_CHECKLIST.md), [release notes](docs/RELEASE_NOTES.md), and [security policy](SECURITY.md).
 
 ## Secrets
 

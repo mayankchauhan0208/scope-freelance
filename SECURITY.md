@@ -6,6 +6,8 @@ The Phase 1 branch is designed for multiple users. Supabase Auth establishes ide
 
 Resume extraction and ATS scoring run locally. Resume text is not sent to an AI provider. Signed-in users may save resume originals and generated versions only to their own RLS-protected `resumes` rows.
 
+Beta feedback is stored in `public.feedback`. Anonymous and authenticated users may insert a bounded feedback message; authenticated users may read only rows owned by their user ID. Client roles cannot update or delete feedback, and there is no public policy for reading all feedback.
+
 RoleDesk Smart Engine is local rule-based code. It makes no external AI requests, exposes no model credentials, and never sends or submits its drafts. Signed-in users can explicitly save proposal and email drafts to their own RLS-protected `drafts` rows.
 
 Portal Center uses permitted public feeds, official guided links, and manual imports only. Restricted portals are not scraped or automated. Imported source/apply URLs must pass the shared HTTP/HTTPS validator, and no portal credentials or OAuth tokens are stored in browser-readable metadata.

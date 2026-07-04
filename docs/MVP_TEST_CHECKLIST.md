@@ -11,6 +11,7 @@
 
 ## Supabase checks
 
+- [ ] Migration 006 is applied after migrations 001–005 and a current backup exists
 - [ ] Migrations 001–005 are applied in order after backup
 - [ ] Beta allowlist accepts invited email and rejects uninvited signup
 - [ ] Signup confirmation, login, logout, and password reset work
@@ -33,6 +34,7 @@
 - [ ] Gmail compose handoff does not send mail
 - [ ] Tracker views, status persistence, filters, analytics, and timeline work
 - [ ] Follow-up schedule, complete, snooze, and draft actions work
+- [ ] Beta feedback submits and remains private to its owner
 - [ ] No automatic send, apply, submit, bid, sign, or contract action exists
 
 Run SQL checks in `supabase/tests/` against a non-production test project. Some scripts expect the Phase 1 fixture users and rows documented in the test SQL.

@@ -25,7 +25,7 @@ Do not add a `CNAME` or change production redirect URLs until the domain is purc
 ## Supabase checklist
 
 - [ ] Back up current tables
-- [ ] Apply migrations 001, 002, 003, 004, and 005 in order
+- [ ] Apply migrations 001 through 006 in order
 - [ ] Confirm `approve_draft` uses `extensions.digest(...)`
 - [ ] Add active beta emails to `public.beta_access`
 - [ ] Confirm RLS is enabled on every user-owned table
@@ -45,7 +45,14 @@ Only the Supabase project URL and publishable/anon key belong in `supabase-confi
 
 ## Redirect URLs
 
-Before release, add the exact current Pages URL and password-recovery return URL in Supabase Auth. Do not add `roledesk.in` until it is configured and serving the app. Do not change Google or other OAuth URLs because Gmail OAuth is not implemented.
+Confirm these values in **Supabase → Authentication → URL Configuration**:
+
+- Site URL: `https://mayankchauhan0208.github.io/scope-freelance/`
+- Redirect URL: `https://mayankchauhan0208.github.io/scope-freelance/`
+- Redirect URL: `http://127.0.0.1:8766/`
+- Redirect URL: `http://localhost:8766/`
+
+Do not add `roledesk.in` until it is configured and serving the app. Do not change Google or other OAuth URLs because Gmail OAuth is not implemented.
 
 ## Rollback
 

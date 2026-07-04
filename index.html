@@ -60,6 +60,11 @@
         </div>
       </header>
 
+      <section class="beta-banner" aria-label="RoleDesk beta notice">
+        <div><span class="beta-label">Public beta</span><strong>RoleDesk is improving with real-user feedback.</strong></div>
+        <p>Review every draft and verify every claim before use. RoleDesk never sends emails, submits applications, or applies automatically.</p>
+      </section>
+
       <section class="view active" id="discoverView">
         <div class="hero-grid">
           <article class="hero-card">
@@ -373,6 +378,20 @@
     </main>
   </div>
 
+  <button class="feedback-button" id="feedbackButton" type="button">Beta feedback</button>
+  <dialog id="feedbackDialog" class="feedback-dialog">
+    <form id="feedbackForm">
+      <div class="dialog-head"><div><span class="eyebrow coral">Help improve RoleDesk</span><h2>Send beta feedback</h2></div><button class="icon-button" type="button" id="closeFeedback" aria-label="Close">×</button></div>
+      <p class="feedback-copy">Report what happened without including passwords, private resume text, access tokens, or client-confidential information.</p>
+      <label>Feedback type<select id="feedbackType" required><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select></label>
+      <label>Email (optional)<input id="feedbackEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
+      <label>Message<textarea id="feedbackMessage" required minlength="10" maxlength="5000" placeholder="What happened, what did you expect, and which page were you using?"></textarea></label>
+      <p class="feedback-safety">RoleDesk is not an employer and does not guarantee jobs. It does not submit applications, send emails automatically, or scrape restricted platforms. Drafts may need correction; verify every claim before sending.</p>
+      <p class="parse-status" id="feedbackStatus" role="status"></p>
+      <div class="dialog-actions"><button class="button secondary" type="button" id="cancelFeedback">Cancel</button><button class="button primary" type="submit">Submit feedback</button></div>
+    </form>
+  </dialog>
+
   <dialog id="opportunityDialog">
     <form method="dialog" id="opportunityForm">
       <div class="dialog-head"><div><span class="eyebrow coral">Safe manual import</span><h2>Import Opportunity</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
@@ -398,7 +417,7 @@
       <div id="signedOutAccount">
         <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
         <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
-        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="createAccount">Request beta account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
+        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Request new reset link</button><button class="button secondary" type="button" id="createAccount">Request beta account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
         <p class="account-hint">Beta access requires an invited email. Confirm the Supabase email after signup. Never share your password with RoleDesk or Codex.</p>
       </div>
       <div id="passwordRecovery" hidden>
@@ -416,12 +435,12 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="resume-builder.js?v=3"></script>
+  <script src="resume-builder.js?v=4"></script>
   <script src="smart-engine.js?v=1"></script>
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=26"></script>
-  <script src="supabase-sync.js?v=22"></script>
+  <script src="app.js?v=27"></script>
+  <script src="supabase-sync.js?v=23"></script>
 </body>
 </html>
