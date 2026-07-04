@@ -36,6 +36,7 @@
         <button class="nav-item" data-view="pricing"><span>₹</span> Pricing Lab</button>
         <button class="nav-item" data-view="ats"><span>▤</span> ATS Resume Builder</button>
         <button class="nav-item" data-view="profile"><span>◎</span> My Profile</button>
+        <button class="nav-item" data-view="admin" id="adminNav" hidden><span>⚙</span> Beta Operations</button>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="guardrail-card">
@@ -374,6 +375,25 @@
           <div class="search-safety"><strong>How searching works:</strong> RoleDesk creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
         </section>
       </section>
+      <section class="view admin-view" id="adminView">
+        <div class="section-heading"><div><span class="eyebrow coral">Private beta administration</span><h2>Beta Operations</h2><p>Manage access and feedback without exposing passwords, secrets, or private application data.</p></div><button class="button secondary" id="refreshAdmin" type="button">Refresh</button></div>
+        <p class="admin-warning">Admin tools affect beta access. Review before changing.</p>
+        <div class="admin-status-grid" id="adminSystemStatus"><article><span>Supabase</span><strong id="adminSupabaseStatus">Checking…</strong></article><article><span>RLS</span><strong>Database enforced</strong></article><article><span>Feedback</span><strong id="adminFeedbackStatus">Checking…</strong></article><article><span>Beta access</span><strong id="adminBetaStatus">Checking…</strong></article><article><span>Safety</span><strong>No auto-send / auto-apply</strong></article></div>
+        <p class="parse-status" id="adminStatus" role="status"></p>
+        <section class="admin-card">
+          <div class="section-heading"><div><span class="eyebrow">Beta Users</span><h3>Access allowlist</h3></div></div>
+          <form class="admin-add-form" id="adminAddBetaForm"><label>Email<input id="adminBetaEmail" type="email" required placeholder="person@example.com" /></label><label>Invite note<input id="adminBetaNote" maxlength="500" placeholder="Designer beta cohort" /></label><label>Expiry (optional)<input id="adminBetaExpiry" type="date" /></label><button class="button primary" type="submit">Add beta user</button></form>
+          <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Email</th><th>Active</th><th>Note</th><th>Expires</th><th>Created</th><th>Action</th></tr></thead><tbody id="adminBetaUsers"><tr><td colspan="6">Sign in with an active admin account.</td></tr></tbody></table></div>
+        </section>
+        <section class="admin-card">
+          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewed</option><option value="planned">Planned</option><option value="fixed">Fixed</option><option value="archived">Archived</option></select></div></div>
+          <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty">No feedback loaded.</div></div>
+        </section>
+        <div class="admin-two-column">
+          <section class="admin-card"><span class="eyebrow">Launch Notes</span><h3>Safe operations</h3><ul><li>Add or deactivate beta access here; changes are enforced by RPC and RLS.</li><li>Review feedback without opening private resumes or application data.</li><li>Confirm password redirect settings in <a href="docs/DEPLOYMENT.md" target="_blank" rel="noopener">deployment notes</a>.</li><li>Rollback by reverting the release commit; preserve database rows.</li></ul></section>
+          <section class="admin-card"><span class="eyebrow">Invite Copy</span><h3>Beta invitation</h3><label>Name (optional)<input id="adminInviteName" placeholder="there" /></label><textarea id="adminInviteCopy" readonly></textarea><button class="button secondary" id="copyAdminInvite" type="button">Copy beta invite text</button></section>
+        </div>
+      </section>
       <footer class="product-footer"><b>RoleDesk</b><span>Build your resume. Find better roles. Apply with confidence.</span><small>Draft-first and approval-first: RoleDesk never sends, applies, submits, bids, signs, or contacts anyone for you.</small></footer>
     </main>
   </div>
@@ -440,7 +460,8 @@
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
   <script src="supabase-sync.js?v=23"></script>
+  <script src="admin-operations.js?v=1"></script>
 </body>
 </html>

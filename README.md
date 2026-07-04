@@ -46,10 +46,11 @@ Back up existing tables, then apply migrations in order:
 4. `supabase/migrations/004_email_communication_tracking.sql`
 5. `supabase/migrations/005_tracker_analytics_followups.sql`
 6. `supabase/migrations/006_public_beta_feedback.sql`
+7. `supabase/migrations/007_beta_operations_admin.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. They do not rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds the server-verified Beta Operations allowlist, admin RPCs, and feedback review statuses. They do not rename existing tables.
 
 ## Local development
 

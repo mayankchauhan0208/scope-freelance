@@ -25,7 +25,7 @@ Do not add a `CNAME` or change production redirect URLs until the domain is purc
 ## Supabase checklist
 
 - [ ] Back up current tables
-- [ ] Apply migrations 001 through 006 in order
+- [ ] Apply migrations 001 through 007 in order
 - [ ] Confirm `approve_draft` uses `extensions.digest(...)`
 - [ ] Add active beta emails to `public.beta_access`
 - [ ] Confirm RLS is enabled on every user-owned table
