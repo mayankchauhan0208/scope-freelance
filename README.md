@@ -21,6 +21,7 @@ Working now:
 - local rule-based Smart Draft Mode for proposals, email, form answers, and follow-ups
 - database-backed exact-draft approval before Gmail compose handoff
 - tracker views, analytics, manual communication states, timeline, and in-app follow-up reminders
+- real user-specific dashboard metrics with honest empty states; sample opportunities appear only after **Load demo data**, stay labeled, and are excluded from sync and analytics
 
 Smart Draft Mode is deterministic local logic, not a hosted LLM. It requires no AI key and never claims to be an external AI provider.
 

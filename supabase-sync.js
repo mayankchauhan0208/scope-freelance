@@ -52,7 +52,7 @@
   }
 
   function isDemoOpportunity(item) {
-    return seed.some(demo => demo.id === item.id && demo.title === item.title);
+    return item?.isDemo === true || seed.some(demo => demo.id === item.id && demo.title === item.title);
   }
 
   function snapshotLegacyData() {
@@ -78,7 +78,7 @@
     localStorage.removeItem(WORK_EMAIL_KEY);
     localStorage.removeItem(CACHE_OWNER_KEY);
     currentEmailDraftId = null;
-    opportunities = structuredClone(seed);
+    opportunities = [];
     resumeProfile = null;
     liveJobs = [];
     allLiveJobs = [];
@@ -166,7 +166,7 @@
       url: window.ScopeSecurity.safeHttpUrl(saved.url || row.source_url),
       platform: saved.platform || row.source,
       status: saved.status || 'Saved',
-      skill: Number.isFinite(saved.skill) ? saved.skill : row.match_score || 60,
+      skill: Number.isFinite(saved.skill) ? saved.skill : Number.isFinite(row.match_score) ? row.match_score : 0,
       pipelineValue: saved.pipelineValue || row.pipeline_value || saved.budget || 0,
       currency: saved.currency || row.currency || 'USD',
       lastContactedAt: saved.lastContactedAt || row.last_contacted_at || '',
@@ -243,7 +243,7 @@
         resumeProfile = window.RoleDeskResume.extractProfile(resumeProfile.text, resumeProfile);
         recoveredProfileName = previousNameMissing && Boolean(resumeProfile.fullName) && resumeProfile.fullName !== 'Needs review';
       }
-      opportunities = [...(cloudItems || []).map(localOpportunity), ...structuredClone(seed).map(item=>({...item,url:window.ScopeSecurity.safeHttpUrl(item.url)}))];
+      opportunities = (cloudItems || []).map(localOpportunity).filter(item => !isDemoOpportunity(item));
 
       localStorage.setItem(CACHE_OWNER_KEY, userId);
       const activeEmail = profile?.work_email || session.user.email || '';

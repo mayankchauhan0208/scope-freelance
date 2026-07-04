@@ -1,5 +1,5 @@
 const CACHE_PREFIX='scope-static-';
-const CACHE_VERSION='v23';
+const CACHE_VERSION='v24';
 const CACHE=`${CACHE_PREFIX}${CACHE_VERSION}`;
 const ASSETS=['./','./index.html','./styles.css','./cloud.css','./resume-builder.css','./smart-engine.css','./portal-center.css','./email-desk.css','./tracker-dashboard.css','./mvp-polish.css','./security-utils.js','./app.js','./resume-builder.js','./smart-engine.js','./portal-center.js','./email-desk.js','./tracker-engine.js','./supabase.min.js','./supabase-config.js','./supabase-sync.js','./admin-operations.js','./manifest.webmanifest','./scope-icon.svg','./pdf.min.js','./pdf.worker.min.js','./mammoth.browser.min.js'];
 const APPROVED_URLS=new Set(ASSETS.map(asset=>new URL(asset,self.location.href).href));
