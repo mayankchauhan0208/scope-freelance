@@ -29,8 +29,8 @@ jobs:
           mkdir -p _site
           cp \
             index.html manifest.webmanifest scope-icon.svg \
-            styles.css cloud.css resume-builder.css smart-engine.css portal-center.css email-desk.css tracker-dashboard.css mvp-polish.css \
-            security-utils.js app.js resume-builder.js smart-engine.js portal-center.js email-desk.js tracker-engine.js \
+            styles.css cloud.css resume-builder.css smart-engine.css portal-center.css email-desk.css tracker-dashboard.css mvp-polish.css coverage-engine.css \
+            security-utils.js app.js resume-builder.js smart-engine.js source-registry.js coverage-engine.js coverage-ui.js portal-center.js email-desk.js tracker-engine.js \
             supabase.min.js supabase-config.js supabase-sync.js admin-operations.js sw.js \
             pdf.min.js pdf.worker.min.js mammoth.browser.min.js \
             _site/

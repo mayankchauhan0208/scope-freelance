@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="email-desk.css?v=1" />
   <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
   <link rel="stylesheet" href="mvp-polish.css?v=3" />
+  <link rel="stylesheet" href="coverage-engine.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -45,6 +46,7 @@
         <button class="nav-item active" data-view="discover"><span>⌁</span> Discover</button>
         <button class="nav-item" data-view="smart"><span>◉</span> Smart Search</button>
         <button class="nav-item" data-view="portals"><span>⌘</span> Portal Center</button>
+        <button class="nav-item" data-view="coverage"><span>◎</span> Coverage Engine</button>
         <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
@@ -215,6 +217,15 @@
         <div class="workspace-header portal-heading"><span class="eyebrow coral">Honest source connections</span><h2>Portal Center</h2><p>See exactly which sources are live, guided, or manual—without fake integrations or hidden automation.</p></div>
         <div class="portal-overview"><div><strong>Use official routes, keep final control.</strong><p>“Live” uses a permitted public feed. “Guided” opens an official search for you. “Manual” lets you paste public details you may use. No portal passwords, scraping, or automatic applications are stored here.</p></div><span id="portalSummary">Loading source registry…</span></div>
         <div class="portal-grid" id="portalGrid"></div>
+        <section class="career-directory"><div class="section-heading"><div><span class="eyebrow coral">Official career page shortcuts</span><h2>MNC Career Directory</h2><p>Search official company career pages manually. RoleDesk does not claim to read every vacancy.</p></div><button class="button secondary" id="careerAddManual" type="button">Add opportunity manually</button></div><div class="career-controls"><input id="careerSearch" type="search" placeholder="Search company"><select id="careerCategory"><option value="">All categories</option></select></div><div class="career-grid" id="careerGrid"></div></section>
+      </section>
+
+      <section class="view" id="coverageView">
+        <div class="workspace-header coverage-heading"><span class="eyebrow coral">No Opportunity Left Behind</span><h2>Opportunity Coverage Engine</h2><p>Find where to apply, prepare what to send, and track every next step—without auto-sending or auto-applying.</p></div>
+        <div class="coverage-cta-row"><button class="button primary" id="coverageFindRoles" type="button">Find roles across sources</button><button class="button secondary" id="coverageOpenPortals" type="button">Open guided searches and MNC career pages</button><button class="button secondary" id="coverageManualImport" type="button">Add opportunity manually</button></div>
+        <section class="coverage-card"><div class="section-heading"><div><span class="eyebrow">Role-specific clusters</span><h3>Search the roles your profile supports</h3></div></div><div id="coverageRoleClusters"></div></section>
+        <div class="coverage-grid"><section class="coverage-card"><span class="eyebrow">Weekly search discipline</span><h3>Cover the main channels systematically.</h3><div id="coverageChecklist"></div></section><section class="coverage-card"><span class="eyebrow">Real coverage activity</span><h3>Coverage analytics</h3><div class="coverage-analytics" id="coverageAnalytics"></div></section></div>
+        <section class="coverage-card packet-workspace"><div class="section-heading"><div><span class="eyebrow coral">Application workflow</span><h2>Application Packet</h2></div><button class="button primary" id="generatePacket" type="button">Prepare application packet</button></div><label>Saved opportunity<select id="packetOpportunity"></select></label><div id="applicationPacket"><div class="smart-empty"><h3>No packet generated</h3><p>Save or import a real opportunity, then prepare its application packet.</p></div></div></section>
       </section>
 
       <section class="view" id="trackerView">
@@ -438,14 +449,16 @@
       <div class="form-row"><label>Opportunity type<select name="type"><option>Freelance project</option><option>Contract role</option><option>Remote contract</option><option>Retainer client</option><option>One-time project</option><option>Long-term client opportunity</option><option>Agency outsourcing opportunity</option><option>Full-time job</option><option>Part-time job</option><option>Internship</option></select></label><label>Client / company<input name="client" required placeholder="Northstar Labs" /></label></div>
       <div class="form-row"><label>Salary / budget (USD equivalent)<input name="budget" type="number" min="0" placeholder="1800" /></label><label>Location<input name="country" placeholder="United States or Remote" /></label></div>
       <div class="form-row"><label>Work mode<select name="workMode"><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">Onsite</option><option value="unknown">Not stated</option></select></label><label>Public contact email<input name="publicEmail" type="email" placeholder="jobs@company.com" /></label></div>
+      <div class="form-row"><label>Public recruiter/contact name<input name="recipientName" placeholder="Only if shown publicly" /></label><label>Deadline<input name="deadlineDate" type="date" /></label></div>
       <label>Source URL<input name="url" type="url" placeholder="https://…" /></label>
       <label>Official apply URL<input name="applyUrl" type="url" placeholder="https://company.com/careers/apply" /></label>
       <label>Project brief<textarea name="brief" required placeholder="Paste the project requirements, deliverables, and deadline…"></textarea></label>
+      <label>Requirements / questions<textarea name="requirements" placeholder="Paste required skills or application questions shown in the post…"></textarea></label>
       <label>Notes<textarea name="notes" placeholder="Your private review notes…"></textarea></label>
       <div class="form-row"><label>Skill match<select name="skill"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label><label>Portfolio match<select name="portfolio"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label></div>
       <label class="check"><input type="checkbox" name="verified" /> Client payment/reputation is verified</label>
       <div class="import-result" id="importAnalysis" hidden></div>
-      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze & save to Tracker</button></div>
+      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze, save & prepare packet</button></div>
     </form>
   </dialog>
   <dialog id="accountDialog" class="account-dialog">
@@ -474,12 +487,15 @@
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
   <script src="resume-builder.js?v=4"></script>
+  <script src="source-registry.js?v=1"></script>
+  <script src="coverage-engine.js?v=1"></script>
   <script src="smart-engine.js?v=1"></script>
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=31"></script>
   <script src="supabase-sync.js?v=25"></script>
   <script src="admin-operations.js?v=2"></script>
+  <script src="coverage-ui.js?v=1"></script>
 </body>
 </html>
