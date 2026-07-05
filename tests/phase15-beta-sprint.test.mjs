@@ -30,5 +30,5 @@ test('one-week operating guide documents daily use and blocker-first scope', () 
 });
 
 test('service worker publishes the beta sprint cache', () => {
-  assert.match(read('sw.js'), /CACHE_VERSION='v28'/);
+  assert.match(read('sw.js'), /CACHE_VERSION='v29'/);
 });

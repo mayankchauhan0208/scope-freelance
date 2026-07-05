@@ -4,7 +4,7 @@
 
 RoleDesk is a private career command center for ATS resumes, job search, freelance opportunities, smart drafts, email preparation, and opportunity tracking.
 
-RoleDesk is currently in public beta. Production migration 008 is applied, so `beta_access` no longer gates normal customer signup. Features are improving, every generated draft needs manual review, and RoleDesk never sends or applies automatically.
+RoleDesk is currently in controlled beta. Production migration 008 is applied, so `beta_access` no longer gates normal customer signup, but public confirmation email delivery still requires custom SMTP. Every generated draft needs manual review, and RoleDesk never sends or applies automatically.
 
 Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 
