@@ -33,8 +33,9 @@ set local role anon;
 select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claim.role', 'anon', true);
 
--- Expected: zero. Anonymous users cannot read resume versions.
-select count(*) as resumes_visible_to_anonymous from public.resumes;
+-- Expected: false. Anonymous users have no table-level SELECT privilege.
+-- This is stronger than relying on RLS to return zero rows.
+select has_table_privilege('anon', 'public.resumes', 'select') as anonymous_can_select_resumes;
 
 reset role;
 rollback;

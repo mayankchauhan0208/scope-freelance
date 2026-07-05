@@ -21,7 +21,8 @@ select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000a1
 select set_config('request.jwt.claim.role', 'authenticated', true);
 
 insert into public.profiles (user_id, display_name)
-values ('00000000-0000-4000-8000-0000000000a1', 'Phase 1 User A');
+values ('00000000-0000-4000-8000-0000000000a1', 'Phase 1 User A')
+on conflict (user_id) do update set display_name = excluded.display_name;
 
 insert into public.opportunities (id, user_id, source, source_url, title, status)
 values ('10000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-0000000000a1', 'test', 'https://example.test/a', 'User A opportunity', 'saved');
@@ -61,14 +62,15 @@ reset role;
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 
--- Expected: every anonymous count is zero.
+-- Expected: every value is false. Anonymous users have no table-level SELECT
+-- privilege, which is stronger than relying on RLS to return zero rows.
 select
-  (select count(*) from public.profiles) as anonymous_profiles,
-  (select count(*) from public.resumes) as anonymous_resumes,
-  (select count(*) from public.opportunities) as anonymous_opportunities,
-  (select count(*) from public.drafts) as anonymous_drafts,
-  (select count(*) from public.applications) as anonymous_applications,
-  (select count(*) from public.activity_logs) as anonymous_logs;
+  has_table_privilege('anon', 'public.profiles', 'select') as anonymous_can_select_profiles,
+  has_table_privilege('anon', 'public.resumes', 'select') as anonymous_can_select_resumes,
+  has_table_privilege('anon', 'public.opportunities', 'select') as anonymous_can_select_opportunities,
+  has_table_privilege('anon', 'public.drafts', 'select') as anonymous_can_select_drafts,
+  has_table_privilege('anon', 'public.applications', 'select') as anonymous_can_select_applications,
+  has_table_privilege('anon', 'public.activity_logs', 'select') as anonymous_can_select_logs;
 
 reset role;
 rollback;
