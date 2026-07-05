@@ -22,9 +22,9 @@ Frontend email checks are convenience validation only. They are not a security b
 
 ## Beta access
 
-New Auth users must have an active row in `public.beta_access`. Existing users are backfilled during migration 002. The allowlist is enforced by a database trigger before a new `auth.users` row is created.
+Migration 008 enables public customer signup by removing the old `beta_access` trigger. `beta_access` remains optional for cohort notes and beta operations; it is not an authorization boundary for the normal workspace. `admin_users` plus the server-verified `is_roledesk_admin` RPC remain the admin boundary.
 
-Disabling the frontend signup button is not sufficient beta protection. Keep the database trigger enabled during beta.
+Every private workspace table keeps owner-only RLS. Public signup does not grant cross-user reads, admin access, draft-approval mutation, or activity-log mutation. The `handle_new_user` trigger creates only a minimal profile row and cannot expose resume content.
 
 ## Local browser data
 

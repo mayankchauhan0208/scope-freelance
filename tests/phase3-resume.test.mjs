@@ -60,7 +60,8 @@ test('ATS analysis returns practical section scores and improvements', () => {
   const profile = resume.extractProfile(sample, { targetRole: 'Graphic Designer', roles: ['Graphic Designer'] });
   const result = resume.analyzeAts(sample, profile, 'Graphic Designer');
   assert.ok(result.score >= 50 && result.score <= 100);
-  assert.equal(Object.keys(result.factors).length, 13);
+  assert.equal(Object.keys(result.factors).length, 7);
+  assert.equal(Object.values(result.max).reduce((sum, value) => sum + value, 0), 100);
   assert.ok(Array.isArray(result.issues));
   assert.ok(Array.isArray(result.missingKeywords));
   const generated = resume.generateAtsResume(profile, 'Design/Marketing-focused', 'Graphic Designer');

@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, '..');
 require(path.join(root, 'resume-builder.js'));
+require(path.join(root, 'universal-search.js'));
 const engine = require(path.join(root, 'smart-engine.js'));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const profile = { fullName:'Jordan Example',email:'jordan@example.test',phone:'+91 98765 43210',location:'Delhi, India',targetRole:'Graphic Designer',roles:['Graphic Designer'],skills:['Branding','Typography','Layout','Visual Design'],tools:['Photoshop','Illustrator','Figma'],portfolioUrl:'https://portfolio.example.test',linkedinUrl:'https://linkedin.com/in/jordan-example',experienceSummary:'Graphic designer creating verified brand and campaign systems.',availability:'Available in two weeks',rawText:'Jordan Example Graphic Designer Branding Typography Layout Visual Design Photoshop Illustrator Figma' };
@@ -26,11 +27,11 @@ test('ATS generation uses confirmed facts and placeholders instead of invention'
   assert.doesNotMatch(generated, /Google|Microsoft|10 years|Bachelor of Arts/);
 });
 
-test('opportunity ranking boosts design fit and penalizes unrelated roles', () => {
+test('opportunity ranking boosts profile fit and penalizes unrelated job families', () => {
   const relevant = engine.rankOpportunity(profile,{title:'Senior Graphic Designer',description:'Remote branding role using Photoshop and Figma.',remote:true,salary:'₹8L'});
   const unrelated = engine.rankOpportunity(profile,{title:'Backend Developer',description:'Build Java APIs and databases.',remote:true});
   assert.ok(relevant.score > unrelated.score);
-  assert.ok(unrelated.breakdown.wrongRolePenalty >= 45);
+  assert.ok(unrelated.breakdown.wrongFamilyPenalty >= 30);
   assert.ok(relevant.matchedKeywords.length > 0);
 });
 
@@ -39,8 +40,8 @@ test('smart drafts use profile identity and expose missing facts', () => {
   assert.match(proposal.text, /Jordan Example/);
   assert.match(proposal.text, /^Hi team,/);
   const email = engine.generateEmailDraft({}, {title:'Designer'});
-  assert.match(email.text, /\[Your name\]/);
-  assert.ok(email.warnings.some(warning => /Missing name/i.test(warning)));
+  assert.match(email.text, /\[Name not confirmed\]/);
+  assert.ok(email.warnings.some(warning => /Name not confirmed/i.test(warning)));
 });
 
 test('truth warnings flag unsupported claims', () => {

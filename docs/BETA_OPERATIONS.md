@@ -2,6 +2,8 @@
 
 ## Add or disable beta access
 
+`beta_access` is optional after migration 008. Any valid email may create a normal customer workspace. Use this table only for named cohorts, invite notes, or controlled beta operations; it does not grant admin access.
+
 In Supabase SQL Editor, add an invited email with a safe upsert:
 
 ```sql

@@ -25,9 +25,9 @@ Do not add a `CNAME` or change production redirect URLs until the domain is purc
 ## Supabase checklist
 
 - [ ] Back up current tables
-- [ ] Apply migrations 001 through 007 in order
+- [ ] Apply migrations 001 through 008 in order
 - [ ] Confirm `approve_draft` uses `extensions.digest(...)`
-- [ ] Add active beta emails to `public.beta_access`
+- [ ] Confirm public email signup is enabled; use `beta_access` only for optional cohorts
 - [ ] Confirm RLS is enabled on every user-owned table
 - [ ] Configure Site URL and allowed redirect URLs for the exact GitHub Pages URL
 - [ ] Keep localhost redirect URLs only when needed for development
@@ -49,8 +49,11 @@ Confirm these values in **Supabase → Authentication → URL Configuration**:
 
 - Site URL: `https://mayankchauhan0208.github.io/scope-freelance/`
 - Redirect URL: `https://mayankchauhan0208.github.io/scope-freelance/`
+- Redirect URL: `https://mayankchauhan0208.github.io/scope-freelance/**`
 - Redirect URL: `http://127.0.0.1:8766/`
 - Redirect URL: `http://localhost:8766/`
+
+Do not use `localhost:3000` for the production reset flow. Supabase may rate-limit repeated signup or recovery emails; wait for the provider cooldown instead of retrying repeatedly. The UI converts this response to a clear wait message.
 
 Do not add `roledesk.in` until it is configured and serving the app. Do not change Google or other OAuth URLs because Gmail OAuth is not implemented.
 

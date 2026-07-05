@@ -4,7 +4,7 @@
 
 RoleDesk is a private career command center for ATS resumes, job search, freelance opportunities, smart drafts, email preparation, and opportunity tracking.
 
-RoleDesk is currently in public beta. Features are improving, every generated draft needs manual review, and RoleDesk never sends or applies automatically.
+RoleDesk is currently in public beta. Any valid email can create a private customer workspace after migration 008 is applied. Features are improving, every generated draft needs manual review, and RoleDesk never sends or applies automatically.
 
 Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 
@@ -13,8 +13,8 @@ Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 Working now:
 
 - auth-aware public landing page and private signed-in workspace
-- Supabase beta signup, login, password recovery, per-user cloud sync, and RLS
-- local resume parsing, profile extraction, ATS scoring, and ATS-friendly drafts
+- public Supabase signup, login, password recovery, per-user cloud sync, and owner-only RLS
+- multi-industry resume parsing, reviewed profile extraction, transparent 100-point ATS scoring, and ATS-friendly drafts
 - permitted live feeds from Remotive and Arbeitnow
 - guided official searches for LinkedIn, Naukri, Indeed, Upwork, Contra, Fiverr, Freelancer, Behance, and Dribbble
 - safe manual opportunity import with URL validation
@@ -22,6 +22,7 @@ Working now:
 - database-backed exact-draft approval before Gmail compose handoff
 - tracker views, analytics, manual communication states, timeline, and in-app follow-up reminders
 - real user-specific dashboard metrics with honest empty states; sample opportunities appear only after **Load demo data**, stay labeled, and are excluded from sync and analytics
+- universal resume-based search with editable Search Intent, multi-industry role taxonomy, role/seniority/skill clusters, explainable ranking, deduplication, and unrelated-family penalties
 - Opportunity Coverage Engine with a structured source registry, profile-supported role clusters, guided searches, MNC Career Directory, weekly coverage checklist, Manual Import 2.0, application-route detection, Application Packets, and a truth-aware Form Answer Kit
 - admin-only beta feedback triage with honest priorities, existing-status workflow labels, and a first-week issue checklist
 
@@ -53,10 +54,15 @@ Back up existing tables, then apply migrations in order:
 5. `supabase/migrations/005_tracker_analytics_followups.sql`
 6. `supabase/migrations/006_public_beta_feedback.sql`
 7. `supabase/migrations/007_beta_operations_admin.sql`
+8. `supabase/migrations/008_public_customer_access.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds the server-verified Beta Operations allowlist, admin RPCs, and feedback review statuses. They do not rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile without weakening owner RLS. They do not rename existing tables.
+
+## Customer workflow
+
+Create an account, review the extracted resume profile, run the transparent ATS analysis, edit Search Intent, search or import opportunities, review match evidence, prepare an Application Packet, copy/open drafts manually, mark applications manually, and schedule follow-ups. Live feeds are limited to permitted public sources; LinkedIn, Naukri, Indeed, Upwork, and similar platforms remain guided searches.
 
 ## Local development
 

@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="styles.css?v=16" />
   <link rel="stylesheet" href="cloud.css?v=2" />
   <link rel="stylesheet" href="resume-builder.css?v=2" />
-  <link rel="stylesheet" href="smart-engine.css?v=1" />
+  <link rel="stylesheet" href="smart-engine.css?v=2" />
   <link rel="stylesheet" href="portal-center.css?v=1" />
   <link rel="stylesheet" href="email-desk.css?v=1" />
   <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
@@ -165,10 +165,11 @@
           <p>RoleDesk retrieves permitted live listings, ranks the full description against your résumé, finds public contact details, and prepares every next step as a draft.</p>
         </div>
         <div class="smart-mode-banner"><b>RoleDesk is using Smart Draft Mode.</b><span>It works locally without paid AI and keeps every output editable.</span></div>
+        <section class="search-intent-panel" id="searchIntentPanel"><div class="smart-empty">Add or review your resume to generate search intent.</div></section>
         <section class="smart-console">
           <div class="smart-controls">
             <label>Search description<input id="liveSearchQuery" placeholder="e.g. brand identity, AI creative advertising, pitch deck" /></label>
-            <label>Opportunity type<select id="liveSearchType"><option value="all">Jobs + freelance</option><option value="design">Design roles</option><option value="marketing">Marketing creative</option><option value="product">Product / UI/UX</option></select></label>
+            <label>Opportunity type<select id="liveSearchType"><option value="all">All selected types</option><option value="full-time">Full-time</option><option value="contract">Contract</option><option value="freelance">Freelance</option><option value="internship">Internship</option></select></label>
             <label>Minimum match<select id="liveMinScore"><option value="0">Show all</option><option value="50" selected>50+ relevant</option><option value="70">70+ strong</option><option value="85">85+ exceptional</option></select></label>
             <button class="button primary" id="runLiveSearch">Search real opportunities</button>
           </div>
@@ -191,7 +192,7 @@
           <button id="importOpportunityFromSmart"><b>Any URL</b><span>Import brief manually +</span></button>
         </div>
         <p class="guided-search-note">Guided Search opens the official platform with your search terms. RoleDesk does not scrape or submit applications automatically.</p>
-        <div class="smart-status" id="liveSearchStatus">Start with a reviewed profile, then search a specific role such as Graphic Designer, Visual Designer, or Brand Designer. Live feeds are ranked for review; guided sources open separately.</div>
+        <div class="smart-status" id="liveSearchStatus">Start with a reviewed profile, confirm the resume-generated Search Intent, then search. Live feeds are ranked for review; guided sources open separately.</div>
         <div class="search-filter-bar" id="liveFilters">
           <label>Source<select id="filterSource"><option value="all">All sources</option><option>Remotive</option><option>Arbeitnow</option><option>Manual Import</option></select></label>
           <label>Work mode<select id="filterMode"><option value="all">Remote / hybrid / onsite</option><option value="remote">Remote</option><option value="onsite">Onsite / hybrid</option></select></label>
@@ -463,13 +464,13 @@
   </dialog>
   <dialog id="accountDialog" class="account-dialog">
     <form method="dialog" id="accountForm">
-      <div class="dialog-head"><div><span class="eyebrow coral">Private RoleDesk account</span><h2>Sync across your devices</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+        <div class="dialog-head"><div><span class="eyebrow coral">Private RoleDesk account</span><h2>Create an account or sign in</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
       <p class="account-copy">Your résumé profile and reviewed opportunities are protected by Supabase row-level security. Only the signed-in account can read them.</p>
       <div id="signedOutAccount">
         <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
         <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
-        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Request new reset link</button><button class="button secondary" type="button" id="createAccount">Request beta account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
-        <p class="account-hint">Beta access requires an invited email. Confirm the Supabase email after signup. Never share your password with RoleDesk or Codex.</p>
+        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="createAccount">Create account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
+        <p class="account-hint">Any valid email can create a private workspace. Confirm the Supabase email after signup. Never share your password with RoleDesk or Codex.</p>
       </div>
       <div id="passwordRecovery" hidden>
         <label>New password<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" /></label>
@@ -486,16 +487,18 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
-  <script src="resume-builder.js?v=4"></script>
-  <script src="source-registry.js?v=1"></script>
-  <script src="coverage-engine.js?v=1"></script>
-  <script src="smart-engine.js?v=1"></script>
+  <script src="universal-search.js?v=1"></script>
+  <script src="resume-builder.js?v=6"></script>
+  <script src="source-registry.js?v=2"></script>
+  <script src="coverage-engine.js?v=2"></script>
+  <script src="smart-engine.js?v=2"></script>
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=31"></script>
-  <script src="supabase-sync.js?v=25"></script>
+  <script src="app.js?v=32"></script>
+  <script src="supabase-sync.js?v=26"></script>
   <script src="admin-operations.js?v=2"></script>
-  <script src="coverage-ui.js?v=1"></script>
+  <script src="coverage-ui.js?v=2"></script>
+  <script src="search-intent.js?v=1"></script>
 </body>
 </html>

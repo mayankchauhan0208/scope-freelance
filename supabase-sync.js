@@ -32,7 +32,11 @@
   let currentEmailDraftId = null;
   const authParams = new URLSearchParams(window.location.search);
   const invalidResetLink = authParams.get('error') === 'access_denied' || /otp_expired|expired|invalid/i.test(authParams.get('error_code') || authParams.get('error_description') || '');
-  const resetLinkMessage = 'This password reset link has expired or is invalid. Please request a new reset link.';
+  const resetLinkMessage = 'This reset link is expired or invalid. Request a new reset link.';
+  const LIVE_REDIRECT_URL = 'https://mayankchauhan0208.github.io/scope-freelance/';
+  function authRedirectUrl() {
+    return window.location.hostname.endsWith('github.io') ? LIVE_REDIRECT_URL : window.location.origin + window.location.pathname;
+  }
 
   const localPersist = persist;
   const localSaveProfile = saveProfile;
@@ -47,7 +51,7 @@
     if (/refresh token|jwt|session.*expired|token.*expired/i.test(message)) return 'Your session expired. Please sign in again.';
     if (/invalid login|invalid credentials|email.*password/i.test(message)) return 'Email or password is incorrect. Try again.';
     if (/email not confirmed/i.test(message)) return 'Confirm your email before signing in.';
-    if (/rate limit|too many requests/i.test(message)) return 'Too many attempts. Wait a moment and try again.';
+    if (/rate limit|too many requests|email.*limit/i.test(message)) return 'Too many emails requested. Please wait before requesting another reset link.';
     if (/network|fetch|timeout|connection/i.test(message)) return 'Unable to connect right now. Try again.';
     return fallback;
   }
@@ -126,7 +130,7 @@
   function requireEmail() {
     const email = accountEmail.value.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setStatus('Enter a valid invited email address.', true);
+      setStatus('Enter a valid email address.', true);
       return '';
     }
     return email;
@@ -544,11 +548,10 @@
     if (!email) return;
     if (password.value.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
     setStatus('Requesting beta account…');
-    const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
+    const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: authRedirectUrl() } });
     password.value = '';
     if (error) {
-      const betaBlocked = String(error?.message || '').includes('Beta access');
-      return setStatus(betaBlocked ? 'This email has not been invited to the beta.' : friendlyAuthError(error, 'Unable to create the account right now. Try again.'), true);
+      return setStatus(friendlyAuthError(error, 'Unable to create the account right now. Try again.'), true);
     }
     setStatus('Account created. Open the confirmation email, then return and sign in.');
   });
@@ -567,7 +570,7 @@
   document.querySelector('#resetPassword').addEventListener('click', async () => {
     const email = requireEmail();
     if (!email) return;
-    const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+    const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() });
     setStatus(error ? friendlyAuthError(error, 'Unable to request a password reset right now. Try again.') : 'Password reset email requested. Check your inbox.', Boolean(error));
   });
 

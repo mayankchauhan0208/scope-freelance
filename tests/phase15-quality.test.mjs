@@ -15,13 +15,14 @@ test('identity uses profile, resume, email, then an editable placeholder', () =>
   assert.match(app, /Add your name in My Profile before approving/);
 });
 
-test('design search expands related roles and strongly penalizes unrelated titles', () => {
+test('universal search expands profile-derived roles and penalizes unrelated job families', () => {
   const app = read('app.js');
-  for (const role of ['graphic designer','visual designer','brand designer','marketing designer','social media designer','motion designer','video editor']) assert.match(app, new RegExp(role));
-  for (const wrong of ['product manager','engineer','developer','office assistant']) assert.match(app, new RegExp(wrong));
-  assert.match(app, /wrongRolePenalty=wrongRoles\.length\?45:0/);
-  assert.match(app, /titleMatch=Math\.min\(35/);
-  assert.match(app, /scoreBreakdown/);
+  const universal = read('universal-search.js');
+  for (const family of ['software','finance','hr','healthcare','hospitality','manufacturing']) assert.match(universal, new RegExp(`'${family}'`));
+  assert.match(app, /RoleDeskUniversalSearch/);
+  assert.match(universal, /wrongFamilyPenalty/);
+  assert.match(universal, /titleSimilarity/);
+  assert.match(universal, /breakdown/);
 });
 
 test('live search uses multiple permitted queries, deduplicates, and labels routes honestly', () => {

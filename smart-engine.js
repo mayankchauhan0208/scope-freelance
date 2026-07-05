@@ -5,8 +5,6 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  const designRoles = ['graphic designer','visual designer','brand designer','creative designer','marketing designer','campaign designer','social media designer','motion designer','video editor','ui visual designer'];
-  const wrongDesignRoles = ['product manager','engineer','developer','backend','frontend','office assistant','sales','accounting','unrelated admin'];
   const requiredFields = [['full name','fullName'],['email','email'],['phone','phone'],['location','location'],['target role','targetRole'],['skills','skills'],['tools','tools'],['portfolio','portfolioUrl'],['LinkedIn','linkedinUrl'],['experience summary','experienceSummary']];
   const clean = value => String(value || '').trim();
   const unique = values => [...new Set(values.map(value => clean(value)).filter(Boolean))];
@@ -66,13 +64,13 @@
   }
 
   function rankOpportunity(profile = {}, opportunity = {}) {
+    if (root?.RoleDeskUniversalSearch?.rank) return root.RoleDeskUniversalSearch.rank(profile, opportunity, root.RoleDeskSearchIntent?.get?.());
     const title = clean(opportunity.title).toLowerCase(), description = clean(opportunity.description || opportunity.brief).toLowerCase(), text = `${title} ${description} ${list(opportunity.skills || opportunity.tags).join(' ')}`.toLowerCase();
     const profileSkills = unique([...list(profile.skills), ...list(profile.tools)]), profileTokens = tokens(profileSkills.join(' ')), roleText = `${profile.targetRole || ''} ${list(profile.roles).join(' ')}`.toLowerCase(), roleTokens = tokens(roleText);
     const matchedKeywords = unique([...profileSkills.filter(skill => text.includes(skill.toLowerCase())), ...roleTokens.filter(token => text.includes(token))]).slice(0,10);
     const missingKeywords = profileSkills.filter(skill => !text.includes(skill.toLowerCase())).slice(0,8);
-    const designProfile = /design|creative|brand|visual|motion|video|figma|photoshop/i.test(`${roleText} ${profileSkills.join(' ')}`);
-    const roleBoost = designProfile ? designRoles.filter(role => title.includes(role)).length * 25 : roleTokens.filter(token => title.includes(token)).length * 10;
-    const wrongRoles = designProfile ? wrongDesignRoles.filter(role => title.includes(role)) : [];
+    const roleBoost = roleTokens.filter(token => title.includes(token)).length * 10;
+    const wrongRoles = [];
     const titleRelevance = Math.min(35, roleBoost + roleTokens.filter(token => title.includes(token)).length * 7);
     const skillMatch = Math.min(28, matchedKeywords.length * 6);
     const toolMatch = Math.min(8, list(profile.tools).filter(tool => text.includes(tool.toLowerCase())).length * 3);
@@ -92,10 +90,10 @@
   }
 
   function draftFacts(profile = {}, opportunity = {}) {
-    const name = clean(profile.fullName || profile.displayName) || '[Your name]', company = clean(opportunity.client || opportunity.company), contactName = clean(opportunity.contactName || opportunity.recipientName), title = clean(opportunity.title) || '[opportunity]', opportunityText = `${title} ${opportunity.description || opportunity.brief || ''} ${list(opportunity.skills).join(' ')}`.toLowerCase();
+    const name = clean(profile.fullName || profile.displayName) || '[Name not confirmed]', company = clean(opportunity.client || opportunity.company), contactName = clean(opportunity.contactName || opportunity.recipientName), title = clean(opportunity.title) || '[opportunity]', opportunityText = `${title} ${opportunity.description || opportunity.brief || ''} ${list(opportunity.skills).join(' ')}`.toLowerCase();
     const skills = list(profile.skills).filter(skill => opportunityText.includes(skill.toLowerCase())).slice(0,3), strengths = skills.length ? skills : list(profile.skills).slice(0,3), tools = list(profile.tools).filter(tool => opportunityText.includes(tool.toLowerCase())).slice(0,2), portfolio = clean(profile.portfolioUrl), availability = clean(profile.availability);
     const warnings = [];
-    if (name === '[Your name]') warnings.push('Missing name — add it before using this draft.');
+    if (name === '[Name not confirmed]') warnings.push('Name not confirmed — add it before using this draft.');
     if (!strengths.length) warnings.push('Missing relevant strengths — add verified skills.');
     if (!portfolio) warnings.push('Missing portfolio — no link was invented.');
     if (!profile.email && !profile.phone) warnings.push('Missing contact details.');
