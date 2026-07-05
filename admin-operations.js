@@ -58,8 +58,8 @@
   function priorityOf(item) {
     const text = `${item.feedback_type || ''} ${item.page || ''} ${item.message || ''}`;
     if (criticalPattern.test(text)) return 'Critical';
-    if (item.feedback_type === 'Bug' || /broken|blocked|blank identity|wrong identity|sync|save|apply link|application packet|tracker/i.test(text)) return 'High';
-    if (/Confusing UI|Bad job match|Resume issue|Draft issue/i.test(item.feedback_type || '')) return 'Medium';
+    if (item.feedback_type === 'Login issue' || item.feedback_type === 'Bug' || /broken|blocked|blank identity|wrong identity|sync|save|apply link|application packet|tracker/i.test(text)) return 'High';
+    if (/Confusing UI|Bad job match|Resume issue|Resume analyzer issue|Search result issue|Draft issue|Mobile\/UI issue/i.test(item.feedback_type || '')) return 'Medium';
     return 'Low';
   }
 
@@ -100,7 +100,7 @@
 
   function renderInvite() {
     const name = document.querySelector('#adminInviteName').value.trim() || 'there';
-    document.querySelector('#adminInviteCopy').value = `Hi ${name},\n\nYou’re invited to try RoleDesk beta.\n\nRoleDesk helps you build an ATS-friendly resume, discover job and freelance opportunities, prepare application drafts, and track follow-ups in one private workspace.\n\nImportant:\n- RoleDesk does not send emails automatically.\n- RoleDesk does not apply automatically.\n- Please review every draft before using it.\n\nAccess:\n${liveUrl}\n\nThanks,\nRoleDesk Beta Team`;
+    document.querySelector('#adminInviteCopy').value = `Hi ${name},\n\nYou’re invited to try RoleDesk public beta.\n\nRoleDesk helps you analyze your resume, find resume-based job and freelance opportunities, prepare application packets, draft outreach, and track follow-ups in one private workspace.\n\nImportant:\n- RoleDesk does not apply automatically.\n- RoleDesk does not send emails automatically.\n- Please review every draft before using it.\n\nAccess:\n${liveUrl}\n\nThanks,\nRoleDesk Beta Team`;
   }
 
   async function requireAdmin() {
@@ -126,20 +126,26 @@
     if (!(await checkAccess())) return setStatus('Admin access is required.', true);
     setStatus('Loading beta operations…');
     try {
-      const [betaResult, feedbackResult] = await Promise.all([
+      const [betaResult, feedbackResult, metricsResult] = await Promise.all([
         cloud.from('beta_access').select('email,active,note,expires_at,created_at').order('created_at', { ascending: false }),
-        cloud.from('feedback').select('id,email,feedback_type,page,message,status,created_at').order('created_at', { ascending: false }).limit(250)
+        cloud.from('feedback').select('id,email,feedback_type,page,message,status,created_at').order('created_at', { ascending: false }).limit(250),
+        cloud.rpc('admin_launch_metrics')
       ]);
       if (betaResult.error) throw betaResult.error;
       if (feedbackResult.error) throw feedbackResult.error;
+      if (metricsResult.error) throw metricsResult.error;
       betaUsers = betaResult.data || [];
       feedback = feedbackResult.data || [];
       renderBetaUsers();
       renderFeedback();
       renderIssueChecklist();
-      document.querySelector('#adminSupabaseStatus').textContent = 'Connected';
-      document.querySelector('#adminFeedbackStatus').textContent = `${feedback.length} loaded`;
-      document.querySelector('#adminBetaStatus').textContent = `${betaUsers.filter(user => user.active).length} active`;
+      const metrics = metricsResult.data || {};
+      document.querySelector('#adminUserCount').textContent = Number(metrics.users || 0).toLocaleString();
+      document.querySelector('#adminFeedbackStatus').textContent = Number(metrics.feedback || 0).toLocaleString();
+      document.querySelector('#adminUnresolvedCount').textContent = Number(metrics.unresolved_feedback || 0).toLocaleString();
+      document.querySelector('#adminOpportunityCount').textContent = Number(metrics.opportunities || 0).toLocaleString();
+      document.querySelector('#adminDraftCount').textContent = Number(metrics.drafts || 0).toLocaleString();
+      document.querySelector('#adminFollowupCount').textContent = Number(metrics.followups || 0).toLocaleString();
       setStatus('Admin data loaded through RLS-protected access.');
     } catch (error) {
       setStatus(friendlyError(error), true);

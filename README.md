@@ -13,6 +13,7 @@ Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 Working now:
 
 - auth-aware public landing page and private signed-in workspace
+- lightweight eight-step first-run onboarding with skip, progress, next-action, and application-workflow controls
 - public Supabase signup, login, password recovery, per-user cloud sync, and owner-only RLS
 - multi-industry resume parsing, reviewed profile extraction, transparent 100-point ATS scoring, and ATS-friendly drafts
 - permitted live feeds from Remotive and Arbeitnow
@@ -24,7 +25,7 @@ Working now:
 - real user-specific dashboard metrics with honest empty states; sample opportunities appear only after **Load demo data**, stay labeled, and are excluded from sync and analytics
 - universal resume-based search with editable Search Intent, multi-industry role taxonomy, role/seniority/skill clusters, explainable ranking, deduplication, and unrelated-family penalties
 - Opportunity Coverage Engine with a structured source registry, profile-supported role clusters, guided searches, MNC Career Directory, weekly coverage checklist, Manual Import 2.0, application-route detection, Application Packets, and a truth-aware Form Answer Kit
-- admin-only beta feedback triage with honest priorities, existing-status workflow labels, and a first-week issue checklist
+- admin-only beta feedback triage with honest priorities, aggregate-only launch metrics, existing-status workflow labels, and a first-week issue checklist
 
 Smart Draft Mode is deterministic local logic, not a hosted LLM. It requires no AI key and never claims to be an external AI provider.
 
@@ -55,10 +56,11 @@ Back up existing tables, then apply migrations in order:
 6. `supabase/migrations/006_public_beta_feedback.sql`
 7. `supabase/migrations/007_beta_operations_admin.sql`
 8. `supabase/migrations/008_public_customer_access.sql`
+9. `supabase/migrations/009_public_beta_activation.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile without weakening owner RLS. They do not rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. They do not weaken owner RLS or rename existing tables.
 
 ## Customer workflow
 

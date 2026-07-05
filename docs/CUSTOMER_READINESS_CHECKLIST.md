@@ -21,6 +21,9 @@
 - [x] Live, guided, official-career, and manual routes are labeled honestly.
 - [x] Application Packet shows evidence, concerns, missing data, and a real route.
 - [x] Email, proposal, form, apply, and follow-up actions remain manual.
+- [x] First-run onboarding has eight steps, progress, skip, and a clear application-workflow action.
+- [x] Customer dashboard activation cards show real counts or honest empty states.
+- [x] Feedback categories match launch support needs and admin monitoring returns aggregate counts only.
 
 ## Current limitations
 

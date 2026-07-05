@@ -30,7 +30,7 @@ const money = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD
 const realOpportunities = () => opportunities.filter(item=>!isDemoOpportunity(item));
 const realMatchScore = item => window.RoleDeskTracker?.matchScore(item) || 0;
 
-['landingStartBeta','landingSignIn','landingBetaCta'].forEach(id=>document.querySelector(`#${id}`)?.addEventListener('click',()=>document.querySelector('#cloudAccount')?.click()));
+['landingStartBeta','landingSignIn','landingHeroSignIn','landingBetaCta'].forEach(id=>document.querySelector(`#${id}`)?.addEventListener('click',()=>document.querySelector('#cloudAccount')?.click()));
 
 function analyze(o){
   const budgetQuality=clamp((o.budget/3000)*100);
@@ -84,23 +84,40 @@ function mvpProgressKey(){return `${MVP_PROGRESS_KEY}:${localStorage.getItem('sc
 function mvpProgress(){try{return JSON.parse(localStorage.getItem(mvpProgressKey())||'{}')}catch{return{}}}
 function markMvpProgress(key){const progress={...mvpProgress(),[key]:new Date().toISOString()};localStorage.setItem(mvpProgressKey(),JSON.stringify(progress));renderMvpSetup()}
 function renderMvpSetup(){
-  const list=$('#mvpSetupList');if(!list)return;const progress=mvpProgress(),name=resolvedUserName(),nonDemo=realOpportunities(),hasDraft=nonDemo.some(item=>window.RoleDeskTracker?.timeline(item).some(event=>/draft\.created|draft\.approved/.test(event.type)))||progress.draft,hasFollowup=nonDemo.some(item=>item.followup?.nextAt||item.communication?.followUpDate)||progress.followup;
+  const list=$('#mvpSetupList');if(!list)return;const progress=mvpProgress(),nonDemo=realOpportunities(),hasResume=Boolean(resumeProfile?.text||resumeProfile?.rawText),hasFollowup=nonDemo.some(item=>item.followup?.nextAt||item.communication?.followUpDate)||progress.followup,hasIntent=Boolean(window.RoleDeskSearchIntent?.get?.()?.targetRole),hasPacket=Boolean(progress.packet);
   const steps=[
-    {label:'Create account',note:'Private beta access',done:$('#cloudAccount')?.classList.contains('connected'),action:'account'},
-    {label:'Add profile details',note:'Review contact and role facts',done:!identityMissing()&&profileIsReady(),action:'profile'},
-    {label:'Paste or upload résumé',note:'Extract only provided facts',done:Boolean(resumeProfile?.text||resumeProfile?.rawText),action:'profile'},
-    {label:'Generate ATS résumé',note:'Review every field',done:Boolean(progress.ats),action:'ats'},
-    {label:'Search jobs',note:'Use live or guided search',done:Boolean(progress.search),action:'smart'},
-    {label:'Save opportunity',note:'Build your pipeline',done:Boolean(nonDemo.length),action:'discover'},
-    {label:'Draft proposal/email',note:'Review before use',done:Boolean(hasDraft),action:'studio'},
-    {label:'Track follow-up',note:'Keep the next step visible',done:Boolean(hasFollowup),action:'tracker'}
+    {label:'Complete profile',note:'Confirm contact and target role',done:!identityMissing()&&profileIsReady(),action:'profile'},
+    {label:'Paste or upload résumé',note:'Resume required for personal search',done:hasResume,action:'profile'},
+    {label:'Review extracted details',note:'Correct missing or uncertain facts',done:Boolean(hasResume&&profileIsReady()),action:'profile'},
+    {label:'Review ATS score',note:'See the breakdown and top fixes',done:Boolean(progress.ats),action:'ats'},
+    {label:'Review Search Intent',note:'Regenerate or edit resume terms',done:hasIntent,action:'smart'},
+    {label:'Search or import',note:'Save one real opportunity',done:Boolean(progress.search||nonDemo.length),action:'smart'},
+    {label:'Create Application Packet',note:'Review evidence and missing information',done:hasPacket,action:'coverage'},
+    {label:'Track a follow-up',note:'Save status and next action',done:Boolean(hasFollowup),action:'tracker'}
   ];
   const complete=steps.filter(step=>step.done).length,percent=Math.round(complete/steps.length*100),next=steps.find(step=>!step.done);
+  const center=document.querySelector('.setup-center'),skipped=Boolean(progress.onboardingSkipped);center?.classList.toggle('skipped',skipped);$('#skipOnboarding').textContent=skipped?'Show onboarding':'Skip for now';
   $('#setupProgressValue').textContent=`${percent}%`;$('#setupProgressBar').style.width=`${percent}%`;list.innerHTML=steps.map((step,index)=>`<button class="mvp-setup-step ${step.done?'done':''}" data-setup-action="${step.action}" type="button"><i>${step.done?'✓':index+1}</i><span>${esc(step.label)}<small>${esc(step.note)}</small></span></button>`).join('');
   $('#setupNextText').textContent=next?`Next: ${next.label}. ${next.note}.`:'Setup complete. Keep every application and message under your review.';$('#setupNextAction').textContent=next?'Continue setup':'Review Tracker';$('#setupNextAction').dataset.setupAction=next?.action||'tracker';
   $$('[data-setup-action]').forEach(button=>button.onclick=()=>button.dataset.setupAction==='account'?$('#cloudAccount').click():showView(button.dataset.setupAction));
+  $('#skipOnboarding').onclick=()=>{const nextProgress={...mvpProgress(),onboardingSkipped:!mvpProgress().onboardingSkipped};localStorage.setItem(mvpProgressKey(),JSON.stringify(nextProgress));renderMvpSetup()};
+  $('#startApplicationWorkflow').onclick=()=>showView(nonDemo.length?'coverage':'smart');
 }
 window.RoleDeskMvp=Object.freeze({mark:markMvpProgress,render:renderMvpSetup});
+
+function renderActivationSummary(){
+  const real=realOpportunities(),progress=mvpProgress(),text=resumeProfile?.rawText||resumeProfile?.text||'',score=text?window.RoleDeskResume?.analyzeAts?.(text,resumeProfile,resumeProfile?.targetRole)?.score:null;
+  let coverageEvents=[];try{coverageEvents=JSON.parse(localStorage.getItem('roledesk-coverage-v1')||'{}').events||[]}catch{}
+  const packets=coverageEvents.filter(event=>event.type==='packet_generated').length,drafts=real.filter(item=>/draft|proposal|email/i.test(item.status||'')).length,followups=real.filter(item=>['Due today','Overdue'].includes(window.RoleDeskTracker?.followUpState(item))).length,applied=real.filter(item=>/^(Applied|Proposal Sent|Email Sent|Client Replied|Interview|Negotiation|Hired)$/i.test(item.status||'')).length,feedback=Number(progress.feedbackCount||0);
+  $('#activationResume').textContent=Number.isFinite(score)?`${score}/100 ATS score`:'No resume added yet';
+  $('#activationOpportunities').textContent=real.length?`${real.length} saved`:'No opportunities yet';
+  $('#activationPackets').textContent=packets?`${packets} generated`:'No application packets yet';
+  $('#activationDrafts').textContent=drafts?`${drafts} prepared`:'No drafts yet';
+  $('#activationFollowups').textContent=followups?`${followups} due`:'No follow-ups yet';
+  $('#activationApplied').textContent=applied?`${applied} marked applied or progressed`:'No applications marked applied';
+  $('#activationFeedback').textContent=feedback?`${feedback} submitted`:'No feedback submitted yet';
+  $$('[data-activation-action]').forEach(button=>button.onclick=()=>button.dataset.activationAction==='feedback'?$('#feedbackButton').click():showView(button.dataset.activationAction));
+}
 
 function renderDashboard(){
   const real=realOpportunities(),active=real.filter(o=>!['Skipped','Archived','Rejected','Payment Received'].includes(o.status)),searched=allLiveJobs.filter(job=>!real.some(item=>item.url&&item.url===job.url)),reviewScores=[...active.map(realMatchScore),...searched.map(job=>Number(job.score)||0)],strong=reviewScores.filter(score=>score>=80),best=reviewScores.length?Math.max(...reviewScores):0,missingBudget=active.filter(o=>!(window.RoleDeskTracker?.amount(o)||0)).length,hasReviewData=real.length+searched.length>0;
@@ -118,7 +135,7 @@ function renderDashboard(){
   $('#dashboardEmptyState').hidden=hasReviewData;
   $('#demoModeBanner').hidden=!opportunities.some(isDemoOpportunity);
   $('#trackerCount').textContent=real.filter(o=>o.status!=='Skipped'&&o.status!=='Archived').length;
-  renderList(); renderProposalSelect(); renderEmailOpportunitySelect(); renderBoard(); renderMvpSetup();
+  renderList(); renderProposalSelect(); renderEmailOpportunitySelect(); renderBoard(); renderMvpSetup(); renderActivationSummary();
 }
 function renderList(){
   const q=$('#searchInput').value.toLowerCase(); let list=opportunities.filter(o=>(activeFilter==='all'||o.type===activeFilter)&&`${o.title} ${o.client} ${(o.skills||[]).join(' ')}`.toLowerCase().includes(q)).map(o=>({...o,...analyze(o),score:realMatchScore(o)}));
@@ -376,13 +393,13 @@ const feedbackDialog=$('#feedbackDialog'),feedbackForm=$('#feedbackForm'),feedba
 function closeFeedback(){if(feedbackDialog.open)feedbackDialog.close()}
 $('#feedbackButton').onclick=()=>{const signedEmail=$('#signedInEmail')?.textContent||'',workEmail=$('#workEmail')?.value||'';$('#feedbackEmail').value=/^\S+@\S+\.\S+$/.test(signedEmail)?signedEmail:workEmail;feedbackStatus.textContent='';feedbackStatus.classList.remove('error');feedbackDialog.showModal()};
 $('#closeFeedback').onclick=closeFeedback;$('#cancelFeedback').onclick=closeFeedback;
-feedbackForm.addEventListener('submit',async event=>{event.preventDefault();const message=$('#feedbackMessage').value.trim();if(message.length<10){feedbackStatus.textContent='Add a little more detail before submitting.';feedbackStatus.classList.add('error');return}const submit=feedbackForm.querySelector('[type="submit"]');submit.disabled=true;feedbackStatus.textContent='Submitting feedback…';feedbackStatus.classList.remove('error');try{if(!window.RoleDeskFeedbackCloud?.submit)throw new Error('Feedback service unavailable');await window.RoleDeskFeedbackCloud.submit({email:$('#feedbackEmail').value.trim(),feedbackType:$('#feedbackType').value,page:$('.view.active')?.id||'unknown',message});feedbackForm.reset();closeFeedback();toast('Thank you — beta feedback submitted')}catch(error){feedbackStatus.textContent='Unable to submit feedback right now. Try again.';feedbackStatus.classList.add('error')}finally{submit.disabled=false}});
+feedbackForm.addEventListener('submit',async event=>{event.preventDefault();const message=$('#feedbackMessage').value.trim();if(message.length<10){feedbackStatus.textContent='Add a little more detail before submitting.';feedbackStatus.classList.add('error');return}const submit=feedbackForm.querySelector('[type="submit"]');submit.disabled=true;feedbackStatus.textContent='Submitting feedback…';feedbackStatus.classList.remove('error');try{if(!window.RoleDeskFeedbackCloud?.submit)throw new Error('Feedback service unavailable');await window.RoleDeskFeedbackCloud.submit({email:$('#feedbackEmail').value.trim(),feedbackType:$('#feedbackType').value,page:$('.view.active')?.id||'unknown',message});const progress=mvpProgress();localStorage.setItem(mvpProgressKey(),JSON.stringify({...progress,feedbackCount:Number(progress.feedbackCount||0)+1}));feedbackForm.reset();closeFeedback();renderDashboard();toast('Thank you — beta feedback submitted')}catch(error){feedbackStatus.textContent='Unable to submit feedback right now. Try again.';feedbackStatus.classList.add('error')}finally{submit.disabled=false}});
 refreshEmailValidation();
 $$('[data-tracker-view]').forEach(button=>button.onclick=()=>{trackerView=button.dataset.trackerView;$$('[data-tracker-view]').forEach(item=>item.classList.toggle('active',item===button));renderBoard()});
 ['#trackerStatusFilter','#trackerSourceFilter','#trackerTypeFilter','#trackerFollowupFilter','#trackerCommunicationFilter','#trackerScoreFilter','#trackerBudgetFilter','#trackerLocationFilter','#trackerSavedFilter','#trackerSort'].forEach(selector=>$(selector).onchange=renderBoard);
 $('#resumeFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;$('#resumeFileLabel').textContent=file.name;$('#parseStatus').textContent='Reading your résumé locally…';try{const text=await readResumeFile(file);$('#resumeText').value=text;analyzeResumeText(text,file.name);$('#parseStatus').textContent='Profile ready. Your personalized searches are below.';toast('Résumé profile created')}catch(err){$('#parseStatus').textContent=err.message;toast('Could not read that résumé')}};
 $('#analyzeResume').onclick=()=>{try{analyzeResumeText($('#resumeText').value,$('#resumeFileLabel').textContent==='Upload PDF, DOCX, or TXT'?'Pasted résumé':$('#resumeFileLabel').textContent);$('#parseStatus').textContent='Profile ready. Your personalized searches are below.';toast('Résumé profile created')}catch(err){$('#parseStatus').textContent=err.message}};
-$('#clearProfile').onclick=()=>{resumeProfile=null;localStorage.removeItem(PROFILE_KEY);$('#resumeText').value='';$('#resumeFile').value='';$('#resumeFileLabel').textContent='Upload PDF, DOCX, or TXT';$('#parseStatus').textContent='';$('#searchRole').innerHTML='<option value="">Complete profile first</option>';$('#searchWorkType').value='all';$('#searchLocation').value='remote';$('#searchResults').innerHTML='';window.RoleDeskSearchIntent?.regenerate?.();renderProfile();toast('Résumé profile cleared')};
+$('#clearProfile').onclick=()=>{resumeProfile=null;localStorage.removeItem(PROFILE_KEY);$('#resumeText').value='';$('#resumeFile').value='';$('#resumeFileLabel').textContent='Upload PDF, DOCX, or TXT';$('#parseStatus').textContent='';$('#searchRole').innerHTML='<option value="">Complete profile first</option>';$('#searchWorkType').value='all';$('#searchLocation').value='';$('#searchResults').innerHTML='';window.RoleDeskSearchIntent?.regenerate?.();renderProfile();toast('Résumé profile cleared')};
 $('#buildSearches').onclick=buildSearches;$('#searchRole').onchange=buildSearches;$('#searchWorkType').onchange=buildSearches;$('#searchLocation').onchange=buildSearches;
 const resumeDrop=$('#resumeDrop');resumeDrop.ondragover=e=>{e.preventDefault();resumeDrop.classList.add('dragging')};resumeDrop.ondragleave=()=>resumeDrop.classList.remove('dragging');resumeDrop.ondrop=async e=>{e.preventDefault();resumeDrop.classList.remove('dragging');const file=e.dataTransfer.files?.[0];if(!file)return;$('#resumeFileLabel').textContent=file.name;$('#parseStatus').textContent='Reading your résumé locally…';try{const text=await readResumeFile(file);$('#resumeText').value=text;analyzeResumeText(text,file.name);$('#parseStatus').textContent='Profile ready. Your personalized searches are below.';toast('Résumé profile created')}catch(err){$('#parseStatus').textContent=err.message}};
 $('#loadDemoData').onclick=()=>{if(opportunities.some(isDemoOpportunity))return toast('Demo data is already loaded');const demos=structuredClone(seed).map(item=>({...item,id:-Math.abs(item.id),isDemo:true,sourceMethod:'Demo data'}));opportunities.push(...demos);persist();renderDashboard();toast('Demo data loaded and clearly labeled')};

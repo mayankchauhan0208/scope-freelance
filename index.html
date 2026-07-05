@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="portal-center.css?v=1" />
   <link rel="stylesheet" href="email-desk.css?v=1" />
   <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
-  <link rel="stylesheet" href="mvp-polish.css?v=3" />
+  <link rel="stylesheet" href="mvp-polish.css?v=4" />
   <link rel="stylesheet" href="coverage-engine.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
@@ -27,9 +27,9 @@
   <div class="public-landing" id="publicLanding">
     <header class="landing-nav"><a class="brand" href="#landingTop" aria-label="RoleDesk home"><span class="brand-mark">RD</span><span>RoleDesk</span></a><button class="button secondary" id="landingSignIn" type="button">Sign in</button></header>
     <main class="landing-main" id="landingTop">
-      <section class="landing-hero"><div><span class="eyebrow coral">Private career command center · Beta</span><h1>Build your resume. Find better roles. Apply with confidence.</h1><p>RoleDesk helps you create ATS-friendly resumes, discover job and freelance opportunities, prepare smart drafts, and track follow-ups — while keeping every final action under your control.</p><div class="landing-actions"><button class="button primary" id="landingStartBeta" type="button">Start beta / Sign in</button><a class="button secondary" href="#howItWorks">See how it works</a></div><small>No auto-send. No auto-apply. Every draft stays under your approval.</small></div><aside><span class="landing-card-label">Your weekly workflow</span><strong>Resume → Search → Draft → Track</strong><p>One private place to review the facts, shortlist useful work, and keep the next action visible.</p></aside></section>
+      <section class="landing-hero"><div><span class="eyebrow coral">Private career command center · Beta</span><h1>Build your resume. Find better roles. Apply with confidence.</h1><p>RoleDesk helps you analyze your resume, discover resume-based job and freelance opportunities, prepare application packets, draft outreach, and track follow-ups — while keeping every final action under your control.</p><div class="landing-actions"><button class="button primary" id="landingStartBeta" type="button">Create free beta account</button><button class="button secondary" id="landingHeroSignIn" type="button">Sign in</button><a class="button secondary" href="#howItWorks">See how it works</a></div><small>No auto-send. No auto-apply. No fake integrations. You review every draft before using it.</small></div><aside><span class="landing-card-label">Your weekly workflow</span><strong>Resume → Search → Packet → Track</strong><p>One private place to review the facts, shortlist useful work, and keep the next action visible.</p></aside></section>
 
-      <section class="landing-section" id="howItWorks"><div class="landing-section-head"><span class="eyebrow">How it works</span><h2>A clear path from profile to follow-up.</h2></div><ol class="landing-steps"><li>Add your profile or resume</li><li>Generate an ATS-friendly resume</li><li>Search jobs and freelance opportunities</li><li>Save useful opportunities</li><li>Prepare proposal/email drafts</li><li>Track replies and follow-ups</li></ol></section>
+      <section class="landing-section" id="howItWorks"><div class="landing-section-head"><span class="eyebrow">How RoleDesk works</span><h2>A clear path from resume to follow-up.</h2></div><ol class="landing-steps"><li>Add your resume</li><li>Review your ATS score</li><li>Generate resume-based search intent</li><li>Find and import opportunities</li><li>Create application packets</li><li>Draft outreach</li><li>Track applications and follow-ups</li></ol></section>
 
       <section class="landing-section"><div class="landing-section-head"><span class="eyebrow">What is ready now</span><h2>Practical tools, one approval-first workflow.</h2></div><div class="landing-features"><article><strong>ATS Resume Builder</strong><p>Review structure, missing facts, and target-role alignment.</p></article><article><strong>Smart Draft Mode</strong><p>Local, editable guidance without a paid external AI.</p></article><article><strong>Smart Search</strong><p>Rank permitted live listings against your reviewed profile.</p></article><article><strong>Portal Center</strong><p>Use honest live, guided, or manual source routes.</p></article><article><strong>Proposal Studio</strong><p>Prepare a tailored proposal without sending it.</p></article><article><strong>Email Desk</strong><p>Approve the exact recipient, subject, and message first.</p></article><article><strong>Tracker Analytics</strong><p>Keep statuses, replies, and follow-ups visible.</p></article><article><strong>Feedback</strong><p>Report beta issues directly from the app.</p></article></div></section>
 
@@ -109,11 +109,21 @@
         <section class="dashboard-empty-state" id="dashboardEmptyState"><div><span class="eyebrow coral">Start with real data</span><h3>No opportunities yet</h3><p>Run Smart Search or import an opportunity to build your dashboard. Pipeline value will appear only from saved opportunities with known budgets.</p></div><div><button class="button primary" id="emptyRunSearch" type="button">Run Smart Search</button><button class="button secondary" id="emptyImportOpportunity" type="button">Import Opportunity</button><button class="button secondary" id="emptyCompleteProfile" type="button">Complete Profile</button></div></section>
         <section class="demo-mode-banner" id="demoModeBanner" hidden><div><strong>Demo data</strong><span>Sample opportunities are clearly labeled and excluded from real dashboard and tracker metrics.</span></div><button class="button secondary" id="clearDemoData" type="button">Clear demo data</button></section>
 
+        <section class="activation-summary" aria-label="Your real RoleDesk activity">
+          <article><span>Resume score</span><strong id="activationResume">No resume added yet</strong><button data-activation-action="profile" type="button">Add resume</button></article>
+          <article><span>Saved opportunities</span><strong id="activationOpportunities">No opportunities yet</strong><button data-activation-action="smart" type="button">Run search</button></article>
+          <article><span>Application packets</span><strong id="activationPackets">No application packets yet</strong><button data-activation-action="coverage" type="button">Create application packet</button></article>
+          <article><span>Drafts prepared</span><strong id="activationDrafts">No drafts yet</strong><button data-activation-action="studio" type="button">Draft outreach</button></article>
+          <article><span>Follow-ups due</span><strong id="activationFollowups">No follow-ups yet</strong><button data-activation-action="tracker" type="button">Open tracker</button></article>
+          <article><span>Applications marked applied</span><strong id="activationApplied">No applications marked applied</strong><button data-activation-action="tracker" type="button">Update status</button></article>
+          <article><span>Feedback submitted</span><strong id="activationFeedback">No feedback submitted yet</strong><button data-activation-action="feedback" type="button">Send feedback</button></article>
+        </section>
+
         <section class="setup-center" aria-labelledby="setupTitle">
-          <div class="setup-center-head"><div><span class="eyebrow coral">First-week setup</span><h3 id="setupTitle">Your RoleDesk launchpad</h3><p>Complete the essentials first. Nothing here sends, applies, or publishes on your behalf.</p></div><div class="setup-progress"><strong id="setupProgressValue">0%</strong><span>ready</span></div></div>
+          <div class="setup-center-head"><div><span class="eyebrow coral">First-run onboarding</span><h3 id="setupTitle">Your RoleDesk launchpad</h3><p>Complete the essentials first. Nothing here sends, applies, or publishes on your behalf.</p></div><div class="setup-head-actions"><button class="button secondary" id="skipOnboarding" type="button">Skip for now</button><div class="setup-progress"><strong id="setupProgressValue">0%</strong><span>ready</span></div></div></div>
           <div class="setup-progress-track" aria-hidden="true"><i id="setupProgressBar"></i></div>
           <div class="mvp-setup-list" id="mvpSetupList"></div>
-          <div class="setup-next"><span id="setupNextText">Start with a private beta account.</span><button class="button primary" id="setupNextAction">Continue setup</button></div>
+          <div class="setup-next"><span id="setupNextText">Start by completing your profile.</span><div><button class="button secondary" id="startApplicationWorkflow" type="button">Start Application Workflow</button><button class="button primary" id="setupNextAction">Continue setup</button></div></div>
           <details class="first-week-checklist"><summary>Your first-week checklist</summary><ol><li>Sign in</li><li>Add or paste your resume</li><li>Confirm name and contact details</li><li>Generate an ATS resume</li><li>Search roles supported by your profile</li><li>Save 3–5 useful opportunities</li><li>Generate and review drafts</li><li>Track follow-ups</li><li>Submit feedback for issues</li></ol></details>
         </section>
 
@@ -136,14 +146,14 @@
           <div><span class="eyebrow">Search sources</span><strong>Open a marketplace, then add the promising URL here.</strong></div>
           <div class="source-links">
             <a href="https://www.upwork.com/nx/search/jobs/" target="_blank" rel="noopener">Upwork ↗</a>
-            <a href="https://www.fiverr.com/categories/graphics-design" target="_blank" rel="noopener">Fiverr ↗</a>
-            <a href="https://www.freelancer.com/jobs/graphic-design/" target="_blank" rel="noopener">Freelancer ↗</a>
+            <a href="https://www.fiverr.com/categories" target="_blank" rel="noopener">Fiverr ↗</a>
+            <a href="https://www.freelancer.com/jobs/" target="_blank" rel="noopener">Freelancer ↗</a>
             <a href="https://contra.com/opportunities" target="_blank" rel="noopener">Contra ↗</a>
-            <a href="https://www.peopleperhour.com/freelance-jobs/design" target="_blank" rel="noopener">PeoplePerHour ↗</a>
+            <a href="https://www.peopleperhour.com/freelance-jobs" target="_blank" rel="noopener">PeoplePerHour ↗</a>
             <a href="https://www.behance.net/joblist" target="_blank" rel="noopener">Behance ↗</a>
             <a href="https://dribbble.com/jobs" target="_blank" rel="noopener">Dribbble ↗</a>
             <a href="https://www.linkedin.com/jobs/" target="_blank" rel="noopener">LinkedIn ↗</a>
-            <a href="https://weworkremotely.com/categories/remote-design-jobs" target="_blank" rel="noopener">Remote boards ↗</a>
+            <a href="https://weworkremotely.com/remote-jobs" target="_blank" rel="noopener">Remote boards ↗</a>
           </div>
         </div>
 
@@ -395,9 +405,9 @@
         <section class="search-command" id="searchCommand">
           <div class="section-heading"><div><span class="eyebrow">Step 2</span><h2>Personal search command</h2></div><span class="muted" id="searchSummary">Analyze your résumé to unlock searches</span></div>
           <div class="search-controls">
-            <label>Primary role<select id="searchRole"><option>Graphic Designer</option></select></label>
+            <label>Primary role<select id="searchRole"><option value="">Complete profile first</option></select></label>
             <label>Work type<select id="searchWorkType"><option value="freelance">Freelance & contract</option><option value="jobs">Remote jobs</option><option value="clients">Direct clients</option><option value="all">Everything</option></select></label>
-            <label>Location<select id="searchLocation"><option value="remote">Remote worldwide</option><option value="india">India</option><option value="international">International, India eligible</option></select></label>
+            <label>Location<select id="searchLocation"><option value="">Not specified</option><option value="remote">Remote worldwide</option><option value="india">India</option><option value="international">International, India eligible</option></select></label>
             <button class="button primary" id="buildSearches">Build my searches</button>
           </div>
           <div class="search-results" id="searchResults"></div>
@@ -407,7 +417,7 @@
       <section class="view admin-view" id="adminView">
         <div class="section-heading"><div><span class="eyebrow coral">Private beta administration</span><h2>Beta Operations</h2><p>Manage access and feedback without exposing passwords, secrets, or private application data.</p></div><button class="button secondary" id="refreshAdmin" type="button">Refresh</button></div>
         <p class="admin-warning">Admin tools affect beta access. Review before changing.</p>
-        <div class="admin-status-grid" id="adminSystemStatus"><article><span>Supabase</span><strong id="adminSupabaseStatus">Checking…</strong></article><article><span>RLS</span><strong>Database enforced</strong></article><article><span>Feedback</span><strong id="adminFeedbackStatus">Checking…</strong></article><article><span>Beta access</span><strong id="adminBetaStatus">Checking…</strong></article><article><span>Safety</span><strong>No auto-send / auto-apply</strong></article></div>
+        <div class="admin-status-grid" id="adminSystemStatus"><article><span>Users</span><strong id="adminUserCount">Checking…</strong></article><article><span>Feedback</span><strong id="adminFeedbackStatus">Checking…</strong></article><article><span>Unresolved</span><strong id="adminUnresolvedCount">Checking…</strong></article><article><span>Opportunities</span><strong id="adminOpportunityCount">Checking…</strong></article><article><span>Drafts</span><strong id="adminDraftCount">Checking…</strong></article><article><span>Follow-ups</span><strong id="adminFollowupCount">Checking…</strong></article></div>
         <p class="parse-status" id="adminStatus" role="status"></p>
         <section class="admin-card">
           <div class="section-heading"><div><span class="eyebrow">Beta Users</span><h3>Access allowlist</h3></div></div>
@@ -415,7 +425,7 @@
           <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Email</th><th>Active</th><th>Note</th><th>Expires</th><th>Created</th><th>Action</th></tr></thead><tbody id="adminBetaUsers"><tr><td colspan="6">Sign in with an active admin account.</td></tr></tbody></table></div>
         </section>
         <section class="admin-card">
-          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewing</option><option value="fixed">Fixed</option><option value="archived">Won't fix now</option><option value="planned">Later</option></select></div></div>
+          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Login issue</option><option>Resume analyzer issue</option><option>Search result issue</option><option>Application packet issue</option><option>Draft issue</option><option>Tracker/follow-up issue</option><option>Mobile/UI issue</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewing</option><option value="fixed">Fixed</option><option value="archived">Won't fix now</option><option value="planned">Later</option></select></div></div>
           <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty"><h3>No feedback loaded</h3><p>Select Refresh to check for beta feedback.</p></div></div>
         </section>
         <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Seven-day focus</span><h3>First-week issue checklist</h3><p>Counts come only from submitted beta feedback.</p></div></div><div class="beta-issue-checklist" id="betaIssueChecklist"><div class="smart-empty">Refresh admin data to build the checklist.</div></div></section>
@@ -433,7 +443,7 @@
     <form id="feedbackForm">
       <div class="dialog-head"><div><span class="eyebrow coral">Help improve RoleDesk</span><h2>Send beta feedback</h2></div><button class="icon-button" type="button" id="closeFeedback" aria-label="Close">×</button></div>
       <p class="feedback-copy">Report what happened without including passwords, private resume text, access tokens, or client-confidential information.</p>
-      <label>Feedback type<select id="feedbackType" required><option>Bug</option><option>Confusing UI</option><option>Bad job match</option><option>Resume issue</option><option>Draft issue</option><option>Feature request</option><option>Other</option></select></label>
+      <label>Feedback type<select id="feedbackType" required><option>Login issue</option><option>Resume analyzer issue</option><option>Search result issue</option><option>Application packet issue</option><option>Draft issue</option><option>Tracker/follow-up issue</option><option>Mobile/UI issue</option><option>Other</option></select></label>
       <label>Email (optional)<input id="feedbackEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
       <label>Message<textarea id="feedbackMessage" required minlength="10" maxlength="5000" placeholder="What happened, what did you expect, and which page were you using?"></textarea></label>
       <p class="feedback-safety">RoleDesk is not an employer and does not guarantee jobs. It does not submit applications, send emails automatically, or scrape restricted platforms. Drafts may need correction; verify every claim before sending.</p>
@@ -495,10 +505,10 @@
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
   <script src="supabase-sync.js?v=26"></script>
-  <script src="admin-operations.js?v=2"></script>
-  <script src="coverage-ui.js?v=2"></script>
+  <script src="admin-operations.js?v=3"></script>
+  <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>
 </body>
 </html>
