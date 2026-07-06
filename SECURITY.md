@@ -62,6 +62,12 @@ Activation deletes obsolete caches whose names start with `scope-`, while preser
 
 These guarantees apply after migrations 002–005 have been successfully applied where relevant.
 
+## Opportunity pipeline and delivery evidence
+
+Migration 010 keeps opportunity contacts owner-scoped with a composite ownership foreign key. The manual application RPC resolves an opportunity by both `auth.uid()` and its source URL, records the application as user-reported, and never claims an external submission occurred automatically.
+
+`email_delivery_logs` is owner-readable but cannot be inserted, updated, or deleted by browser users. Only a future trusted backend/provider webhook may record provider delivery, bounce, or failure evidence. Client events such as compose opened or marked sent remain explicitly `provider_confirmed: false`.
+
 ## URLs and rendered content
 
 Opportunity links accept only credential-free `http:` and `https:` URLs. `javascript:`, `data:`, `file:`, `vbscript:` and other schemes are rejected. Imported and API-provided text is escaped before insertion into HTML, and large text values are bounded.

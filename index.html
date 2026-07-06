@@ -210,6 +210,8 @@
           <label>Compensation<select id="filterCompensation"><option value="all">With or without</option><option value="present">Salary / budget present</option><option value="missing">Salary / budget missing</option></select></label>
           <label>Location<input id="filterLocation" placeholder="City, country, worldwide" /></label>
           <label>Freshness<select id="filterFreshness"><option value="all">Any date</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></label>
+          <label>Opportunity quality<select id="filterQuality"><option value="0">Any quality</option><option value="60">60%+</option><option value="80">80%+</option></select></label>
+          <label>Contact route<select id="filterContact"><option value="all">Any contact route</option><option value="email">Verified email available</option><option value="direct">Direct application link</option></select></label>
           <label>Tracker status<select id="filterStatus"><option value="all">All statuses</option><option value="unsaved">Not saved</option><option value="saved">Saved</option><option value="drafted">Drafted</option><option value="skipped">Skipped</option></select></label>
           <label>Sort<select id="liveSort"><option value="match">Best match</option><option value="newest">Newest</option><option value="source">Source</option><option value="compensation">Salary / budget</option><option value="remote">Remote first</option></select></label>
         </div>
@@ -239,7 +241,7 @@
       </section>
 
       <section class="view" id="trackerView">
-        <div class="tracker-heading"><div><span class="eyebrow coral">From saved to won</span><h2>Pipeline command center</h2><p>See what needs attention next. Every sent, reply, and payment status is manually confirmed by you.</p></div><div class="tracker-heading-actions"><button class="button secondary" id="exportCsv">Export CSV</button></div></div>
+        <div class="tracker-heading"><div><span class="eyebrow coral">From discovered to offer</span><h2>Pipeline command center</h2><p>See what needs attention next. Every application, sent message, reply, and outcome is manually confirmed by you.</p></div><div class="tracker-heading-actions"><button class="button secondary" id="exportCsv">Export CSV</button></div></div>
         <div class="tracker-analytics" id="trackerAnalytics"></div>
         <div class="conversion-strip" id="conversionMetrics"></div>
         <div class="pipeline-value-panel" id="pipelineValuePanel"></div>
@@ -461,12 +463,13 @@
       <div class="form-row"><label>Salary / budget (USD equivalent)<input name="budget" type="number" min="0" placeholder="1800" /></label><label>Location<input name="country" placeholder="United States or Remote" /></label></div>
       <div class="form-row"><label>Work mode<select name="workMode"><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">Onsite</option><option value="unknown">Not stated</option></select></label><label>Public contact email<input name="publicEmail" type="email" placeholder="jobs@company.com" /></label></div>
       <div class="form-row"><label>Public recruiter/contact name<input name="recipientName" placeholder="Only if shown publicly" /></label><label>Deadline<input name="deadlineDate" type="date" /></label></div>
+      <div class="form-row"><label>Experience level<select name="experienceLevel"><option value="unknown">Not stated</option><option>Entry</option><option>Associate</option><option>Mid-level</option><option>Senior</option><option>Lead / Manager</option></select></label><label>Application method<select name="applicationMethod"><option>Company website</option><option>LinkedIn</option><option>Email</option><option>Referral</option><option>Recruiter</option><option>Job board</option><option>Other</option></select></label></div>
+      <label>Contact email source URL<input name="emailSourceUrl" type="url" placeholder="Official page where the email was shown" /></label>
       <label>Source URL<input name="url" type="url" placeholder="https://…" /></label>
       <label>Official apply URL<input name="applyUrl" type="url" placeholder="https://company.com/careers/apply" /></label>
       <label>Project brief<textarea name="brief" required placeholder="Paste the project requirements, deliverables, and deadline…"></textarea></label>
       <label>Requirements / questions<textarea name="requirements" placeholder="Paste required skills or application questions shown in the post…"></textarea></label>
       <label>Notes<textarea name="notes" placeholder="Your private review notes…"></textarea></label>
-      <div class="form-row"><label>Skill match<select name="skill"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label><label>Portfolio match<select name="portfolio"><option value="95">Excellent</option><option value="78" selected>Strong</option><option value="58">Partial</option><option value="32">Weak</option></select></label></div>
       <label class="check"><input type="checkbox" name="verified" /> Client payment/reputation is verified</label>
       <div class="import-result" id="importAnalysis" hidden></div>
       <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" id="analyzeOpportunity">Analyze, save & prepare packet</button></div>
@@ -479,8 +482,8 @@
       <div id="signedOutAccount">
         <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" /></label>
         <label>Password<input id="accountPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters" /></label>
-        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="createAccount">Create account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
-        <p class="account-hint">Any valid email can create a private workspace. Confirm the Supabase email after signup. Never share your password with RoleDesk or Codex.</p>
+        <div class="account-actions"><button class="button secondary" type="button" id="resetPassword">Reset password</button><button class="button secondary" type="button" id="resendConfirmation">Resend verification</button><button class="button secondary" type="button" id="createAccount">Create account</button><button class="button primary" type="button" id="signInAccount">Sign in</button></div>
+        <p class="account-hint">Any valid email can create a private workspace. Confirm the Supabase email after signup and check spam if it is delayed. Never share your password with RoleDesk or Codex.</p>
       </div>
       <div id="passwordRecovery" hidden>
         <label>New password<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" /></label>
@@ -504,9 +507,10 @@
   <script src="smart-engine.js?v=2"></script>
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
-  <script src="tracker-engine.js?v=1"></script>
-  <script src="app.js?v=34"></script>
-  <script src="supabase-sync.js?v=26"></script>
+  <script src="opportunity-engine.js?v=1"></script>
+  <script src="tracker-engine.js?v=2"></script>
+  <script src="app.js?v=35"></script>
+  <script src="supabase-sync.js?v=27"></script>
   <script src="admin-operations.js?v=3"></script>
   <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>

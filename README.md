@@ -57,10 +57,11 @@ Back up existing tables, then apply migrations in order:
 7. `supabase/migrations/007_beta_operations_admin.sql`
 8. `supabase/migrations/008_public_customer_access.sql`
 9. `supabase/migrations/009_public_beta_activation.sql`
+10. `supabase/migrations/010_real_opportunity_pipeline.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. They do not weaken owner RLS or rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. Migration 010 adds compatibility-safe career pipeline fields, owner-scoped contacts, provider-only delivery logs, and an owner-checked manual application RPC. They do not weaken owner RLS or rename existing tables.
 
 ## Customer workflow
 
@@ -93,7 +94,7 @@ Run the SQL checks in `supabase/tests/` only against a non-production test proje
 
 GitHub Pages deploys reviewed `main` commits to `https://mayankchauhan0208.github.io/scope-freelance/`. The future intended domain is `roledesk.in`, but no `CNAME`, OAuth redirect, or production-domain configuration is included.
 
-See [opportunity coverage](docs/OPPORTUNITY_COVERAGE.md), [deployment readiness](docs/DEPLOYMENT.md), [beta operations](docs/BETA_OPERATIONS.md), [MVP test checklist](docs/MVP_TEST_CHECKLIST.md), [release notes](docs/RELEASE_NOTES.md), and [security policy](SECURITY.md).
+See [opportunity coverage](docs/OPPORTUNITY_COVERAGE.md), [email reliability](docs/EMAIL_RELIABILITY.md), [deployment readiness](docs/DEPLOYMENT.md), [beta operations](docs/BETA_OPERATIONS.md), [MVP test checklist](docs/MVP_TEST_CHECKLIST.md), [release notes](docs/RELEASE_NOTES.md), and [security policy](SECURITY.md).
 
 ## Secrets
 

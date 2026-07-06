@@ -162,9 +162,21 @@
       title: window.ScopeSecurity.boundedText(item.title, 500),
       company: window.ScopeSecurity.boundedText(item.client, 500) || null,
       description: window.ScopeSecurity.boundedText(item.brief, 50000) || null,
-      contact_email: item.contactEmail || null,
+      contact_email: item.verifiedEmail || item.email || item.contactEmail || null,
       status: (item.status || 'Saved').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''),
       match_score: Number.isFinite(item.skill) ? Math.max(0, Math.min(100, Math.round(item.skill))) : null,
+      quality_score: Number.isFinite(item.qualityScore) ? Math.max(0, Math.min(100, Math.round(item.qualityScore))) : null,
+      readiness_score: Number.isFinite(item.readinessScore) ? Math.max(0, Math.min(100, Math.round(item.readinessScore))) : null,
+      work_mode: ['remote','hybrid','onsite','unknown'].includes(item.workMode) ? item.workMode : 'unknown',
+      experience_level: window.ScopeSecurity.boundedText(item.experienceLevel, 100) || null,
+      salary_text: window.ScopeSecurity.boundedText(item.salary, 500) || null,
+      application_method: window.ScopeSecurity.boundedText(item.applicationMethod, 100) || null,
+      application_deadline: /^\d{4}-\d{2}-\d{2}$/.test(item.deadlineText || '') ? item.deadlineText : null,
+      contact_name: window.ScopeSecurity.boundedText(item.recipientName, 300) || null,
+      contact_email_verified: Boolean(item.contactEmailVerified || item.verifiedEmail),
+      contact_source_url: window.ScopeSecurity.safeHttpUrl(item.emailSourceUrl || item.contactSourceUrl) || null,
+      contact_confidence: window.ScopeSecurity.boundedText(item.contactConfidence, 100) || null,
+      contact_last_checked_at: item.contactLastCheckedAt || null,
       next_followup_at: followup.nextAt || item.communication?.followUpDate || null,
       followup_reason: window.ScopeSecurity.boundedText(followup.reason, 500) || null,
       followup_status: ['scheduled','completed','snoozed'].includes(followup.status) ? followup.status : null,
@@ -197,6 +209,18 @@
       replyReceivedAt: saved.replyReceivedAt || row.reply_received_at || '',
       followup: saved.followup || { nextAt:row.next_followup_at || '', reason:row.followup_reason || '', status:row.followup_status || '', notes:row.followup_notes || '' },
       communication: saved.communication || (row.communication_status ? { status:row.communication_status.split('_').map(word=>word[0].toUpperCase()+word.slice(1)).join(' '), followUpDate:String(row.next_followup_at||'').slice(0,10), notes:row.followup_notes || '', verification:'user_reported', providerConfirmed:false } : undefined)
+      ,qualityScore: Number.isFinite(saved.qualityScore) ? saved.qualityScore : row.quality_score
+      ,readinessScore: Number.isFinite(saved.readinessScore) ? saved.readinessScore : row.readiness_score
+      ,workMode: saved.workMode || row.work_mode || 'unknown'
+      ,experienceLevel: saved.experienceLevel || row.experience_level || ''
+      ,salary: saved.salary || row.salary_text || ''
+      ,applicationMethod: saved.applicationMethod || row.application_method || ''
+      ,recipientName: saved.recipientName || row.contact_name || ''
+      ,email: saved.email || row.contact_email || ''
+      ,contactEmailVerified: saved.contactEmailVerified ?? row.contact_email_verified ?? false
+      ,emailSourceUrl: saved.emailSourceUrl || row.contact_source_url || ''
+      ,contactConfidence: saved.contactConfidence || row.contact_confidence || ''
+      ,contactLastCheckedAt: saved.contactLastCheckedAt || row.contact_last_checked_at || ''
     };
   }
 
@@ -225,6 +249,33 @@
       if (records.length) {
         const { error } = await cloud.from('opportunities').upsert(records, { onConflict: 'user_id,source_url' });
         if (error) throw error;
+      }
+      const contactItems = opportunities.filter(item => !isDemoOpportunity(item) && (item.verifiedEmail || item.email || item.possibleEmail));
+      if (contactItems.length) {
+        const sourceUrls = contactItems.map(item => window.ScopeSecurity.safeHttpUrl(item.url) || `scope://local/${item.id}`);
+        const { data:ownedRows, error:ownedError } = await cloud.from('opportunities').select('id,source_url').eq('user_id',userId).in('source_url',sourceUrls);
+        if (ownedError) throw ownedError;
+        const ids = new Map((ownedRows || []).map(row => [row.source_url,row.id]));
+        const contacts = contactItems.map(item => {
+          const sourceUrl = window.ScopeSecurity.safeHttpUrl(item.url) || `scope://local/${item.id}`;
+          return {
+            user_id:userId,
+            opportunity_id:ids.get(sourceUrl),
+            contact_type:'recruiter',
+            contact_name:window.ScopeSecurity.boundedText(item.recipientName,300) || null,
+            verified_email:item.contactEmailVerified ? (item.verifiedEmail || item.email || null) : null,
+            possible_email:item.contactEmailVerified ? null : (item.possibleEmail || item.email || null),
+            email_verified:Boolean(item.contactEmailVerified),
+            source_url:window.ScopeSecurity.safeHttpUrl(item.emailSourceUrl) || null,
+            confidence:item.contactEmailVerified ? 'public_source' : 'unverified',
+            last_checked_at:item.contactLastCheckedAt || null,
+            metadata:{ verification:item.contactEmailVerified?'user_confirmed_public_source':'unverified', provider_confirmed:false }
+          };
+        }).filter(item => item.opportunity_id);
+        if (contacts.length) {
+          const { error:contactError } = await cloud.from('opportunity_contacts').upsert(contacts,{ onConflict:'user_id,opportunity_id,contact_type' });
+          if (contactError) throw contactError;
+        }
       }
       localStorage.setItem(CACHE_OWNER_KEY, userId);
       const timestamp = new Date();
@@ -425,6 +476,23 @@
     }
   });
 
+  window.ScopeApplicationCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    markApplied: async (opportunity, details = {}) => {
+      if (!session?.user || !opportunity) return null;
+      await syncNow({ silent: true });
+      const sourceUrl = window.ScopeSecurity.safeHttpUrl(opportunity.url) || `scope://local/${opportunity.id}`;
+      const { data, error } = await cloud.rpc('mark_application_applied', {
+        p_source_url: sourceUrl,
+        p_application_method: details.method || null,
+        p_followup_at: details.followUpAt || null,
+        p_notes: window.ScopeSecurity.boundedText(details.notes, 5000) || null
+      });
+      if (error) throw error;
+      return data;
+    }
+  });
+
   window.RoleDeskFeedbackCloud = Object.freeze({
     isSignedIn: () => Boolean(session?.user),
     submit: async payload => {
@@ -590,6 +658,16 @@
     await withAuthBusy(event.currentTarget, 'Requesting…', async () => {
       const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() });
       setStatus(error ? friendlyAuthError(error, 'Unable to request a password reset right now. Try again.') : 'Password reset email requested. Check your inbox.', Boolean(error));
+    });
+  });
+
+  document.querySelector('#resendConfirmation').addEventListener('click', async event => {
+    const email = requireEmail();
+    if (!email) return;
+    await withAuthBusy(event.currentTarget, 'Resending…', async () => {
+      setStatus('Requesting a new verification email…');
+      const { error } = await cloud.auth.resend({ type:'signup', email, options:{ emailRedirectTo:authRedirectUrl() } });
+      setStatus(error ? friendlyAuthError(error, 'Email failed to send. Please try again.') : 'Verification email sent. Check your inbox and spam folder.', Boolean(error));
     });
   });
 

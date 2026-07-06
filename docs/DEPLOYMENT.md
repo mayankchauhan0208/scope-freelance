@@ -25,7 +25,7 @@ Do not add a `CNAME` or change production redirect URLs until the domain is purc
 ## Supabase checklist
 
 - [ ] Back up current tables
-- [ ] Apply migrations 001 through 009 in order
+- [ ] Apply migrations 001 through 010 in order
 - [ ] Confirm `approve_draft` uses `extensions.digest(...)`
 - [ ] Confirm public email signup is enabled; use `beta_access` only for optional cohorts
 - [ ] Configure a production custom SMTP provider before opening signup publicly
@@ -58,6 +58,8 @@ Confirm these values in **Supabase → Authentication → URL Configuration**:
 Do not use `localhost:3000` for the production reset flow. Supabase's built-in mailer is limited to two messages per hour and is not suitable for public customer email delivery. Configure custom SMTP, then set a provider-appropriate auth email limit before declaring the product ready for public signup. The UI converts rate-limit responses to a clear wait message.
 
 Do not add `roledesk.in` until it is configured and serving the app. Do not change Google or other OAuth URLs because Gmail OAuth is not implemented.
+
+See `docs/EMAIL_RELIABILITY.md` for the confirmed SMTP gap, delivery evidence rules, DNS requirements, and post-configuration tests.
 
 ## Rollback
 

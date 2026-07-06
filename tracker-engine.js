@@ -1,12 +1,12 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;root.RoleDeskTracker=api})(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const statuses=Object.freeze(['Saved','Draft Prepared','Ready to Apply','Applied','Proposal Sent','Email Sent','Client Replied','Interview','Negotiation','Hired','Rejected','Follow-up Needed','No Response','Completed','Payment Received','Archived']);
+  const statuses=Object.freeze(['Discovered','Recommended','Shortlisted','Resume Ready','Cover Letter Ready','Applied','Follow-Up Needed','Interview Scheduled','Offer','Rejected','Closed / Not Relevant']);
   const reminderStates=Object.freeze(['No follow-up set','Follow-up scheduled','Due today','Overdue','Completed','Snoozed']);
   const communicationStatuses=Object.freeze(['Draft Prepared','Reviewed','Sent Manually','Reply Received','Follow-up Needed','No Response','Closed']);
-  const oldStatusMap=Object.freeze({'Proposal Drafted':'Draft Prepared','Client Lost':'Rejected','In Progress':'Hired','Submitted':'Applied','Revision Requested':'Client Replied','Skipped':'Archived'});
+  const oldStatusMap=Object.freeze({'Saved':'Shortlisted','Draft Prepared':'Cover Letter Ready','Ready to Apply':'Resume Ready','Proposal Sent':'Applied','Email Sent':'Applied','Client Replied':'Follow-Up Needed','Interview':'Interview Scheduled','Negotiation':'Interview Scheduled','Hired':'Offer','Completed':'Offer','Payment Received':'Offer','No Response':'Follow-Up Needed','Archived':'Closed / Not Relevant','Proposal Drafted':'Cover Letter Ready','Client Lost':'Rejected','In Progress':'Offer','Submitted':'Applied','Revision Requested':'Follow-Up Needed','Skipped':'Closed / Not Relevant'});
   const dateOnly=value=>String(value||'').slice(0,10);
   const todayValue=now=>dateOnly((now instanceof Date?now:new Date(now||Date.now())).toISOString());
   const numeric=value=>Number.isFinite(Number(value))?Number(value):0;
-  function statusOf(item){return statuses.includes(item?.status)?item.status:(oldStatusMap[item?.status]||'Saved')}
+  function statusOf(item){return statuses.includes(item?.status)?item.status:(oldStatusMap[item?.status]||'Discovered')}
   function followUpState(item,now=new Date()){
     const follow=item?.followup||{},status=follow.status||'';
     if(status==='completed')return'Completed';
@@ -33,11 +33,11 @@
   function analytics(items=[],now=new Date()){
     const list=items.filter(item=>statusOf(item)!=='Archived'),count=predicate=>list.filter(predicate).length;
     const saved=list.length;
-    const drafted=count(item=>!['Saved','Archived'].includes(statusOf(item))||item.draftStatus);
-    const sent=count(item=>['Applied','Proposal Sent','Email Sent','Client Replied','Interview','Negotiation','Hired','Rejected','No Response','Completed','Payment Received'].includes(statusOf(item)));
-    const replies=count(item=>['Client Replied','Interview','Negotiation','Hired','Completed','Payment Received'].includes(statusOf(item))||item.communication?.status==='Reply Received');
-    const interviews=count(item=>['Interview','Negotiation','Hired','Completed','Payment Received'].includes(statusOf(item)));
-    const wins=count(item=>['Hired','Completed','Payment Received'].includes(statusOf(item)));
+    const drafted=count(item=>!['Discovered','Recommended','Shortlisted','Closed / Not Relevant'].includes(statusOf(item))||item.draftStatus);
+    const sent=count(item=>['Applied','Follow-Up Needed','Interview Scheduled','Offer','Rejected'].includes(statusOf(item)));
+    const replies=count(item=>['Follow-Up Needed','Interview Scheduled','Offer'].includes(statusOf(item))||item.communication?.status==='Reply Received');
+    const interviews=count(item=>['Interview Scheduled','Offer'].includes(statusOf(item)));
+    const wins=count(item=>statusOf(item)==='Offer');
     const due=count(item=>['Due today','Overdue'].includes(followUpState(item,now)));
     const overdue=count(item=>followUpState(item,now)==='Overdue');
     const values={},valueByStatus={};let missingBudget=0;
@@ -45,7 +45,7 @@
     const sourceRows={};list.forEach(item=>{const source=item.platform||item.source||'Unknown',row=sourceRows[source]||{source,saved:0,replies:0,scoreTotal:0};row.saved++;if(item.communication?.status==='Reply Received'||['Client Replied','Interview','Negotiation','Hired','Completed','Payment Received'].includes(statusOf(item)))row.replies++;row.scoreTotal+=matchScore(item);sourceRows[source]=row});
     const sources=Object.values(sourceRows).map(row=>({...row,averageScore:row.saved?Math.round(row.scoreTotal/row.saved):0}));
     const methodCounts={guided:0,live:0,manual:0};list.forEach(item=>{const method=String(item.sourceMethod||'').toLowerCase();if(method.includes('live'))methodCounts.live++;else if(method.includes('manual'))methodCounts.manual++;else methodCounts.guided++});
-    return{total:items.length,saved,drafted,sent,applications:count(item=>statusOf(item)==='Applied'),emails:count(item=>statusOf(item)==='Email Sent'||item.communication?.status==='Sent Manually'),replies,interviews,negotiations:count(item=>statusOf(item)==='Negotiation'),wins,rejected:count(item=>statusOf(item)==='Rejected'),due,overdue,missingBudget,values,valueByStatus,sources,methodCounts,rates:{savedToDrafted:conversion(drafted,saved),draftedToSent:conversion(sent,drafted),sentToReply:conversion(replies,sent),replyToInterview:conversion(interviews,replies),win:conversion(wins,sent)}};
+    return{total:items.length,saved,drafted,sent,applications:count(item=>['Applied','Follow-Up Needed','Interview Scheduled','Offer','Rejected'].includes(statusOf(item))),emails:count(item=>item.communication?.status==='Sent Manually'),replies,interviews,negotiations:count(item=>statusOf(item)==='Interview Scheduled'),wins,rejected:count(item=>statusOf(item)==='Rejected'),due,overdue,missingBudget,values,valueByStatus,sources,methodCounts,rates:{savedToDrafted:conversion(drafted,saved),draftedToSent:conversion(sent,drafted),sentToReply:conversion(replies,sent),replyToInterview:conversion(interviews,replies),win:conversion(wins,sent)}};
   }
   function filterAndSort(items=[],filters={},sort='updated'){
     const now=filters.now||new Date();let result=items.filter(item=>{
