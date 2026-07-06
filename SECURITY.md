@@ -1,5 +1,7 @@
 # RoleDesk security and privacy
 
+Phase 23 Career Agent recommendations are advisory and generated locally from reviewed user data. Career targets, daily plans, recommendations, resume variants, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events require authentication and owner-only RLS. Resume variants reuse verified facts and remain unreviewed until the user checks them. Notification and calendar tables are storage foundations only; RoleDesk does not send notifications, alter external calendars, auto-send, or auto-apply.
+
 ## Security model
 
 The Phase 1 branch is designed for multiple users. Supabase Auth establishes identity and row-level security isolates every user's profile, resumes, opportunities, drafts, applications, portal-connection metadata and activity logs.

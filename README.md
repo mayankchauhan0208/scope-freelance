@@ -10,6 +10,8 @@ Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 
 ## MVP status
 
+Phase 23 adds an explainable Career Agent that builds a short daily plan from the signed-in user's reviewed profile, real opportunities, pipeline stages, and user-reported outcomes. Priority scoring, resume-gap guidance, follow-up timing, resume variants, analytics, and interview preparation run locally without an external AI model. The agent never invents experience, sends messages, or submits applications. Migration 011 stores its data behind owner-only RLS.
+
 Working now:
 
 - auth-aware public landing page and private signed-in workspace
@@ -58,10 +60,11 @@ Back up existing tables, then apply migrations in order:
 8. `supabase/migrations/008_public_customer_access.sql`
 9. `supabase/migrations/009_public_beta_activation.sql`
 10. `supabase/migrations/010_real_opportunity_pipeline.sql`
+11. `supabase/migrations/011_ai_career_agent.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. Migration 010 adds compatibility-safe career pipeline fields, owner-scoped contacts, provider-only delivery logs, and an owner-checked manual application RPC. They do not weaken owner RLS or rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. Migration 010 adds compatibility-safe career pipeline fields, owner-scoped contacts, provider-only delivery logs, and an owner-checked manual application RPC. Migration 011 adds owner-scoped career targets, plans, recommendations, resume variants, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events. They do not weaken owner RLS or rename existing tables.
 
 ## Customer workflow
 

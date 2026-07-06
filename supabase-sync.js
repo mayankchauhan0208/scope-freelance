@@ -493,6 +493,71 @@
     }
   });
 
+  async function careerOpportunityId(opportunity) {
+    if (!session?.user || !opportunity) return null;
+    const sourceUrl = window.ScopeSecurity.safeHttpUrl(opportunity.url) || `scope://local/${opportunity.id}`;
+    const { data } = await cloud.from('opportunities').select('id').eq('user_id', session.user.id).eq('source_url', sourceUrl).maybeSingle();
+    return data?.id || null;
+  }
+
+  window.RoleDeskCareerCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    load: async () => {
+      if (!session?.user) return { target: null, variants: [], feedback: [], settings: null, plan: null };
+      const today = new Date().toISOString().slice(0, 10);
+      const [target, variants, feedback, settings, plan] = await Promise.all([
+        cloud.from('career_targets').select('*').eq('user_id', session.user.id).maybeSingle(),
+        cloud.from('resume_variants').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }).limit(50),
+        cloud.from('opportunity_feedback').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(200),
+        cloud.from('reminder_settings').select('*').eq('user_id', session.user.id).maybeSingle(),
+        cloud.from('daily_plans').select('plan_date,completed_action_keys').eq('user_id', session.user.id).eq('plan_date', today).maybeSingle()
+      ]);
+      const failure = [target, variants, feedback, settings, plan].find(result => result.error);
+      if (failure) throw failure.error;
+      return {
+        target: target.data ? { targetRoles: target.data.target_roles || [], locations: target.data.preferred_locations || [], workMode: target.data.work_mode || '', minimumSalary: target.data.minimum_salary, expectedSalary: target.data.expected_salary, experienceLevel: target.data.experience_level || '', industries: target.data.industries || [], boards: target.data.preferred_job_boards || [] } : null,
+        variants: variants.data || [], feedback: feedback.data || [],
+        settings: settings.data ? { email: settings.data.email_notifications, dashboard: settings.data.dashboard_notifications, followups: settings.data.followup_reminders, frequency: settings.data.daily_plan_frequency } : null,
+        plan: plan.data || null
+      };
+    },
+    saveTarget: async target => {
+      if (!session?.user) return null;
+      const payload = { user_id: session.user.id, target_roles: target.targetRoles || [], preferred_locations: target.locations || [], work_mode: target.workMode || null, minimum_salary: target.minimumSalary, expected_salary: target.expectedSalary, experience_level: window.ScopeSecurity.boundedText(target.experienceLevel, 200) || null, industries: target.industries || [], preferred_job_boards: target.boards || [] };
+      const { data, error } = await cloud.from('career_targets').upsert(payload, { onConflict: 'user_id' }).select('*').single();
+      if (error) throw error; return data;
+    },
+    savePlan: async plan => {
+      if (!session?.user) return null;
+      const actions = (plan.actions || []).slice(0, 7).map(action => ({ type: action.type, title: window.ScopeSecurity.boundedText(action.title, 500), detail: window.ScopeSecurity.boundedText(action.detail, 2000), view: action.view, opportunity_ref: action.opportunityId || null }));
+      const { data, error } = await cloud.from('daily_plans').upsert({ user_id: session.user.id, plan_date: plan.date, actions, completed_action_keys: (plan.completedActionKeys || []).slice(0, 20), generated_by: 'local_explainable_v1', generated_at: new Date().toISOString() }, { onConflict: 'user_id,plan_date' }).select('*').single();
+      if (error) throw error; return data;
+    },
+    saveVariant: async variant => {
+      if (!session?.user) return null;
+      const payload = { user_id: session.user.id, name: window.ScopeSecurity.boundedText(variant.name, 300), target_role: window.ScopeSecurity.boundedText(variant.targetRole, 300), summary: window.ScopeSecurity.boundedText(variant.summary, 5000), skills: (variant.skills || []).slice(0, 100), content: { mode: 'truthful-reorder-v1', true_data_only: true }, truth_reviewed: false };
+      const { data, error } = await cloud.from('resume_variants').insert(payload).select('*').single();
+      if (error) throw error; return data;
+    },
+    saveFeedback: async (item, opportunity) => {
+      if (!session?.user) return null;
+      const opportunityId = await careerOpportunityId(opportunity);
+      const payload = { user_id: session.user.id, opportunity_id: opportunityId, resume_variant_id: item.resume_variant_id || null, outcome: item.outcome, role_type: window.ScopeSecurity.boundedText(item.role_type, 500), source: window.ScopeSecurity.boundedText(item.source, 200), metadata: { verification: 'user_reported' } };
+      const { data, error } = await cloud.from('opportunity_feedback').insert(payload).select('*').single();
+      if (error) throw error;
+      if (opportunityId && item.resume_variant_id) {
+        const { error: applicationError } = await cloud.from('applications').update({ resume_variant_id: item.resume_variant_id }).eq('user_id', session.user.id).eq('opportunity_id', opportunityId);
+        if (applicationError) throw applicationError;
+      }
+      return data;
+    },
+    saveSettings: async settings => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.from('reminder_settings').upsert({ user_id: session.user.id, email_notifications: Boolean(settings.email), dashboard_notifications: Boolean(settings.dashboard), followup_reminders: Boolean(settings.followups), daily_plan_frequency: settings.frequency || 'daily', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC' }, { onConflict: 'user_id' }).select('*').single();
+      if (error) throw error; return data;
+    }
+  });
+
   window.RoleDeskFeedbackCloud = Object.freeze({
     isSignedIn: () => Boolean(session?.user),
     submit: async payload => {

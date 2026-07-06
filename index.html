@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="tracker-dashboard.css?v=1" />
   <link rel="stylesheet" href="mvp-polish.css?v=4" />
   <link rel="stylesheet" href="coverage-engine.css?v=1" />
+  <link rel="stylesheet" href="career-agent.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -47,6 +48,7 @@
         <button class="nav-item" data-view="smart"><span>◉</span> Smart Search</button>
         <button class="nav-item" data-view="portals"><span>⌘</span> Portal Center</button>
         <button class="nav-item" data-view="coverage"><span>◎</span> Coverage Engine</button>
+        <button class="nav-item" data-view="agent"><span>✦</span> Career Agent</button>
         <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
@@ -416,6 +418,10 @@
           <div class="search-safety"><strong>How searching works:</strong> RoleDesk creates focused searches from your résumé and opens the chosen source for your review. It does not sign in, scrape private pages, apply, bid, or message anyone.</div>
         </section>
       </section>
+      <section class="view career-agent-view" id="agentView">
+        <div id="careerAgentRoot"><div class="smart-empty"><h3>Building your daily plan…</h3><p>RoleDesk is reviewing your real profile and opportunity pipeline locally.</p></div></div>
+      </section>
+
       <section class="view admin-view" id="adminView">
         <div class="section-heading"><div><span class="eyebrow coral">Private beta administration</span><h2>Beta Operations</h2><p>Manage access and feedback without exposing passwords, secrets, or private application data.</p></div><button class="button secondary" id="refreshAdmin" type="button">Refresh</button></div>
         <p class="admin-warning">Admin tools affect beta access. Review before changing.</p>
@@ -509,10 +515,12 @@
   <script src="email-desk.js?v=1"></script>
   <script src="opportunity-engine.js?v=1"></script>
   <script src="tracker-engine.js?v=2"></script>
-  <script src="app.js?v=35"></script>
-  <script src="supabase-sync.js?v=27"></script>
+  <script src="career-agent.js?v=1"></script>
+  <script src="app.js?v=36"></script>
+  <script src="supabase-sync.js?v=28"></script>
   <script src="admin-operations.js?v=3"></script>
   <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>
+  <script src="career-agent-ui.js?v=1"></script>
 </body>
 </html>
