@@ -46,6 +46,21 @@
     status.classList.toggle('error', isError);
   }
 
+  async function withAuthBusy(button, busyLabel, action) {
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = busyLabel;
+    try {
+      return await action();
+    } catch (error) {
+      setStatus(friendlyAuthError(error, 'Unable to connect right now. Try again.'), true);
+      return null;
+    } finally {
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }
+  }
+
   function friendlyAuthError(error, fallback) {
     const message = String(error?.message || error || '');
     if (/refresh token|jwt|session.*expired|token.*expired/i.test(message)) return 'Your session expired. Please sign in again.';
@@ -543,56 +558,65 @@
   });
 
   accountButton.addEventListener('click', () => accountDialog.showModal());
-  document.querySelector('#createAccount').addEventListener('click', async () => {
+  document.querySelector('#createAccount').addEventListener('click', async event => {
     const email = requireEmail();
     if (!email) return;
     if (password.value.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
-    setStatus('Requesting beta account…');
-    const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: authRedirectUrl() } });
-    password.value = '';
-    if (error) {
-      return setStatus(friendlyAuthError(error, 'Unable to create the account right now. Try again.'), true);
-    }
-    setStatus('Account created. Open the confirmation email, then return and sign in.');
+    await withAuthBusy(event.currentTarget, 'Creating account…', async () => {
+      setStatus('Requesting account…');
+      const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: authRedirectUrl() } });
+      password.value = '';
+      if (error) return setStatus(friendlyAuthError(error, 'Unable to create the account right now. Try again.'), true);
+      setStatus('Account created. Open the confirmation email, then return and sign in.');
+    });
   });
 
-  document.querySelector('#signInAccount').addEventListener('click', async () => {
+  document.querySelector('#signInAccount').addEventListener('click', async event => {
     const email = requireEmail();
     if (!email) return;
     if (!password.value) return setStatus('Enter your password.', true);
-    setStatus('Signing in…');
-    const { data, error } = await cloud.auth.signInWithPassword({ email, password: password.value });
-    password.value = '';
-    if (error) return setStatus(friendlyAuthError(error, 'Unable to sign in right now. Try again.'), true);
-    await initializeSession(data.session);
+    await withAuthBusy(event.currentTarget, 'Signing in…', async () => {
+      setStatus('Signing in…');
+      const { data, error } = await cloud.auth.signInWithPassword({ email, password: password.value });
+      password.value = '';
+      if (error) return setStatus(friendlyAuthError(error, 'Unable to sign in right now. Try again.'), true);
+      await initializeSession(data.session);
+    });
   });
 
-  document.querySelector('#resetPassword').addEventListener('click', async () => {
+  document.querySelector('#resetPassword').addEventListener('click', async event => {
     const email = requireEmail();
     if (!email) return;
-    const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() });
-    setStatus(error ? friendlyAuthError(error, 'Unable to request a password reset right now. Try again.') : 'Password reset email requested. Check your inbox.', Boolean(error));
+    await withAuthBusy(event.currentTarget, 'Requesting…', async () => {
+      const { error } = await cloud.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() });
+      setStatus(error ? friendlyAuthError(error, 'Unable to request a password reset right now. Try again.') : 'Password reset email requested. Check your inbox.', Boolean(error));
+    });
   });
 
-  document.querySelector('#updateRecoveredPassword').addEventListener('click', async () => {
+  document.querySelector('#updateRecoveredPassword').addEventListener('click', async event => {
     const nextPassword = document.querySelector('#recoveryPassword').value;
     if (nextPassword.length < 8) return setStatus('Choose a password with at least 8 characters.', true);
-    const { error } = await cloud.auth.updateUser({ password: nextPassword });
-    if (error) return setStatus(friendlyAuthError(error, 'Unable to update the password right now. Request a new reset link.'), true);
-    document.querySelector('#recoveryPassword').value = '';
-    passwordRecovery.hidden = true;
-    setStatus('Password updated.');
-    renderAccount();
+    await withAuthBusy(event.currentTarget, 'Updating…', async () => {
+      const { error } = await cloud.auth.updateUser({ password: nextPassword });
+      if (error) return setStatus(friendlyAuthError(error, 'Unable to update the password right now. Request a new reset link.'), true);
+      document.querySelector('#recoveryPassword').value = '';
+      passwordRecovery.hidden = true;
+      setStatus('Password updated.');
+      renderAccount();
+    });
   });
 
-  document.querySelector('#signOutAccount').addEventListener('click', async () => {
-    await syncNow({ silent: true });
-    await cloud.auth.signOut();
-    session = null;
-    activeUserId = null;
-    clearActiveBrowserCache();
-    renderAccount();
-    setStatus('Signed out. The account cache was cleared from this browser.');
+  document.querySelector('#signOutAccount').addEventListener('click', async event => {
+    await withAuthBusy(event.currentTarget, 'Signing out…', async () => {
+      await syncNow({ silent: true });
+      const { error } = await cloud.auth.signOut();
+      if (error) return setStatus(friendlyAuthError(error, 'Unable to sign out right now. Try again.'), true);
+      session = null;
+      activeUserId = null;
+      clearActiveBrowserCache();
+      renderAccount();
+      setStatus('Signed out. The account cache was cleared from this browser.');
+    });
   });
   document.querySelector('#syncCloudNow').addEventListener('click', () => syncNow());
   document.querySelector('#importLegacyData').addEventListener('click', importLegacyData);

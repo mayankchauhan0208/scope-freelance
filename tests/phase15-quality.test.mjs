@@ -28,7 +28,7 @@ test('universal search expands profile-derived roles and penalizes unrelated job
 test('live search uses multiple permitted queries, deduplicates, and labels routes honestly', () => {
   const app = read('app.js');
   const html = read('index.html');
-  assert.match(app, /apiQueries=expandedQueries\.slice\(0,6\)/);
+  assert.match(app, /apiQueries=expandedQueries\.slice\(0,4\)/);
   assert.match(app, /Promise\.allSettled/);
   assert.match(app, /seenTitles/);
   assert.match(app, /seenUrls/);
