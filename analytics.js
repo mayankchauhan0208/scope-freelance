@@ -15,7 +15,11 @@
     'application_kit_generated','resume_tailored','cover_letter_generated','email_draft_generated',
     'email_copied','email_marked_sent','followup_scheduled','job_marked_applied','job_outcome_updated',
     'feedback_submitted','error_encountered','source_health_checked','export_created',
-    'upgrade_attempted','usage_limit_hit'
+    'upgrade_attempted','usage_limit_hit',
+    'onboarding_started','profile_step_completed','resume_analyzed','career_target_set',
+    'onboarding_source_preferences_saved','notification_preferences_saved','onboarding_skipped',
+    'onboarding_completed','first_job_searched','first_job_saved','first_application_kit_generated',
+    'first_application_marked_applied','first_followup_scheduled'
   ]);
   const read = () => {
     try { return JSON.parse(root.localStorage?.getItem(KEY) || '[]') || []; }

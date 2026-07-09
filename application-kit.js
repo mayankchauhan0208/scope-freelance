@@ -223,6 +223,7 @@
       if (root.RoleDeskBilling && !root.RoleDeskBilling.consume('application_kit')) return;
       const kit = buildKit(document.querySelector('#kitOpportunity').value, { tone:document.querySelector('#kitTone').value, coverFormat:document.querySelector('#kitCoverFormat').value });
       root.RoleDeskAnalytics?.track?.('application_kit_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), readiness:kit.scores.readiness, trust:kit.scores.trust } });
+      root.RoleDeskOnboarding?.track?.('first_application_kit_generated', { source:'kit', opportunity_id:String(kit.opportunityId || '') });
       root.RoleDeskAnalytics?.track?.('resume_tailored', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), score:kit.scores.improvedMatch } });
       root.RoleDeskAnalytics?.track?.('cover_letter_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), quality:kit.assetQuality.coverLetter?.score } });
       root.RoleDeskAnalytics?.track?.('email_draft_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), draft_type:'recruiter_email', quality:kit.assetQuality.recruiterEmail?.score } });
@@ -266,6 +267,7 @@
       saveLocalKit(kit);
       await root.RoleDeskApplicationKitCloud?.saveKit?.(kit).catch(() => null);
       root.RoleDeskMvp?.mark?.('packet');
+      root.RoleDeskOnboarding?.track?.('first_application_kit_generated', { source:'kit_save', opportunity_id:String(kit.opportunityId || '') });
       root.toast?.('Application kit saved');
       render();
     };
@@ -273,6 +275,7 @@
       if (!root.confirm?.('Mark this opportunity as applied manually? RoleDesk will not submit anything.')) return;
       root.RoleDeskState?.updateOpportunity?.(kit.opportunityId, { status:'Applied', appliedAt:new Date().toISOString(), applicationKitPrepared:true });
       root.RoleDeskAnalytics?.track?.('job_marked_applied', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || '') } });
+      root.RoleDeskOnboarding?.track?.('first_application_marked_applied', { source:'kit', opportunity_id:String(kit.opportunityId || '') });
       root.toast?.('Marked applied manually');
     };
     document.querySelector('#kitScheduleFollowup').onclick = () => {
@@ -281,6 +284,7 @@
       if (root.RoleDeskBilling && !root.RoleDeskBilling.consume('followup')) return;
       root.RoleDeskState?.updateOpportunity?.(kit.opportunityId, { status:'Follow-Up Needed', followup:{ nextAt:date, status:'scheduled', notes:'Scheduled from Application Kit' } });
       root.RoleDeskAnalytics?.track?.('followup_scheduled', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), date } });
+      root.RoleDeskOnboarding?.track?.('first_followup_scheduled', { source:'kit', opportunity_id:String(kit.opportunityId || ''), date });
       root.toast?.('Follow-up scheduled');
     };
   }

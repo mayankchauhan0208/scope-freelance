@@ -730,6 +730,37 @@
     }
   });
 
+  window.RoleDeskOnboardingCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    getStatus: async () => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.rpc('get_onboarding_status');
+      if (error) throw error;
+      return data;
+    },
+    saveProgress: async payload => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.rpc('upsert_onboarding_progress', {
+        p_step: window.ScopeSecurity.boundedText(payload.step, 80),
+        p_state: payload.state || {},
+        p_goals: payload.goals || {},
+        p_preferences: payload.preferences || {},
+        p_activation_score: Number(payload.activation?.percent || 0)
+      });
+      if (error) throw error;
+      return data;
+    },
+    recordEvent: async (eventName, metadata = {}) => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.rpc('record_onboarding_event', {
+        p_event_name: window.ScopeSecurity.boundedText(eventName, 120),
+        p_metadata: metadata || {}
+      });
+      if (error) throw error;
+      return data;
+    }
+  });
+
   window.RoleDeskBillingCloud = Object.freeze({
     isSignedIn: () => Boolean(session?.user),
     getStatus: async () => {

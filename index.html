@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="application-kit.css?v=1" />
   <link rel="stylesheet" href="admin-analytics.css?v=1" />
   <link rel="stylesheet" href="billing.css?v=1" />
+  <link rel="stylesheet" href="onboarding.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -117,6 +118,10 @@
 
         <section class="dashboard-empty-state" id="dashboardEmptyState"><div><span class="eyebrow coral">Start with real data</span><h3>No opportunities yet</h3><p>Run Smart Search or import an opportunity to build your dashboard. Pipeline value will appear only from saved opportunities with known budgets.</p></div><div><button class="button primary" id="emptyRunSearch" type="button">Run Smart Search</button><button class="button secondary" id="emptyImportOpportunity" type="button">Import Opportunity</button><button class="button secondary" id="emptyCompleteProfile" type="button">Complete Profile</button></div></section>
         <section class="demo-mode-banner" id="demoModeBanner" hidden><div><strong>Demo data</strong><span>Sample opportunities are clearly labeled and excluded from real dashboard and tracker metrics.</span></div><button class="button secondary" id="clearDemoData" type="button">Clear demo data</button></section>
+
+        <section class="onboarding-panel" id="onboardingPanel" aria-label="RoleDesk onboarding and next actions">
+          <div class="smart-empty">Loading your guided setup…</div>
+        </section>
 
         <section class="activation-summary" aria-label="Your real RoleDesk activity">
           <article><span>Resume score</span><strong id="activationResume">No resume added yet</strong><button data-activation-action="profile" type="button">Add resume</button></article>
@@ -552,6 +557,23 @@
       <p class="parse-status" id="accountStatus"></p>
     </form>
   </dialog>
+  <dialog class="onboarding-dialog" id="onboardingDialog">
+    <form method="dialog" class="onboarding-shell">
+      <div class="onboarding-top">
+        <div><span class="eyebrow coral" id="onboardingStepName">1 / 7</span><h2>RoleDesk setup</h2></div>
+        <button class="icon-button" id="closeOnboarding" value="cancel" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="onboarding-progress" aria-hidden="true"><i id="onboardingBar"></i></div>
+      <section class="onboarding-step active" id="onboardingStep"></section>
+      <div class="onboarding-actions">
+        <button class="button secondary" id="onboardingSkip" type="button">Skip for now</button>
+        <div>
+          <button class="button secondary" id="onboardingBack" type="button">Back</button>
+          <button class="button primary" id="onboardingNext" type="button">Continue</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
@@ -572,6 +594,7 @@
   <script src="app.js?v=39"></script>
   <script src="supabase-sync.js?v=31"></script>
   <script src="billing-ui.js?v=1"></script>
+  <script src="onboarding.js?v=1"></script>
   <script src="admin-operations.js?v=4"></script>
   <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>
