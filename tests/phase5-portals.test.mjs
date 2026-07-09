@@ -54,11 +54,12 @@ test('manual import validates URLs, ranks locally, and supports tracker drafts',
 });
 
 test('search metrics, filters, and source labels are present', () => {
-  const html = read('index.html'), app = read('app.js');
+  const html = read('index.html'), app = read('app.js'), sources = read('job-source-engine.js');
   for (const id of ['filterSource','filterMode','filterEmployment','filterCompensation','filterLocation','filterFreshness','filterStatus','liveSort','metricFetched','metricDuplicates','metricReviewable','metricHidden']) assert.match(html,new RegExp(`id="${id}"`));
-  assert.match(app,/dedupeOpportunities/);
+  assert.match(sources,/dedupe/);
+  assert.match(sources,/canonicalUrl/);
   assert.match(app,/applyLiveFilters/);
-  assert.match(app,/duplicates removed/);
+  assert.match(app,/duplicates (removed|merged)/);
 });
 
 test('restricted portals are guided only and no scraping or secrets were added', () => {

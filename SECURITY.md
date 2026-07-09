@@ -1,6 +1,6 @@
 # RoleDesk security and privacy
 
-Phase 23 Career Agent recommendations are advisory and generated locally from reviewed user data. Career targets, daily plans, recommendations, resume variants, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events require authentication and owner-only RLS. Resume variants reuse verified facts and remain unreviewed until the user checks them. Notification and calendar tables are storage foundations only; RoleDesk does not send notifications, alter external calendars, auto-send, or auto-apply.
+Phase 25 Application Kit drafts and Phase 23 Career Agent recommendations are advisory and generated locally from reviewed user data. Career targets, daily plans, recommendations, resume variants, application kits, generated application assets, export history, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events require authentication and owner-only RLS. Resume variants and application assets reuse verified facts and remain unreviewed until the user checks them. Notification, calendar, and export tables are storage foundations only; RoleDesk does not send notifications, alter external calendars, auto-send, auto-submit, or auto-apply.
 
 ## Security model
 
@@ -15,6 +15,8 @@ Beta administrators are stored in the RLS-protected `public.admin_users` allowli
 RoleDesk Smart Engine is local rule-based code. It makes no external AI requests, exposes no model credentials, and never sends or submits its drafts. Signed-in users can explicitly save proposal and email drafts to their own RLS-protected `drafts` rows.
 
 Portal Center uses permitted public feeds, official guided links, and manual imports only. Restricted portals are not scraped or automated. Imported source/apply URLs must pass the shared HTTP/HTTPS validator, and no portal credentials or OAuth tokens are stored in browser-readable metadata.
+
+Job source trust data uses permitted public-feed metadata, user reports, and owner-scoped verification records. RoleDesk does not scrape restricted platforms or guess email addresses. Application Kit outputs are editable drafts with truth warnings; cloud-saved kits, assets, export history, and content quality scores are owner-scoped.
 
 Email Desk opens a prefilled Gmail compose URL only after database-backed approval of the exact recipient, subject, and body. It never sends mail. Manual sent/reply statuses are labeled `user_reported` and `provider_confirmed: false`. Future Gmail OAuth tokens must remain server-side as described in `docs/GMAIL_OAUTH_FUTURE.md`.
 

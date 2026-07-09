@@ -167,6 +167,14 @@
       match_score: Number.isFinite(item.skill) ? Math.max(0, Math.min(100, Math.round(item.skill))) : null,
       quality_score: Number.isFinite(item.qualityScore) ? Math.max(0, Math.min(100, Math.round(item.qualityScore))) : null,
       readiness_score: Number.isFinite(item.readinessScore) ? Math.max(0, Math.min(100, Math.round(item.readinessScore))) : null,
+      trust_score: Number.isFinite(item.trustScore) ? Math.max(0, Math.min(100, Math.round(item.trustScore))) : null,
+      verification_status: ['official_company','verified_by_feed','needs_verification','user_verified'].includes(item.verificationStatus) ? item.verificationStatus : 'needs_verification',
+      expiry_status: ['active','recently_posted','possibly_stale','expired','closed','needs_verification'].includes(String(item.expiryStatus||'').toLowerCase().replaceAll(' ','_')) ? String(item.expiryStatus).toLowerCase().replaceAll(' ','_') : 'needs_verification',
+      last_checked_at: item.lastCheckedAt || null,
+      source_reliability: Number.isFinite(item.sourceReliability) ? Math.max(0, Math.min(100, Math.round(item.sourceReliability))) : null,
+      all_source_links: (item.allSourceLinks || []).map(window.ScopeSecurity.safeHttpUrl).filter(Boolean).slice(0, 20),
+      check_failures: Math.max(0, Math.min(20, Number(item.checkFailures)||0)),
+      company_careers_url: window.ScopeSecurity.safeHttpUrl(item.companyCareersUrl) || null,
       work_mode: ['remote','hybrid','onsite','unknown'].includes(item.workMode) ? item.workMode : 'unknown',
       experience_level: window.ScopeSecurity.boundedText(item.experienceLevel, 100) || null,
       salary_text: window.ScopeSecurity.boundedText(item.salary, 500) || null,
@@ -211,6 +219,14 @@
       communication: saved.communication || (row.communication_status ? { status:row.communication_status.split('_').map(word=>word[0].toUpperCase()+word.slice(1)).join(' '), followUpDate:String(row.next_followup_at||'').slice(0,10), notes:row.followup_notes || '', verification:'user_reported', providerConfirmed:false } : undefined)
       ,qualityScore: Number.isFinite(saved.qualityScore) ? saved.qualityScore : row.quality_score
       ,readinessScore: Number.isFinite(saved.readinessScore) ? saved.readinessScore : row.readiness_score
+      ,trustScore: Number.isFinite(saved.trustScore) ? saved.trustScore : row.trust_score
+      ,verificationStatus: saved.verificationStatus || row.verification_status || 'needs_verification'
+      ,expiryStatus: saved.expiryStatus || String(row.expiry_status||'needs_verification').split('_').map(word=>word[0].toUpperCase()+word.slice(1)).join(' ')
+      ,lastCheckedAt: saved.lastCheckedAt || row.last_checked_at || ''
+      ,sourceReliability: Number.isFinite(saved.sourceReliability) ? saved.sourceReliability : row.source_reliability
+      ,allSourceLinks: saved.allSourceLinks || row.all_source_links || []
+      ,checkFailures: Number.isFinite(saved.checkFailures) ? saved.checkFailures : row.check_failures || 0
+      ,companyCareersUrl: saved.companyCareersUrl || row.company_careers_url || ''
       ,workMode: saved.workMode || row.work_mode || 'unknown'
       ,experienceLevel: saved.experienceLevel || row.experience_level || ''
       ,salary: saved.salary || row.salary_text || ''
@@ -499,6 +515,83 @@
     const { data } = await cloud.from('opportunities').select('id').eq('user_id', session.user.id).eq('source_url', sourceUrl).maybeSingle();
     return data?.id || null;
   }
+
+  window.RoleDeskJobTrustCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    report: async (opportunity, reportType) => {
+      if (!session?.user || !opportunity) return null;
+      await syncNow({ silent: true });
+      const opportunityId = await careerOpportunityId(opportunity);
+      if (!opportunityId) return null;
+      const allowed = ['closed','wrong_details','fake_job','already_filled'];
+      if (!allowed.includes(reportType)) throw new Error('Unsupported job report type.');
+      const { data, error } = await cloud.from('job_reports').insert({ user_id: session.user.id, opportunity_id: opportunityId, report_type: reportType, status: 'open' }).select('*').single();
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  window.RoleDeskApplicationKitCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    saveKit: async kit => {
+      if (!session?.user || !kit) return null;
+      await syncNow({ silent: true });
+      const opportunity = opportunities.find(item => String(item.id) === String(kit.opportunityId));
+      const opportunityId = await careerOpportunityId(opportunity || { id: kit.opportunityId, url: kit.route?.applicationUrl });
+      const kitRecord = {
+        user_id: session.user.id,
+        opportunity_id: opportunityId,
+        title: window.ScopeSecurity.boundedText(kit.opportunityTitle, 500),
+        target_role: window.ScopeSecurity.boundedText(kit.targetRole, 300),
+        tone: window.ScopeSecurity.boundedText(kit.tone, 80),
+        status: 'draft',
+        scores: kit.scores || {},
+        checklist: kit.checklist || [],
+        suggestions: kit.suggestions || [],
+        truth_warnings: kit.truthWarnings || []
+      };
+      const { data, error } = await cloud.from('application_kits').insert(kitRecord).select('*').single();
+      if (error) throw error;
+      const assetMap = { tailoredResume:'tailored_resume', coverLetter:'cover_letter', recruiterEmail:'recruiter_email', linkedInMessage:'linkedin_message', followUpEmail:'follow_up_email', freelanceProposal:'freelance_proposal' };
+      const rows = Object.entries(kit.assets || {}).map(([key, value]) => ({
+        user_id: session.user.id,
+        application_kit_id: data.id,
+        opportunity_id: opportunityId,
+        asset_type: assetMap[key] || 'other',
+        title: window.ScopeSecurity.boundedText(key.replace(/([A-Z])/g, ' $1'), 200),
+        content: window.ScopeSecurity.boundedText(value, 100000),
+        quality_score: kit.assetQuality?.[key]?.score ?? null,
+        truth_warnings: kit.assetQuality?.[key]?.fixes || []
+      }));
+      if (rows.length) {
+        const { error: assetError } = await cloud.from('application_assets').insert(rows);
+        if (assetError) throw assetError;
+        const scoreRows = rows.map(row => ({
+          user_id: session.user.id,
+          application_kit_id: data.id,
+          asset_type: row.asset_type,
+          score: row.quality_score,
+          fixes: row.truth_warnings || []
+        })).filter(row => Number.isFinite(row.score));
+        if (scoreRows.length) {
+          const { error: scoreError } = await cloud.from('content_quality_scores').insert(scoreRows);
+          if (scoreError) throw scoreError;
+        }
+      }
+      return data;
+    },
+    recordExport: async (kit, assetType, format) => {
+      if (!session?.user || !kit) return null;
+      const { data, error } = await cloud.from('export_history').insert({
+        user_id: session.user.id,
+        asset_type: window.ScopeSecurity.boundedText(assetType, 80),
+        export_format: window.ScopeSecurity.boundedText(format, 20),
+        metadata: { local_kit_id: kit.id, opportunity_title: kit.opportunityTitle }
+      }).select('*').single();
+      if (error) throw error;
+      return data;
+    }
+  });
 
   window.RoleDeskCareerCloud = Object.freeze({
     isSignedIn: () => Boolean(session?.user),

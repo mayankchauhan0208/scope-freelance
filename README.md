@@ -10,7 +10,7 @@ Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 
 ## MVP status
 
-Phase 23 adds an explainable Career Agent that builds a short daily plan from the signed-in user's reviewed profile, real opportunities, pipeline stages, and user-reported outcomes. Priority scoring, resume-gap guidance, follow-up timing, resume variants, analytics, and interview preparation run locally without an external AI model. The agent never invents experience, sends messages, or submits applications. Migration 011 stores its data behind owner-only RLS.
+Phase 25 adds a truth-guarded Application Kit that creates tailored resumes, cover letters, recruiter emails, LinkedIn messages, follow-ups, and freelance proposals from the signed-in user's reviewed profile and saved opportunities. Phase 24 adds verified public-feed job source trust scoring. These systems run locally without an external AI model, never invent experience, and never send, submit, or apply. Migrations 012 and 013 store source trust data and generated application assets behind owner-only RLS.
 
 Working now:
 
@@ -19,9 +19,11 @@ Working now:
 - public Supabase signup, login, password recovery, per-user cloud sync, and owner-only RLS
 - multi-industry resume parsing, reviewed profile extraction, transparent 100-point ATS scoring, and ATS-friendly drafts
 - permitted live feeds from Remotive and Arbeitnow
+- job-source trust scoring, stale/expired detection, duplicate merging, source-health reporting, and guided/manual handling for restricted platforms
 - guided official searches for LinkedIn, Naukri, Indeed, Upwork, Contra, Fiverr, Freelancer, Behance, and Dribbble
 - safe manual opportunity import with URL validation
 - local rule-based Smart Draft Mode for proposals, email, form answers, and follow-ups
+- AI Application Kit for tailored resumes, cover letters, recruiter emails, LinkedIn messages, follow-ups, freelance proposals, checklists, quality scores, and TXT/Word/print-to-PDF exports
 - database-backed exact-draft approval before Gmail compose handoff
 - tracker views, analytics, manual communication states, timeline, and in-app follow-up reminders
 - real user-specific dashboard metrics with honest empty states; sample opportunities appear only after **Load demo data**, stay labeled, and are excluded from sync and analytics
@@ -31,7 +33,7 @@ Working now:
 
 Smart Draft Mode is deterministic local logic, not a hosted LLM. It requires no AI key and never claims to be an external AI provider.
 
-Not implemented: Gmail OAuth or inbox monitoring, an external AI gateway, auto-send, auto-apply, portal scraping, payment processing, PDF/DOCX resume export, or automatic reminders outside the app.
+Not implemented: Gmail OAuth or inbox monitoring, an external AI gateway, auto-send, auto-apply, portal scraping, payment processing, true binary DOCX generation, or automatic reminders outside the app. PDF export uses the browser print/save flow.
 
 ## Safety contract
 
@@ -61,6 +63,8 @@ Back up existing tables, then apply migrations in order:
 9. `supabase/migrations/009_public_beta_activation.sql`
 10. `supabase/migrations/010_real_opportunity_pipeline.sql`
 11. `supabase/migrations/011_ai_career_agent.sql`
+12. `supabase/migrations/012_job_source_trust.sql`
+13. `supabase/migrations/013_application_kit_assets.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 

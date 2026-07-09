@@ -28,10 +28,12 @@ test('universal search expands profile-derived roles and penalizes unrelated job
 test('live search uses multiple permitted queries, deduplicates, and labels routes honestly', () => {
   const app = read('app.js');
   const html = read('index.html');
+  const sources = read('job-source-engine.js');
   assert.match(app, /apiQueries=expandedQueries\.slice\(0,4\)/);
-  assert.match(app, /Promise\.allSettled/);
-  assert.match(app, /seenTitles/);
-  assert.match(app, /seenUrls/);
+  assert.match(app, /RoleDeskJobSources\.search/);
+  assert.match(sources, /Promise\.allSettled/);
+  assert.match(sources, /canonicalUrl/);
+  assert.match(sources, /dedupe/);
   assert.match(html, /Remotive<\/b> Live API/);
   assert.match(html, /Arbeitnow<\/b> Live API/);
   assert.match(html, /LinkedIn<\/b> Guided search/);

@@ -22,6 +22,8 @@
   <link rel="stylesheet" href="mvp-polish.css?v=4" />
   <link rel="stylesheet" href="coverage-engine.css?v=1" />
   <link rel="stylesheet" href="career-agent.css?v=1" />
+  <link rel="stylesheet" href="job-trust.css?v=1" />
+  <link rel="stylesheet" href="application-kit.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -49,6 +51,7 @@
         <button class="nav-item" data-view="portals"><span>⌘</span> Portal Center</button>
         <button class="nav-item" data-view="coverage"><span>◎</span> Coverage Engine</button>
         <button class="nav-item" data-view="agent"><span>✦</span> Career Agent</button>
+        <button class="nav-item" data-view="kit"><span>▣</span> Application Kit</button>
         <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
@@ -213,9 +216,10 @@
           <label>Location<input id="filterLocation" placeholder="City, country, worldwide" /></label>
           <label>Freshness<select id="filterFreshness"><option value="all">Any date</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></label>
           <label>Opportunity quality<select id="filterQuality"><option value="0">Any quality</option><option value="60">60%+</option><option value="80">80%+</option></select></label>
+          <label>Job trust<select id="filterTrust"><option value="0">Any trust</option><option value="60">60%+ reviewable</option><option value="80">80%+ high trust</option></select></label>
           <label>Contact route<select id="filterContact"><option value="all">Any contact route</option><option value="email">Verified email available</option><option value="direct">Direct application link</option></select></label>
           <label>Tracker status<select id="filterStatus"><option value="all">All statuses</option><option value="unsaved">Not saved</option><option value="saved">Saved</option><option value="drafted">Drafted</option><option value="skipped">Skipped</option></select></label>
-          <label>Sort<select id="liveSort"><option value="match">Best match</option><option value="newest">Newest</option><option value="source">Source</option><option value="compensation">Salary / budget</option><option value="remote">Remote first</option></select></label>
+          <label>Sort<select id="liveSort"><option value="match">Best match</option><option value="trust">Highest trust</option><option value="newest">Newest</option><option value="source">Source</option><option value="compensation">Salary / budget</option><option value="remote">Remote first</option></select></label>
         </div>
         <div class="search-metrics" id="searchMetrics"><span><b id="metricFetched">0</b>Total fetched</span><span><b id="metricDuplicates">0</b>Duplicates removed</span><span><b id="metricReviewable">0</b>Reviewable</span><span><b id="metricHidden">0</b>Low relevance hidden</span></div>
         <div class="smart-results-layout">
@@ -230,6 +234,7 @@
       <section class="view" id="portalsView">
         <div class="workspace-header portal-heading"><span class="eyebrow coral">Honest source connections</span><h2>Portal Center</h2><p>See exactly which sources are live, guided, or manual—without fake integrations or hidden automation.</p></div>
         <div class="portal-overview"><div><strong>Use official routes, keep final control.</strong><p>“Live” uses a permitted public feed. “Guided” opens an official search for you. “Manual” lets you paste public details you may use. No portal passwords, scraping, or automatic applications are stored here.</p></div><span id="portalSummary">Loading source registry…</span></div>
+        <section class="source-health-dashboard" id="sourceHealthDashboard"><div class="smart-empty"><h3>Source health appears after a live search</h3><p>RoleDesk records only runtime availability, request failures, duplicate counts, and public-feed reliability.</p></div></section>
         <div class="portal-grid" id="portalGrid"></div>
         <section class="career-directory"><div class="section-heading"><div><span class="eyebrow coral">Official career page shortcuts</span><h2>MNC Career Directory</h2><p>Search official company career pages manually. RoleDesk does not claim to read every vacancy.</p></div><button class="button secondary" id="careerAddManual" type="button">Add opportunity manually</button></div><div class="career-controls"><input id="careerSearch" type="search" placeholder="Search company"><select id="careerCategory"><option value="">All categories</option></select></div><div class="career-grid" id="careerGrid"></div></section>
       </section>
@@ -240,6 +245,16 @@
         <section class="coverage-card"><div class="section-heading"><div><span class="eyebrow">Role-specific clusters</span><h3>Search the roles your profile supports</h3></div></div><div id="coverageRoleClusters"></div></section>
         <div class="coverage-grid"><section class="coverage-card"><span class="eyebrow">Weekly search discipline</span><h3>Cover the main channels systematically.</h3><div id="coverageChecklist"></div></section><section class="coverage-card"><span class="eyebrow">Real coverage activity</span><h3>Coverage analytics</h3><div class="coverage-analytics" id="coverageAnalytics"></div></section></div>
         <section class="coverage-card packet-workspace"><div class="section-heading"><div><span class="eyebrow coral">Application workflow</span><h2>Application Packet</h2></div><button class="button primary" id="generatePacket" type="button">Prepare application packet</button></div><label>Saved opportunity<select id="packetOpportunity"></select></label><div id="applicationPacket"><div class="smart-empty"><h3>No packet generated</h3><p>Save or import a real opportunity, then prepare its application packet.</p></div></div></section>
+      </section>
+
+      <section class="view application-kit-view" id="kitView">
+        <div class="workspace-header">
+          <span class="eyebrow coral">Truthful application preparation</span>
+          <h2>AI Application Kit</h2>
+          <p>Create editable, job-specific resumes, cover letters, recruiter emails, LinkedIn messages, follow-ups, and freelance proposals. RoleDesk never invents experience and never sends or applies for you.</p>
+        </div>
+        <div class="smart-mode-banner"><b>Draft-only safety mode</b><span>Every asset is based on your reviewed profile and the saved job description. Unsupported skills stay as warnings, not claims.</span></div>
+        <div id="applicationKitRoot"><div class="smart-empty"><h3>Loading Application Kit…</h3><p>Save an opportunity first, then build an application-ready packet.</p></div></div>
       </section>
 
       <section class="view" id="trackerView">
@@ -471,7 +486,7 @@
       <div class="form-row"><label>Public recruiter/contact name<input name="recipientName" placeholder="Only if shown publicly" /></label><label>Deadline<input name="deadlineDate" type="date" /></label></div>
       <div class="form-row"><label>Experience level<select name="experienceLevel"><option value="unknown">Not stated</option><option>Entry</option><option>Associate</option><option>Mid-level</option><option>Senior</option><option>Lead / Manager</option></select></label><label>Application method<select name="applicationMethod"><option>Company website</option><option>LinkedIn</option><option>Email</option><option>Referral</option><option>Recruiter</option><option>Job board</option><option>Other</option></select></label></div>
       <label>Contact email source URL<input name="emailSourceUrl" type="url" placeholder="Official page where the email was shown" /></label>
-      <label>Source URL<input name="url" type="url" placeholder="https://…" /></label>
+      <label>Source URL<input name="url" type="url" placeholder="https://…" /></label><div class="job-link-analyzer"><button class="button secondary" id="analyzeJobLink" type="button">Analyze job link</button><span id="jobLinkAnalysis">RoleDesk validates the link; restricted platforms remain manual.</span></div>
       <label>Official apply URL<input name="applyUrl" type="url" placeholder="https://company.com/careers/apply" /></label>
       <label>Project brief<textarea name="brief" required placeholder="Paste the project requirements, deliverables, and deadline…"></textarea></label>
       <label>Requirements / questions<textarea name="requirements" placeholder="Paste required skills or application questions shown in the post…"></textarea></label>
@@ -514,10 +529,12 @@
   <script src="portal-center.js?v=1"></script>
   <script src="email-desk.js?v=1"></script>
   <script src="opportunity-engine.js?v=1"></script>
+  <script src="job-source-engine.js?v=1"></script>
+  <script src="application-kit.js?v=1"></script>
   <script src="tracker-engine.js?v=2"></script>
   <script src="career-agent.js?v=1"></script>
-  <script src="app.js?v=36"></script>
-  <script src="supabase-sync.js?v=28"></script>
+  <script src="app.js?v=38"></script>
+  <script src="supabase-sync.js?v=30"></script>
   <script src="admin-operations.js?v=3"></script>
   <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>
