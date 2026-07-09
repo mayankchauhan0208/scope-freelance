@@ -31,11 +31,11 @@ Use the **Invite Copy** card to add the tester's name and copy a reviewed invita
 
 ## Review feedback
 
-Admins can filter feedback and use the visible workflow labels **New**, **Reviewing**, **Fixed**, **Won't fix now**, or **Later** in **Beta Operations**. These map to the existing database values `new`, `reviewed`, `fixed`, `archived`, and `planned`; no schema change is required. The panel derives a Critical, High, Medium, or Low priority from the submitted type and blocker words. It is a triage aid, not an automated decision.
+Admins can filter feedback and use the visible workflow labels **New**, **Reviewed**, **In Progress**, **Needs More Info**, **Fixed**, **Rejected**, **Duplicate**, **Won't fix now**, or **Planned** in **Product Operations**. Phase 26 stores browser/device context for debugging, error logs, source-health checks, aggregate funnel events, and internal notes behind admin-only RLS. The panel derives a Critical, High, Medium, or Low priority from the submitted type and blocker words. It is a triage aid, not an automated decision.
 
 The first-week checklist groups real feedback into ten categories: login/reset, resume identity extraction, ATS output, search quality, apply links, application packets, proposal/email drafts, tracker/follow-ups, mobile layout, and Supabase sync. Counts remain zero until submitted feedback matches a category.
 
-Normal signed-in users can read only their own feedback, anonymous users cannot read feedback, and only an admin-verified RPC can change review status.
+Normal signed-in users can read only their own feedback, anonymous users cannot read feedback, and only an admin-verified RPC can change review status. Admin analytics never show private resume text, draft bodies, application asset text, passwords, or provider credentials.
 
 ## Deployment rollback
 

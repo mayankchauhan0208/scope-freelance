@@ -1,6 +1,6 @@
 # RoleDesk security and privacy
 
-Phase 25 Application Kit drafts and Phase 23 Career Agent recommendations are advisory and generated locally from reviewed user data. Career targets, daily plans, recommendations, resume variants, application kits, generated application assets, export history, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events require authentication and owner-only RLS. Resume variants and application assets reuse verified facts and remain unreviewed until the user checks them. Notification, calendar, and export tables are storage foundations only; RoleDesk does not send notifications, alter external calendars, auto-send, auto-submit, or auto-apply.
+Phase 26 admin analytics store product events, source health, error logs, referral events, feature requests, and admin notes behind RLS. Admin views show aggregate/user-activation summaries only and do not expose private resume text, drafts, application assets, authentication secrets, or provider tokens. Phase 25 Application Kit drafts and Phase 23 Career Agent recommendations are advisory and generated locally from reviewed user data. Career targets, daily plans, recommendations, resume variants, application kits, generated application assets, export history, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events require authentication and owner-only RLS. Resume variants and application assets reuse verified facts and remain unreviewed until the user checks them. Notification, calendar, and export tables are storage foundations only; RoleDesk does not send notifications, alter external calendars, auto-send, auto-submit, or auto-apply.
 
 ## Security model
 
@@ -10,7 +10,7 @@ Resume extraction and ATS scoring run locally. Resume text is not sent to an AI 
 
 Beta feedback is stored in `public.feedback`. Anonymous and authenticated users may insert a bounded feedback message; authenticated users may read only rows owned by their user ID. Client roles cannot update or delete feedback, and there is no public policy for reading all feedback.
 
-Beta administrators are stored in the RLS-protected `public.admin_users` allowlist. The browser asks the `is_roledesk_admin` RPC whether the signed-in JWT email is active; hiding the navigation is only presentation, while database RLS and security-definer RPC checks enforce every privileged read and write. Admins can review feedback and manage `beta_access`, but the panel does not expose passwords, Auth secrets, resumes, drafts, applications, or service credentials.
+Beta administrators are stored in the RLS-protected `public.admin_users` allowlist. The browser asks the `is_roledesk_admin` RPC whether the signed-in JWT email is active; hiding the navigation is only presentation, while database RLS and security-definer RPC checks enforce every privileged read and write. Admins can review feedback, source health, error logs, aggregate analytics, beta access, and internal notes, but the panel does not expose passwords, Auth secrets, resumes, drafts, applications, application asset text, or service credentials.
 
 RoleDesk Smart Engine is local rule-based code. It makes no external AI requests, exposes no model credentials, and never sends or submits its drafts. Signed-in users can explicitly save proposal and email drafts to their own RLS-protected `drafts` rows.
 
@@ -64,7 +64,7 @@ Activation deletes obsolete caches whose names start with `scope-`, while preser
 - Frontend users cannot directly update approval columns.
 - Activity logs are append-only for authenticated frontend users: owner read access only, with insertion through the controlled RPC.
 
-These guarantees apply after migrations 002–005 have been successfully applied where relevant.
+These guarantees apply after migrations 002–014 have been successfully applied where relevant.
 
 ## Opportunity pipeline and delivery evidence
 

@@ -221,6 +221,10 @@
     };
     document.querySelector('#kitGenerate').onclick = () => {
       const kit = buildKit(document.querySelector('#kitOpportunity').value, { tone:document.querySelector('#kitTone').value, coverFormat:document.querySelector('#kitCoverFormat').value });
+      root.RoleDeskAnalytics?.track?.('application_kit_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), readiness:kit.scores.readiness, trust:kit.scores.trust } });
+      root.RoleDeskAnalytics?.track?.('resume_tailored', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), score:kit.scores.improvedMatch } });
+      root.RoleDeskAnalytics?.track?.('cover_letter_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), quality:kit.assetQuality.coverLetter?.score } });
+      root.RoleDeskAnalytics?.track?.('email_draft_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), draft_type:'recruiter_email', quality:kit.assetQuality.recruiterEmail?.score } });
       renderKit(kit);
     };
     renderHistory();
@@ -246,14 +250,15 @@
         <p class="kit-safety">RoleDesk does not send, apply, submit forms, bid, sign, or contact anyone. You copy/export and submit only after review.</p>
       </article>`;
     const currentAssets = () => Object.fromEntries([...document.querySelectorAll('[data-asset]')].map(node => [node.dataset.asset, node.value]));
-    output.querySelectorAll('[data-copy-asset]').forEach(button => button.onclick = () => { root.navigator?.clipboard?.writeText(currentAssets()[button.dataset.copyAsset]); root.toast?.('Copied for review'); });
+    output.querySelectorAll('[data-copy-asset]').forEach(button => button.onclick = () => { root.navigator?.clipboard?.writeText(currentAssets()[button.dataset.copyAsset]); root.RoleDeskAnalytics?.track?.(button.dataset.copyAsset === 'recruiterEmail' ? 'email_copied' : 'export_created', { page:'kit', metadata:{ action:'copy', asset:button.dataset.copyAsset } }); root.toast?.('Copied for review'); });
     output.querySelectorAll('[data-export-asset]').forEach(button => button.onclick = () => {
       const assets = currentAssets(), key = button.dataset.exportAsset, ext = button.dataset.format === 'doc' ? 'doc' : 'txt';
       download(`roledesk-${key}.${ext}`, assets[key], ext === 'doc' ? 'application/msword' : 'text/plain');
+      root.RoleDeskAnalytics?.track?.('export_created', { page:'kit', metadata:{ asset:key, format:ext } });
       root.RoleDeskApplicationKitCloud?.recordExport?.(kit, key, ext).catch(() => {});
     });
     output.querySelectorAll('[data-print-asset]').forEach(button => button.onclick = () => printAsset(button.dataset.printAsset, currentAssets()[button.dataset.printAsset]));
-    document.querySelector('#kitExportAll').onclick = () => download(`roledesk-application-kit-${Date.now()}.txt`, Object.entries(currentAssets()).map(([key, text]) => `${assetLabels[key].toUpperCase()}\n${text}`).join('\n\n---\n\n'));
+    document.querySelector('#kitExportAll').onclick = () => { download(`roledesk-application-kit-${Date.now()}.txt`, Object.entries(currentAssets()).map(([key, text]) => `${assetLabels[key].toUpperCase()}\n${text}`).join('\n\n---\n\n')); root.RoleDeskAnalytics?.track?.('export_created', { page:'kit', metadata:{ asset:'application_kit', format:'txt' } }); };
     document.querySelector('#kitSave').onclick = async () => {
       kit.assets = currentAssets();
       saveLocalKit(kit);
@@ -265,12 +270,14 @@
     document.querySelector('#kitMarkApplied').onclick = () => {
       if (!root.confirm?.('Mark this opportunity as applied manually? RoleDesk will not submit anything.')) return;
       root.RoleDeskState?.updateOpportunity?.(kit.opportunityId, { status:'Applied', appliedAt:new Date().toISOString(), applicationKitPrepared:true });
+      root.RoleDeskAnalytics?.track?.('job_marked_applied', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || '') } });
       root.toast?.('Marked applied manually');
     };
     document.querySelector('#kitScheduleFollowup').onclick = () => {
       const date = root.prompt?.('Follow-up date (YYYY-MM-DD)');
       if (!date) return;
       root.RoleDeskState?.updateOpportunity?.(kit.opportunityId, { status:'Follow-Up Needed', followup:{ nextAt:date, status:'scheduled', notes:'Scheduled from Application Kit' } });
+      root.RoleDeskAnalytics?.track?.('followup_scheduled', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), date } });
       root.toast?.('Follow-up scheduled');
     };
   }

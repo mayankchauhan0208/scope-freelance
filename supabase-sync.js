@@ -659,9 +659,72 @@
         email: window.ScopeSecurity.boundedText(payload.email || session?.user?.email, 320) || null,
         feedback_type: payload.feedbackType,
         page: window.ScopeSecurity.boundedText(payload.page, 200) || null,
-        message: window.ScopeSecurity.boundedText(payload.message, 5000)
+        message: window.ScopeSecurity.boundedText(payload.message, 5000),
+        browser_info: payload.browserInfo || {},
+        device_info: payload.deviceInfo || {}
       };
-      const { error } = await cloud.from('feedback').insert(record);
+      let { error } = await cloud.from('feedback').insert(record);
+      if (error && /browser_info|device_info|column/i.test(error.message || '')) {
+        const fallback = { ...record };
+        delete fallback.browser_info;
+        delete fallback.device_info;
+        ({ error } = await cloud.from('feedback').insert(fallback));
+      }
+      if (error) throw error;
+      window.RoleDeskAnalytics?.track?.('feedback_submitted', { page: record.page, metadata:{ type: record.feedback_type } });
+      return true;
+    }
+  });
+
+  window.RoleDeskAnalyticsCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    recordEvents: async events => {
+      const rows = (events || []).slice(0, 100).map(event => ({
+        user_id: session?.user?.id || null,
+        event_name: window.ScopeSecurity.boundedText(event.eventName || event.event, 120),
+        page: window.ScopeSecurity.boundedText(event.page, 120) || null,
+        entity_type: window.ScopeSecurity.boundedText(event.entityType, 80) || null,
+        entity_id: event.entityId || null,
+        severity: window.ScopeSecurity.boundedText(event.severity, 40) || 'info',
+        message: window.ScopeSecurity.boundedText(event.message, 500) || null,
+        metadata: event.metadata || {},
+        created_at: event.createdAt || new Date().toISOString()
+      })).filter(row => row.event_name);
+      if (!rows.length) return true;
+      const { error } = await cloud.from('analytics_events').insert(rows);
+      if (error) throw error;
+      const errorRows = rows.filter(row => row.event_name === 'error_encountered').map(row => ({
+        user_id: row.user_id,
+        error_type: window.ScopeSecurity.boundedText(row.metadata?.name || 'frontend', 120),
+        severity: row.severity || 'error',
+        page: row.page,
+        message: row.message || 'Frontend error',
+        metadata: row.metadata || {}
+      }));
+      if (errorRows.length) await cloud.from('error_logs').insert(errorRows);
+      return true;
+    },
+    recordSourceHealth: async health => {
+      if (!session?.user) return null;
+      const rows = (health || []).slice(0, 20).map(item => ({
+        user_id: session.user.id,
+        source: window.ScopeSecurity.boundedText(item.id || item.source, 80),
+        source_id: window.ScopeSecurity.boundedText(item.id, 80),
+        source_name: window.ScopeSecurity.boundedText(item.name, 200),
+        status: window.ScopeSecurity.boundedText(item.status, 60),
+        reliability_score: Number(item.reliability || item.reliabilityScore || 0),
+        fetched: Number(item.jobsFetched || item.fetched || 0),
+        jobs_fetched: Number(item.jobsFetched || item.fetched || 0),
+        duplicates: Number(item.duplicates || 0),
+        failed_requests: Number(item.failedRequests || 0),
+        duplicate_jobs: Number(item.duplicates || 0),
+        trust_average: Number.isFinite(item.trustAverage) ? item.trustAverage : null,
+        last_error: window.ScopeSecurity.boundedText(item.error, 500) || null,
+        error_message: window.ScopeSecurity.boundedText(item.error, 500) || null,
+        checked_at: item.lastSyncAt || new Date().toISOString()
+      })).filter(row => row.source_id);
+      if (!rows.length) return true;
+      const { error } = await cloud.from('source_health_logs').insert(rows);
       if (error) throw error;
       return true;
     }
@@ -793,6 +856,7 @@
       const { error } = await cloud.auth.signUp({ email, password: password.value, options: { emailRedirectTo: authRedirectUrl() } });
       password.value = '';
       if (error) return setStatus(friendlyAuthError(error, 'Unable to create the account right now. Try again.'), true);
+      window.RoleDeskAnalytics?.track?.('signup_started', { page:'account' });
       setStatus('Account created. Open the confirmation email, then return and sign in.');
     });
   });
@@ -806,6 +870,7 @@
       const { data, error } = await cloud.auth.signInWithPassword({ email, password: password.value });
       password.value = '';
       if (error) return setStatus(friendlyAuthError(error, 'Unable to sign in right now. Try again.'), true);
+      window.RoleDeskAnalytics?.track?.('login', { page:'account' });
       await initializeSession(data.session);
     });
   });

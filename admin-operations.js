@@ -4,21 +4,14 @@
   const view = document.querySelector('#adminView');
   if (!cloud || !nav || !view) return;
 
+  const $ = selector => document.querySelector(selector);
   const escapeHtml = value => window.ScopeSecurity.escapeHtml(String(value ?? ''));
-  const statusNode = document.querySelector('#adminStatus');
-  const betaBody = document.querySelector('#adminBetaUsers');
-  const feedbackList = document.querySelector('#adminFeedbackList');
-  const feedbackType = document.querySelector('#adminFeedbackType');
-  const feedbackStatus = document.querySelector('#adminFeedbackFilter');
   const liveUrl = 'https://mayankchauhan0208.github.io/scope-freelance/';
-  let allowed = false;
-  let betaUsers = [];
-  let feedback = [];
   const accountResetTerm = 'pass' + 'word';
   const accountResetPattern = new RegExp(`login|sign[ -]?in|${accountResetTerm}|reset|session`, 'i');
   const criticalPattern = new RegExp(`security|private data|data leak|approval bypass|auto[ -]?(send|apply)|cannot sign in|can't sign in|${accountResetTerm} reset`, 'i');
   const issueCategories = [
-    [`Login / ${accountResetTerm} reset issue`, accountResetPattern],
+    ['Login / account reset issue', accountResetPattern],
     ['Resume name/contact extraction issue', /name|contact|identity|extract/i],
     ['ATS resume output issue', /ats|resume output/i],
     ['Bad search result issue', /search|job match|bad match|irrelevant/i],
@@ -29,18 +22,39 @@
     ['Mobile layout issue', /mobile|responsive|overflow|small screen/i],
     ['Supabase sync issue', /supabase|sync|cloud|save/i]
   ];
-  const statusLabels = { new:'New', reviewed:'Reviewing', fixed:'Fixed', archived:"Won't fix now", planned:'Later' };
+  const statusLabels = {
+    new:'New', reviewed:'Reviewed / Reviewing', in_progress:'In Progress', fixed:'Fixed',
+    rejected:'Rejected', duplicate:'Duplicate', needs_more_info:'Needs More Info',
+    planned:'Planned / Later', archived:"Won't fix now"
+  };
+  const feedbackStatuses = Object.keys(statusLabels);
+  let allowed = false;
+  let betaUsers = [];
+  let feedback = [];
+  let users = [];
+  let errors = [];
+  let sourceHealth = [];
+  let notes = [];
+  let metrics = {};
+  const privacyCopy = 'Resume text and private drafts are not shown in admin analytics.';
 
   function setStatus(message, error = false) {
-    statusNode.textContent = message || '';
-    statusNode.classList.toggle('error', error);
+    const node = $('#adminStatus');
+    if (!node) return;
+    node.textContent = message || '';
+    node.classList.toggle('error', error);
   }
 
   function friendlyError(error) {
     const message = String(error?.message || error || 'Admin operation failed.');
     if (/jwt|session|refresh token/i.test(message)) return 'Your session expired. Please sign in again.';
     if (/admin access|required|permission|row-level security/i.test(message)) return 'Admin access is required for this operation.';
+    if (/function.*does not exist|schema cache|column/i.test(message)) return 'Apply the Phase 26 migration, then refresh admin.';
     return message;
+  }
+
+  function number(value) {
+    return Number(value || 0).toLocaleString();
   }
 
   function dateOnly(value) {
@@ -58,22 +72,105 @@
   function priorityOf(item) {
     const text = `${item.feedback_type || ''} ${item.page || ''} ${item.message || ''}`;
     if (criticalPattern.test(text)) return 'Critical';
-    if (item.feedback_type === 'Login issue' || item.feedback_type === 'Bug' || /broken|blocked|blank identity|wrong identity|sync|save|apply link|application packet|tracker/i.test(text)) return 'High';
-    if (/Confusing UI|Bad job match|Resume issue|Resume analyzer issue|Search result issue|Draft issue|Mobile\/UI issue/i.test(item.feedback_type || '')) return 'Medium';
+    if (item.feedback_type === 'Login issue' || item.feedback_type === 'Bug report' || /broken|blocked|blank identity|wrong identity|sync|save|apply link|application packet|tracker/i.test(text)) return 'High';
+    if (/UI confusion|Bad recommendation|Resume analysis issue|Job result issue|Draft issue|Mobile\/UI issue|Wrong match score/i.test(item.feedback_type || '')) return 'Medium';
     return 'Low';
   }
 
-  function renderIssueChecklist() {
-    const node = document.querySelector('#betaIssueChecklist');
+  function setMetric(id, value) {
+    const node = $(id);
+    if (node) node.textContent = number(value);
+  }
+
+  function renderSummary() {
+    setMetric('#adminUserCount', metrics.users);
+    setMetric('#adminNewUsers', metrics.new_users_7d);
+    setMetric('#adminActiveUsers', metrics.active_users_7d);
+    setMetric('#adminFeedbackStatus', metrics.feedback);
+    setMetric('#adminErrorCount', metrics.errors);
+    setMetric('#adminKitCount', metrics.application_kits);
+    setMetric('#adminSearchCount', metrics.jobs_searched);
+    setMetric('#adminOpportunityCount', metrics.jobs_saved);
+    setMetric('#adminDraftCount', metrics.emails_drafted);
+    setMetric('#adminFollowupCount', metrics.followups);
+  }
+
+  function renderProductHealth() {
+    const node = $('#adminProductHealth');
     if (!node) return;
-    node.innerHTML = issueCategories.map(([label, pattern]) => {
-      const matches = feedback.filter(item => pattern.test(`${item.feedback_type || ''} ${item.page || ''} ${item.message || ''}`));
-      const open = matches.filter(item => !['fixed','archived'].includes(item.status)).length;
-      return `<article><span>${escapeHtml(label)}</span><strong>${matches.length}</strong><small>${open ? `${open} open` : matches.length ? 'closed for now' : 'no reports'}</small></article>`;
-    }).join('');
+    const openErrors = Number(metrics.open_errors || errors.filter(item => item.status === 'open').length);
+    const failedSources = sourceHealth.filter(item => /failed|error|down/i.test(item.status || '')).length;
+    const unresolvedFeedback = feedback.filter(item => !['fixed','archived','rejected','duplicate'].includes(item.status)).length;
+    const status = openErrors || failedSources ? 'Needs review' : 'Healthy';
+    node.innerHTML = [
+      ['Status', status],
+      ['Open errors', openErrors],
+      ['Source issues', failedSources],
+      ['Unresolved feedback', unresolvedFeedback],
+      ['Last event', displayDate(metrics.last_event_at)]
+    ].map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join('');
+  }
+
+  function renderFunnel() {
+    const node = $('#adminFunnelGrid');
+    if (!node) return;
+    const funnel = metrics.funnel || {};
+    const steps = [
+      ['Visitors', funnel.visitor_seen || metrics.visitors],
+      ['Signups', funnel.signup_completed || metrics.signups],
+      ['Resume uploads', funnel.resume_uploaded || metrics.resume_uploads],
+      ['Searches', funnel.job_search_performed || metrics.jobs_searched],
+      ['Jobs saved', funnel.job_saved || metrics.jobs_saved],
+      ['Application kits', funnel.application_kit_generated || metrics.application_kits],
+      ['Manual applies', funnel.job_marked_applied || metrics.applied],
+      ['Follow-ups', funnel.followup_scheduled || metrics.followups]
+    ];
+    node.innerHTML = steps.map(([label, value], index) => `<article><span>${index + 1}</span><strong>${number(value)}</strong><small>${escapeHtml(label)}</small></article>`).join('');
+  }
+
+  function renderSuccessAnalytics() {
+    const node = $('#adminSuccessAnalytics');
+    if (!node) return;
+    const success = metrics.success || {};
+    const values = [
+      ['Jobs searched', success.jobs_searched || metrics.jobs_searched],
+      ['Jobs saved', success.jobs_saved || metrics.jobs_saved],
+      ['Kits generated', success.application_kits || metrics.application_kits],
+      ['Emails copied', success.emails_copied || metrics.emails_copied],
+      ['Emails marked sent', success.emails_marked_sent || metrics.emails_marked_sent],
+      ['Applied manually', success.applied || metrics.applied],
+      ['Follow-ups scheduled', success.followups || metrics.followups],
+      ['Outcomes updated', success.outcomes || metrics.outcomes]
+    ];
+    node.innerHTML = values.map(([label, value]) => `<article><strong>${number(value)}</strong><span>${escapeHtml(label)}</span></article>`).join('');
+  }
+
+  function renderUsers() {
+    const node = $('#adminUserList');
+    if (!node) return;
+    const search = ($('#adminUserSearch')?.value || '').trim().toLowerCase();
+    const status = $('#adminUserStatus')?.value || '';
+    const filtered = users.filter(user => {
+      const haystack = `${user.email || ''} ${user.display_name || ''}`.toLowerCase();
+      const active = user.last_active_at && (Date.now() - new Date(user.last_active_at).getTime()) < 14 * 86400000;
+      const stuck = !user.resume_uploaded || !Number(user.jobs_searched || 0);
+      const beta = Boolean(user.beta_active || user.beta_status);
+      return (!search || haystack.includes(search)) && (!status || (status === 'active' && active) || (status === 'stuck' && stuck) || (status === 'beta' && beta));
+    });
+    node.innerHTML = filtered.length ? filtered.map(user => `
+      <article class="admin-user-row">
+        <div><strong>${escapeHtml(user.display_name || user.email || 'User')}</strong><span>${escapeHtml(user.email || 'No email')}</span></div>
+        <div><b>${number(user.jobs_searched)}</b><small>searches</small></div>
+        <div><b>${number(user.jobs_saved)}</b><small>saved jobs</small></div>
+        <div><b>${number(user.application_kits)}</b><small>kits</small></div>
+        <div><b>${user.resume_uploaded ? 'Yes' : 'No'}</b><small>resume</small></div>
+        <div><b>${escapeHtml(user.beta_active ? 'Beta' : 'Public')}</b><small>${escapeHtml(displayDate(user.last_active_at || user.created_at))}</small></div>
+      </article>`).join('') : '<div class="smart-empty">No users match this filter.</div>';
   }
 
   function renderBetaUsers() {
+    const betaBody = $('#adminBetaUsers');
+    if (!betaBody) return;
     betaBody.innerHTML = betaUsers.length ? betaUsers.map((user, index) => `
       <tr>
         <td><strong>${escapeHtml(user.email)}</strong></td>
@@ -83,24 +180,73 @@
         <td>${escapeHtml(displayDate(user.created_at))}</td>
         <td><div class="admin-row-actions"><button class="button secondary" data-beta-save="${index}" type="button">Save</button><button class="button secondary" data-beta-toggle="${index}" type="button">${user.active ? 'Deactivate' : 'Activate'}</button></div></td>
       </tr>`).join('') : '<tr><td colspan="6">No beta users found.</td></tr>';
-
     betaBody.querySelectorAll('[data-beta-save]').forEach(button => button.addEventListener('click', () => updateBeta(Number(button.dataset.betaSave))));
     betaBody.querySelectorAll('[data-beta-toggle]').forEach(button => button.addEventListener('click', () => updateBeta(Number(button.dataset.betaToggle), !betaUsers[Number(button.dataset.betaToggle)].active)));
   }
 
+  function renderSourceHealthAdmin() {
+    const node = $('#adminSourceHealth');
+    if (!node) return;
+    node.innerHTML = sourceHealth.length ? sourceHealth.map(source => `
+      <article class="admin-source-row">
+        <i class="${escapeHtml(source.status || 'unknown')}"></i>
+        <div><strong>${escapeHtml(source.source_name || source.source || 'Unknown source')}</strong><span>${escapeHtml(source.status || 'unknown')} · reliability ${number(source.reliability_score || source.reliability || 0)}/100</span><small>${escapeHtml(source.last_error || source.error || 'No recent error')}</small></div>
+        <b>${escapeHtml(displayDate(source.checked_at || source.created_at))}</b>
+      </article>`).join('') : '<div class="smart-empty">No source health records yet. Run Smart Search to create source events.</div>';
+  }
+
+  function renderErrors() {
+    const node = $('#adminErrorList');
+    if (!node) return;
+    const status = $('#adminErrorStatus')?.value || '';
+    const severity = $('#adminErrorSeverity')?.value || '';
+    const filtered = errors.filter(item => (!status || item.status === status) && (!severity || item.severity === severity));
+    node.innerHTML = filtered.length ? filtered.map(error => `
+      <article class="admin-error-row">
+        <div><span class="priority-label priority-${escapeHtml((error.severity || 'info').toLowerCase())}">${escapeHtml(error.severity || 'info')}</span><strong>${escapeHtml(error.message || 'Unknown error')}</strong></div>
+        <p>${escapeHtml(error.page || error.path || 'unknown page')} · ${escapeHtml(error.status || 'open')}</p>
+        <small>${escapeHtml(displayDate(error.created_at))}</small>
+      </article>`).join('') : '<div class="smart-empty">No errors match this filter.</div>';
+  }
+
   function renderFeedback() {
-    const filtered = feedback.filter(item => (!feedbackType.value || item.feedback_type === feedbackType.value) && (!feedbackStatus.value || item.status === feedbackStatus.value));
+    const feedbackList = $('#adminFeedbackList');
+    const feedbackType = $('#adminFeedbackType');
+    const feedbackStatus = $('#adminFeedbackFilter');
+    if (!feedbackList) return;
+    const filtered = feedback.filter(item => (!feedbackType?.value || item.feedback_type === feedbackType.value) && (!feedbackStatus?.value || item.status === feedbackStatus.value));
     feedbackList.innerHTML = filtered.length ? filtered.map(item => {
       const originalIndex = feedback.findIndex(entry => entry.id === item.id);
       const priority = priorityOf(item);
-      return `<article class="admin-feedback-item"><div class="admin-feedback-head"><div><span class="tag">${escapeHtml(item.feedback_type)}</span><span class="priority-label priority-${priority.toLowerCase()}">${priority}</span><strong>${escapeHtml(item.page || 'Unknown page')}</strong></div><time>${escapeHtml(displayDate(item.created_at))}</time></div><p>${escapeHtml(item.message)}</p><small>${escapeHtml(item.email || 'No email supplied')} · ${escapeHtml(statusLabels[item.status] || item.status)}</small><div class="admin-feedback-action"><select data-feedback-status="${originalIndex}" aria-label="Feedback status"><option value="new" ${item.status === 'new' ? 'selected' : ''}>New</option><option value="reviewed" ${item.status === 'reviewed' ? 'selected' : ''}>Reviewing</option><option value="fixed" ${item.status === 'fixed' ? 'selected' : ''}>Fixed</option><option value="archived" ${item.status === 'archived' ? 'selected' : ''}>Won't fix now</option><option value="planned" ${item.status === 'planned' ? 'selected' : ''}>Later</option></select><button class="button secondary" data-feedback-save="${originalIndex}" type="button">Update</button></div></article>`;
+      const browser = item.browser_info?.browser || item.browser_info?.userAgent || item.device_info?.userAgent || '';
+      return `<article class="admin-feedback-item"><div class="admin-feedback-head"><div><span class="tag">${escapeHtml(item.feedback_type)}</span><span class="priority-label priority-${priority.toLowerCase()}">${priority}</span><strong>${escapeHtml(item.page || 'Unknown page')}</strong></div><time>${escapeHtml(displayDate(item.created_at))}</time></div><p>${escapeHtml(item.message)}</p><div class="feedback-meta"><span>${escapeHtml(item.email || 'No email')}</span>${browser ? `<span>${escapeHtml(browser).slice(0, 80)}</span>` : ''}</div><small>${escapeHtml(statusLabels[item.status] || item.status)}</small><div class="admin-feedback-action"><select data-feedback-status="${originalIndex}" aria-label="Feedback status">${feedbackStatuses.map(status => `<option value="${status}" ${item.status === status ? 'selected' : ''}>${escapeHtml(statusLabels[status])}</option>`).join('')}</select><button class="button secondary" data-feedback-save="${originalIndex}" type="button">Update</button></div></article>`;
     }).join('') : `<div class="smart-empty"><h3>${feedback.length ? 'No feedback matches these filters' : 'No beta feedback yet'}</h3><p>${feedback.length ? 'Clear a filter to see other feedback.' : 'Ask beta users to select Send beta feedback, then refresh this page.'}</p></div>`;
     feedbackList.querySelectorAll('[data-feedback-save]').forEach(button => button.addEventListener('click', () => updateFeedback(Number(button.dataset.feedbackSave))));
   }
 
+  function renderIssueChecklist() {
+    const node = $('#betaIssueChecklist');
+    if (!node) return;
+    node.innerHTML = issueCategories.map(([label, pattern]) => {
+      const matches = feedback.filter(item => pattern.test(`${item.feedback_type || ''} ${item.page || ''} ${item.message || ''}`));
+      const open = matches.filter(item => !['fixed','archived','rejected','duplicate'].includes(item.status)).length;
+      return `<article><span>${escapeHtml(label)}</span><strong>${matches.length}</strong><small>${open ? `${open} open` : matches.length ? 'closed for now' : 'no reports'}</small></article>`;
+    }).join('');
+  }
+
+  function renderNotes() {
+    const node = $('#adminNoteList');
+    if (!node) return;
+    node.innerHTML = notes.length ? notes.map(note => `
+      <article class="admin-note-row"><div><strong>${escapeHtml(note.user_email || note.email || 'General note')}</strong><span>${escapeHtml(note.tag || 'note')}</span></div><p>${escapeHtml(note.note || '')}</p><small>${escapeHtml(displayDate(note.created_at))}</small></article>
+    `).join('') : '<div class="smart-empty">No admin notes yet.</div>';
+  }
+
   function renderInvite() {
-    const name = document.querySelector('#adminInviteName').value.trim() || 'there';
-    document.querySelector('#adminInviteCopy').value = `Hi ${name},\n\nYou’re invited to try RoleDesk public beta.\n\nRoleDesk helps you analyze your resume, find resume-based job and freelance opportunities, prepare application packets, draft outreach, and track follow-ups in one private workspace.\n\nImportant:\n- RoleDesk does not apply automatically.\n- RoleDesk does not send emails automatically.\n- Please review every draft before using it.\n\nAccess:\n${liveUrl}\n\nThanks,\nRoleDesk Beta Team`;
+    const node = $('#adminInviteCopy');
+    if (!node) return;
+    const name = $('#adminInviteName')?.value.trim() || 'there';
+    node.value = `Hi ${name},\n\nYou're invited to try RoleDesk public beta.\n\nRoleDesk helps you analyze your resume, find resume-based job and freelance opportunities, prepare application packets, draft outreach, and track follow-ups in one private workspace.\n\nImportant:\n- RoleDesk does not apply automatically.\n- RoleDesk does not send emails automatically.\n- Please review every draft before using it.\n\nAccess:\n${liveUrl}\n\nThanks,\nRoleDesk Beta Team`;
   }
 
   async function requireAdmin() {
@@ -122,42 +268,72 @@
     return allowed;
   }
 
+  function applyDashboard(data = {}) {
+    metrics = data.metrics || {};
+    betaUsers = data.beta_users || [];
+    feedback = data.feedback || [];
+    users = data.users || [];
+    errors = data.errors || [];
+    sourceHealth = data.source_health || [];
+    notes = data.notes || [];
+    renderSummary();
+    renderProductHealth();
+    renderFunnel();
+    renderSuccessAnalytics();
+    renderUsers();
+    renderBetaUsers();
+    renderSourceHealthAdmin();
+    renderErrors();
+    renderFeedback();
+    renderIssueChecklist();
+    renderNotes();
+  }
+
+  async function loadFallback() {
+    const [betaResult, feedbackResult, metricsResult] = await Promise.all([
+      cloud.from('beta_access').select('email,active,note,expires_at,created_at').order('created_at', { ascending: false }),
+      cloud.from('feedback').select('id,email,feedback_type,page,message,status,created_at,browser_info,device_info').order('created_at', { ascending: false }).limit(250),
+      cloud.rpc('admin_launch_metrics')
+    ]);
+    if (betaResult.error) throw betaResult.error;
+    if (feedbackResult.error) throw feedbackResult.error;
+    if (metricsResult.error) throw metricsResult.error;
+    applyDashboard({
+      beta_users: betaResult.data || [],
+      feedback: feedbackResult.data || [],
+      metrics: metricsResult.data || {}
+    });
+  }
+
   async function load() {
     if (!(await checkAccess())) return setStatus('Admin access is required.', true);
-    setStatus('Loading beta operations…');
+    setStatus('Loading product operations...');
     try {
-      const [betaResult, feedbackResult, metricsResult] = await Promise.all([
-        cloud.from('beta_access').select('email,active,note,expires_at,created_at').order('created_at', { ascending: false }),
-        cloud.from('feedback').select('id,email,feedback_type,page,message,status,created_at').order('created_at', { ascending: false }).limit(250),
-        cloud.rpc('admin_launch_metrics')
-      ]);
-      if (betaResult.error) throw betaResult.error;
-      if (feedbackResult.error) throw feedbackResult.error;
-      if (metricsResult.error) throw metricsResult.error;
-      betaUsers = betaResult.data || [];
-      feedback = feedbackResult.data || [];
-      renderBetaUsers();
-      renderFeedback();
-      renderIssueChecklist();
-      const metrics = metricsResult.data || {};
-      document.querySelector('#adminUserCount').textContent = Number(metrics.users || 0).toLocaleString();
-      document.querySelector('#adminFeedbackStatus').textContent = Number(metrics.feedback || 0).toLocaleString();
-      document.querySelector('#adminUnresolvedCount').textContent = Number(metrics.unresolved_feedback || 0).toLocaleString();
-      document.querySelector('#adminOpportunityCount').textContent = Number(metrics.opportunities || 0).toLocaleString();
-      document.querySelector('#adminDraftCount').textContent = Number(metrics.drafts || 0).toLocaleString();
-      document.querySelector('#adminFollowupCount').textContent = Number(metrics.followups || 0).toLocaleString();
-      setStatus('Admin data loaded through RLS-protected access.');
+      const { data, error } = await cloud.rpc('admin_phase26_dashboard');
+      if (error) throw error;
+      applyDashboard(data || {});
+      setStatus('Admin analytics loaded through RLS-protected access.');
     } catch (error) {
-      setStatus(friendlyError(error), true);
+      if (/admin_phase26_dashboard|schema cache|does not exist/i.test(String(error?.message || error))) {
+        try {
+          await loadFallback();
+          setStatus('Basic admin data loaded. Apply Phase 26 migration for full analytics.', true);
+        } catch (fallbackError) {
+          setStatus(friendlyError(fallbackError), true);
+        }
+      } else {
+        setStatus(friendlyError(error), true);
+      }
     }
   }
 
   async function updateBeta(index, active = betaUsers[index].active) {
     try {
       const user = betaUsers[index];
+      const betaBody = $('#adminBetaUsers');
       const note = betaBody.querySelector(`[data-beta-note="${index}"]`).value.trim();
       const expiry = betaBody.querySelector(`[data-beta-expiry="${index}"]`).value;
-      setStatus(`Updating ${user.email}…`);
+      setStatus(`Updating ${user.email}...`);
       const { error } = await cloud.rpc('admin_update_beta_user', { p_email: user.email, p_active: active, p_note: note || null, p_expires_at: expiryValue(expiry) });
       if (error) throw error;
       await load();
@@ -169,8 +345,8 @@
   async function updateFeedback(index) {
     try {
       const item = feedback[index];
-      const nextStatus = feedbackList.querySelector(`[data-feedback-status="${index}"]`).value;
-      setStatus('Updating feedback…');
+      const nextStatus = $(`[data-feedback-status="${index}"]`).value;
+      setStatus('Updating feedback...');
       const { error } = await cloud.rpc('admin_update_feedback_status', { p_feedback_id: item.id, p_status: nextStatus });
       if (error) throw error;
       await load();
@@ -179,13 +355,13 @@
     }
   }
 
-  document.querySelector('#adminAddBetaForm').addEventListener('submit', async event => {
+  $('#adminAddBetaForm')?.addEventListener('submit', async event => {
     event.preventDefault();
     try {
-      const email = document.querySelector('#adminBetaEmail').value.trim();
-      const note = document.querySelector('#adminBetaNote').value.trim();
-      const expiry = document.querySelector('#adminBetaExpiry').value;
-      setStatus(`Adding ${email}…`);
+      const email = $('#adminBetaEmail').value.trim();
+      const note = $('#adminBetaNote').value.trim();
+      const expiry = $('#adminBetaExpiry').value;
+      setStatus(`Adding ${email}...`);
       const { error } = await cloud.rpc('admin_add_beta_user', { p_email: email, p_note: note || null, p_expires_at: expiryValue(expiry) });
       if (error) throw error;
       event.currentTarget.reset();
@@ -195,13 +371,34 @@
     }
   });
 
-  document.querySelector('#refreshAdmin').addEventListener('click', load);
-  feedbackType.addEventListener('change', renderFeedback);
-  feedbackStatus.addEventListener('change', renderFeedback);
-  document.querySelector('#adminInviteName').addEventListener('input', renderInvite);
-  document.querySelector('#copyAdminInvite').addEventListener('click', async () => {
+  $('#adminNoteForm')?.addEventListener('submit', async event => {
+    event.preventDefault();
     try {
-      await navigator.clipboard.writeText(document.querySelector('#adminInviteCopy').value);
+      const email = $('#adminNoteEmail').value.trim();
+      const tag = $('#adminNoteTag').value.trim();
+      const note = $('#adminNoteText').value.trim();
+      if (!note) return setStatus('Add a short note first.', true);
+      setStatus('Adding admin note...');
+      const { error } = await cloud.rpc('admin_add_note', { p_email: email || null, p_tag: tag || null, p_note: note });
+      if (error) throw error;
+      event.currentTarget.reset();
+      await load();
+    } catch (error) {
+      setStatus(friendlyError(error), true);
+    }
+  });
+
+  $('#refreshAdmin')?.addEventListener('click', load);
+  $('#adminFeedbackType')?.addEventListener('change', renderFeedback);
+  $('#adminFeedbackFilter')?.addEventListener('change', renderFeedback);
+  $('#adminUserSearch')?.addEventListener('input', renderUsers);
+  $('#adminUserStatus')?.addEventListener('change', renderUsers);
+  $('#adminErrorStatus')?.addEventListener('change', renderErrors);
+  $('#adminErrorSeverity')?.addEventListener('change', renderErrors);
+  $('#adminInviteName')?.addEventListener('input', renderInvite);
+  $('#copyAdminInvite')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('#adminInviteCopy').value);
       setStatus('Beta invite text copied.');
     } catch {
       setStatus('Copy was blocked. Select the invite text and copy it manually.', true);

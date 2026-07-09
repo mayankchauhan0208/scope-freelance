@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="career-agent.css?v=1" />
   <link rel="stylesheet" href="job-trust.css?v=1" />
   <link rel="stylesheet" href="application-kit.css?v=1" />
+  <link rel="stylesheet" href="admin-analytics.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -438,19 +439,30 @@
       </section>
 
       <section class="view admin-view" id="adminView">
-        <div class="section-heading"><div><span class="eyebrow coral">Private beta administration</span><h2>Beta Operations</h2><p>Manage access and feedback without exposing passwords, secrets, or private application data.</p></div><button class="button secondary" id="refreshAdmin" type="button">Refresh</button></div>
-        <p class="admin-warning">Admin tools affect beta access. Review before changing.</p>
-        <div class="admin-status-grid" id="adminSystemStatus"><article><span>Users</span><strong id="adminUserCount">Checking…</strong></article><article><span>Feedback</span><strong id="adminFeedbackStatus">Checking…</strong></article><article><span>Unresolved</span><strong id="adminUnresolvedCount">Checking…</strong></article><article><span>Opportunities</span><strong id="adminOpportunityCount">Checking…</strong></article><article><span>Drafts</span><strong id="adminDraftCount">Checking…</strong></article><article><span>Follow-ups</span><strong id="adminFollowupCount">Checking…</strong></article></div>
+        <div class="section-heading"><div><span class="eyebrow coral">Admin, analytics & growth</span><h2>Product Operations</h2><p>Monitor user activation, product health, feedback, errors, and beta growth without exposing private resume or draft content.</p></div><button class="button secondary" id="refreshAdmin" type="button">Refresh</button></div>
+        <p class="admin-warning">Admin tools affect beta access. Review before changing. Admin access is verified by Supabase RPC + RLS. Normal users cannot read admin-only analytics, notes, or aggregate operations data.</p>
+        <div class="admin-status-grid" id="adminSystemStatus"><article><span>Total users</span><strong id="adminUserCount">Checking…</strong></article><article><span>New users</span><strong id="adminNewUsers">Checking…</strong></article><article><span>Active users</span><strong id="adminActiveUsers">Checking…</strong></article><article><span>Feedback</span><strong id="adminFeedbackStatus">Checking…</strong></article><article><span>Errors</span><strong id="adminErrorCount">Checking…</strong></article><article><span>Application kits</span><strong id="adminKitCount">Checking…</strong></article><article><span>Jobs searched</span><strong id="adminSearchCount">Checking…</strong></article><article><span>Jobs saved</span><strong id="adminOpportunityCount">Checking…</strong></article><article><span>Emails drafted</span><strong id="adminDraftCount">Checking…</strong></article><article><span>Follow-ups</span><strong id="adminFollowupCount">Checking…</strong></article></div>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Today</span><h3>Product health</h3><p>Quick answer: is RoleDesk working properly today?</p></div></div><div class="admin-health-grid" id="adminProductHealth"><article><span>Status</span><strong>Checking…</strong></article></div></section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Conversion</span><h3>User funnel</h3><p>Visitor → signup → resume → search → save job → kit → apply → follow-up.</p></div></div><div class="admin-funnel-grid" id="adminFunnelGrid"><div class="smart-empty">Refresh admin data to load funnel analytics.</div></div></section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Application success</span><h3>Outcome analytics</h3></div></div><div class="admin-analytics-grid" id="adminSuccessAnalytics"><div class="smart-empty">Refresh admin data to load application analytics.</div></div></section>
         <p class="parse-status" id="adminStatus" role="status"></p>
+        <section class="admin-card">
+          <div class="section-heading"><div><span class="eyebrow">Users</span><h3>User management</h3><p>High-level activity only. Resume text and private drafts are not shown.</p></div></div>
+          <div class="admin-table-search"><input id="adminUserSearch" type="search" placeholder="Search name or email" /><select id="adminUserStatus"><option value="">All users</option><option value="active">Active</option><option value="stuck">Stuck onboarding</option><option value="beta">Beta/invited</option></select></div>
+          <div class="admin-user-list" id="adminUserList"><div class="smart-empty">Refresh admin data to load users.</div></div>
+        </section>
         <section class="admin-card">
           <div class="section-heading"><div><span class="eyebrow">Beta Users</span><h3>Access allowlist</h3></div></div>
           <form class="admin-add-form" id="adminAddBetaForm"><label>Email<input id="adminBetaEmail" type="email" required placeholder="person@example.com" /></label><label>Invite note<input id="adminBetaNote" maxlength="500" placeholder="Designer beta cohort" /></label><label>Expiry (optional)<input id="adminBetaExpiry" type="date" /></label><button class="button primary" type="submit">Add beta user</button></form>
           <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Email</th><th>Active</th><th>Note</th><th>Expires</th><th>Created</th><th>Action</th></tr></thead><tbody id="adminBetaUsers"><tr><td colspan="6">Sign in with an active admin account.</td></tr></tbody></table></div>
         </section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Sources</span><h3>Source quality monitoring</h3></div></div><div class="admin-source-list" id="adminSourceHealth"><div class="smart-empty">Refresh admin data to load source health.</div></div></section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Errors</span><h3>Error monitoring</h3></div><div class="admin-filters"><select id="adminErrorStatus"><option value="">All statuses</option><option value="open">Open</option><option value="reviewed">Reviewed</option><option value="fixed">Fixed</option></select><select id="adminErrorSeverity"><option value="">All severities</option><option>critical</option><option>error</option><option>warning</option><option>info</option></select></div></div><div class="admin-error-list" id="adminErrorList"><div class="smart-empty">Refresh admin data to load errors.</div></div></section>
         <section class="admin-card">
-          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Login issue</option><option>Resume analyzer issue</option><option>Search result issue</option><option>Application packet issue</option><option>Draft issue</option><option>Tracker/follow-up issue</option><option>Mobile/UI issue</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewing</option><option value="fixed">Fixed</option><option value="archived">Won't fix now</option><option value="planned">Later</option></select></div></div>
+          <div class="section-heading"><div><span class="eyebrow">Feedback Inbox</span><h3>Beta feedback</h3></div><div class="admin-filters"><select id="adminFeedbackType" aria-label="Filter feedback type"><option value="">All types</option><option>Bug report</option><option>Feature request</option><option>Job result issue</option><option>Email issue</option><option>Resume analysis issue</option><option>Wrong match score</option><option>Bad recommendation</option><option>UI confusion</option><option>General feedback</option><option>Login issue</option><option>Application packet issue</option><option>Draft issue</option><option>Tracker/follow-up issue</option><option>Mobile/UI issue</option><option>Other</option></select><select id="adminFeedbackFilter" aria-label="Filter feedback status"><option value="">All statuses</option><option value="new">New</option><option value="reviewed">Reviewed</option><option value="in_progress">In Progress</option><option value="fixed">Fixed</option><option value="rejected">Rejected</option><option value="duplicate">Duplicate</option><option value="needs_more_info">Needs More Info</option><option value="planned">Planned</option><option value="archived">Archived</option></select></div></div>
           <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty"><h3>No feedback loaded</h3><p>Select Refresh to check for beta feedback.</p></div></div>
         </section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Internal notes</span><h3>Admin notes & tags</h3><p>Visible only to admins.</p></div></div><form class="admin-note-form" id="adminNoteForm"><label>User email<input id="adminNoteEmail" type="email" placeholder="user@example.com" /></label><label>Tag<input id="adminNoteTag" placeholder="Needs support" /></label><label>Note<input id="adminNoteText" maxlength="1000" placeholder="Short internal note" /></label><button class="button primary" type="submit">Add note</button></form><div class="admin-note-list" id="adminNoteList"><div class="smart-empty">Refresh admin data to load notes.</div></div></section>
         <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Seven-day focus</span><h3>First-week issue checklist</h3><p>Counts come only from submitted beta feedback.</p></div></div><div class="beta-issue-checklist" id="betaIssueChecklist"><div class="smart-empty">Refresh admin data to build the checklist.</div></div></section>
         <div class="admin-two-column">
           <section class="admin-card"><span class="eyebrow">Launch Notes</span><h3>Safe operations</h3><ul><li>Add or deactivate beta access here; changes are enforced by RPC and RLS.</li><li>Review feedback without opening private resumes or application data.</li><li>Confirm password redirect settings in <a href="docs/DEPLOYMENT.md" target="_blank" rel="noopener">deployment notes</a>.</li><li>Rollback by reverting the release commit; preserve database rows.</li></ul></section>
@@ -521,6 +533,7 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
+  <script src="analytics.js?v=1"></script>
   <script src="universal-search.js?v=2"></script>
   <script src="resume-builder.js?v=6"></script>
   <script src="source-registry.js?v=2"></script>
@@ -533,9 +546,9 @@
   <script src="application-kit.js?v=1"></script>
   <script src="tracker-engine.js?v=2"></script>
   <script src="career-agent.js?v=1"></script>
-  <script src="app.js?v=38"></script>
-  <script src="supabase-sync.js?v=30"></script>
-  <script src="admin-operations.js?v=3"></script>
+  <script src="app.js?v=39"></script>
+  <script src="supabase-sync.js?v=31"></script>
+  <script src="admin-operations.js?v=4"></script>
   <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>
   <script src="career-agent-ui.js?v=1"></script>
