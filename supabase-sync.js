@@ -730,6 +730,58 @@
     }
   });
 
+  window.RoleDeskBillingCloud = Object.freeze({
+    isSignedIn: () => Boolean(session?.user),
+    getStatus: async () => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.rpc('get_billing_status');
+      if (error) throw error;
+      return {
+        plan: data?.plan || 'free',
+        billingStatus: data?.billing_status || 'manual',
+        trialEndsAt: data?.trial_ends_at || null,
+        trialPlan: data?.trial_plan || null,
+        renewalDate: data?.renewal_date || null,
+        provider: data?.payment_provider || 'not_configured',
+        usagePeriod: data?.usage_period || new Date().toISOString().slice(0, 7),
+        usage: data?.usage || {}
+      };
+    },
+    recordUsage: async (usageKey, amount = 1) => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.rpc('record_usage_event', { p_usage_key: usageKey, p_amount: amount });
+      if (error) throw error;
+      return data;
+    },
+    createCheckout: async planId => {
+      if (!session?.user) return null;
+      const { data, error } = await cloud.rpc('create_checkout_placeholder', { p_plan: planId });
+      if (error) throw error;
+      return data;
+    },
+    adminDashboard: async () => {
+      const { data, error } = await cloud.rpc('admin_billing_dashboard');
+      if (error) throw error;
+      return data;
+    },
+    adminAssignPlan: async payload => {
+      const { data, error } = await cloud.rpc('admin_assign_user_plan', {
+        p_email: payload.email,
+        p_plan: payload.plan,
+        p_billing_status: payload.billingStatus || 'manual',
+        p_trial_days: Number(payload.trialDays || 0),
+        p_note: payload.note || null
+      });
+      if (error) throw error;
+      return data;
+    },
+    adminResetUsage: async email => {
+      const { data, error } = await cloud.rpc('admin_reset_user_usage', { p_email: email });
+      if (error) throw error;
+      return data;
+    }
+  });
+
   async function initializeSession(nextSession) {
     session = nextSession;
     if (!session?.user) {

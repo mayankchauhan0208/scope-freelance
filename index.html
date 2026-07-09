@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="job-trust.css?v=1" />
   <link rel="stylesheet" href="application-kit.css?v=1" />
   <link rel="stylesheet" href="admin-analytics.css?v=1" />
+  <link rel="stylesheet" href="billing.css?v=1" />
   <script src="security-utils.js"></script>
 </head>
 <body>
@@ -56,6 +57,8 @@
         <button class="nav-item" data-view="tracker"><span>◫</span> Tracker <b id="trackerCount">0</b></button>
         <button class="nav-item" data-view="studio"><span>✦</span> Proposal Studio</button>
         <button class="nav-item" data-view="email"><span>✉</span> Email Desk</button>
+        <button class="nav-item" data-view="plans"><span>◇</span> Plans</button>
+        <button class="nav-item" data-view="billing"><span>◍</span> Billing</button>
         <button class="nav-item" data-view="pricing"><span>₹</span> Pricing Lab</button>
         <button class="nav-item" data-view="ats"><span>▤</span> ATS Resume Builder</button>
         <button class="nav-item" data-view="profile"><span>◎</span> My Profile</button>
@@ -438,6 +441,24 @@
         <div id="careerAgentRoot"><div class="smart-empty"><h3>Building your daily plan…</h3><p>RoleDesk is reviewing your real profile and opportunity pipeline locally.</p></div></div>
       </section>
 
+      <section class="view plans-view" id="plansView">
+        <div class="workspace-header"><span class="eyebrow coral">Plans & usage limits</span><h2>Choose the right RoleDesk plan</h2><p>Free users can keep working with honest limits. Paid plans are prepared, but live payment checkout is not active yet.</p></div>
+        <div class="billing-banner"><div><strong>Payment integration is not active yet.</strong><span>RoleDesk supports future Razorpay, Stripe, Lemon Squeezy, or Paddle checkout through a provider abstraction. Until then, plan changes are admin-managed.</span></div><button class="button secondary" id="billingContactAdmin" type="button">Contact admin</button></div>
+        <div class="checkout-notice" id="checkoutNotice" hidden></div>
+        <div class="plans-grid" id="plansGrid"></div>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Comparison</span><h3>Usage limits by plan</h3></div></div><div class="plan-table-wrap" id="planComparison"></div></section>
+        <section class="admin-card"><span class="eyebrow">Billing FAQ</span><h3>Simple, no fake payment states.</h3><ul><li>Free and beta users keep their saved data.</li><li>Trial expiry or failed payments restrict premium actions; data is not deleted.</li><li>Checkout will only mark a user paid after a verified provider webhook.</li><li>Admins can manually assign beta/pro access while payments are offline.</li></ul></section>
+      </section>
+
+      <section class="view billing-view" id="billingView">
+        <div class="workspace-header"><span class="eyebrow coral">Billing settings</span><h2>Your plan and usage</h2><p>See current access, monthly usage, trial/grace status, and upgrade options.</p></div>
+        <div class="billing-prompt" id="billingPrompt" hidden></div>
+        <div class="section-heading"><div><span class="eyebrow">Current access</span><h3>Subscription status</h3></div><button class="button secondary" id="refreshBilling" type="button">Refresh billing</button></div>
+        <div class="billing-summary" id="billingSummary"><article><span>Status</span><strong>Checking…</strong></article></div>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Usage this month</span><h3>Monthly limits</h3></div></div><div class="billing-usage-grid" id="billingUsageGrid"></div></section>
+        <section class="admin-card"><span class="eyebrow">Checkout</span><h3>Provider integration placeholder</h3><p>Payment integration is not active yet. Upgrade buttons will open a verified provider checkout only after backend credentials and webhook signature verification are configured.</p><button class="button primary" type="button" onclick="window.RoleDeskState?.openView?.('plans')">View plans</button></section>
+      </section>
+
       <section class="view admin-view" id="adminView">
         <div class="section-heading"><div><span class="eyebrow coral">Admin, analytics & growth</span><h2>Product Operations</h2><p>Monitor user activation, product health, feedback, errors, and beta growth without exposing private resume or draft content.</p></div><button class="button secondary" id="refreshAdmin" type="button">Refresh</button></div>
         <p class="admin-warning">Admin tools affect beta access. Review before changing. Admin access is verified by Supabase RPC + RLS. Normal users cannot read admin-only analytics, notes, or aggregate operations data.</p>
@@ -463,6 +484,7 @@
           <div class="admin-feedback-list" id="adminFeedbackList"><div class="smart-empty"><h3>No feedback loaded</h3><p>Select Refresh to check for beta feedback.</p></div></div>
         </section>
         <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Internal notes</span><h3>Admin notes & tags</h3><p>Visible only to admins.</p></div></div><form class="admin-note-form" id="adminNoteForm"><label>User email<input id="adminNoteEmail" type="email" placeholder="user@example.com" /></label><label>Tag<input id="adminNoteTag" placeholder="Needs support" /></label><label>Note<input id="adminNoteText" maxlength="1000" placeholder="Short internal note" /></label><button class="button primary" type="submit">Add note</button></form><div class="admin-note-list" id="adminNoteList"><div class="smart-empty">Refresh admin data to load notes.</div></div></section>
+        <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Plans & monetization</span><h3>Admin plan management</h3><p>Assign beta/pro/premium access, add trial days, reset usage, and review billing status. Normal users cannot change these values.</p></div></div><form class="admin-add-form" id="adminPlanForm"><label>User email<input id="adminPlanEmail" type="email" required placeholder="user@example.com" /></label><label>Plan<select id="adminPlanSelect"><option value="free">Free</option><option value="beta">Beta</option><option value="pro">Pro</option><option value="premium">Premium</option><option value="custom">Custom</option></select></label><label>Status<select id="adminBillingStatus"><option value="manual">Manual/admin managed</option><option value="trialing">Trialing</option><option value="active">Active</option><option value="payment_failed">Payment failed</option><option value="cancelled">Cancelled</option></select></label><label>Trial days<input id="adminTrialDays" type="number" min="0" max="365" value="0" /></label><label>Note<input id="adminPlanNote" maxlength="500" placeholder="Internal billing note" /></label><button class="button primary" type="submit">Assign plan</button></form><div class="admin-plan-grid" id="adminBillingMetrics"></div><div id="adminPlanList"><div class="smart-empty">Refresh admin data to load billing summaries.</div></div></section>
         <section class="admin-card"><div class="section-heading"><div><span class="eyebrow">Seven-day focus</span><h3>First-week issue checklist</h3><p>Counts come only from submitted beta feedback.</p></div></div><div class="beta-issue-checklist" id="betaIssueChecklist"><div class="smart-empty">Refresh admin data to build the checklist.</div></div></section>
         <div class="admin-two-column">
           <section class="admin-card"><span class="eyebrow">Launch Notes</span><h3>Safe operations</h3><ul><li>Add or deactivate beta access here; changes are enforced by RPC and RLS.</li><li>Review feedback without opening private resumes or application data.</li><li>Confirm password redirect settings in <a href="docs/DEPLOYMENT.md" target="_blank" rel="noopener">deployment notes</a>.</li><li>Rollback by reverting the release commit; preserve database rows.</li></ul></section>
@@ -534,6 +556,7 @@
   <script src="supabase.min.js"></script>
   <script src="supabase-config.js"></script>
   <script src="analytics.js?v=1"></script>
+  <script src="billing-config.js?v=1"></script>
   <script src="universal-search.js?v=2"></script>
   <script src="resume-builder.js?v=6"></script>
   <script src="source-registry.js?v=2"></script>
@@ -548,6 +571,7 @@
   <script src="career-agent.js?v=1"></script>
   <script src="app.js?v=39"></script>
   <script src="supabase-sync.js?v=31"></script>
+  <script src="billing-ui.js?v=1"></script>
   <script src="admin-operations.js?v=4"></script>
   <script src="coverage-ui.js?v=3"></script>
   <script src="search-intent.js?v=1"></script>

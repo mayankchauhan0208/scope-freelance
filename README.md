@@ -10,7 +10,7 @@ Live beta: https://mayankchauhan0208.github.io/scope-freelance/
 
 ## MVP status
 
-Phase 26 adds an admin-only product operations dashboard, private analytics events, source health logs, error monitoring, internal admin notes, and referral/growth foundations. Phase 25 adds a truth-guarded Application Kit that creates tailored resumes, cover letters, recruiter emails, LinkedIn messages, follow-ups, and freelance proposals from the signed-in user's reviewed profile and saved opportunities. These systems run locally without an external AI model, never invent experience, and never send, submit, or apply. Migrations 012–014 store source trust data, generated application assets, and admin analytics behind owner/admin-scoped RLS.
+Phase 27 adds a SaaS monetization foundation: config-driven plans, pricing and billing views, usage-limit UX, subscription/usage tables, admin plan assignment, checkout placeholders, and webhook event foundations. Payment integration is not active yet and RoleDesk never creates fake payment success states. Phase 26 adds an admin-only product operations dashboard, private analytics events, source health logs, error monitoring, internal admin notes, and referral/growth foundations. These systems run locally without an external AI model, never invent experience, and never send, submit, or apply. Migrations 012–015 store source trust data, generated application assets, admin analytics, subscriptions, and usage behind owner/admin-scoped RLS.
 
 Working now:
 
@@ -30,6 +30,7 @@ Working now:
 - universal resume-based search with editable Search Intent, multi-industry role taxonomy, role/seniority/skill clusters, explainable ranking, deduplication, and unrelated-family penalties
 - Opportunity Coverage Engine with a structured source registry, profile-supported role clusters, guided searches, MNC Career Directory, weekly coverage checklist, Manual Import 2.0, application-route detection, Application Packets, and a truth-aware Form Answer Kit
 - admin-only operations dashboard with user activation summaries, funnel analytics, feedback triage, source health, error monitoring, and internal notes without exposing resume text or private drafts
+- pricing plans, billing settings, usage-limit messaging, admin-managed plan assignment, and payment-provider preparation without live checkout claims
 
 Smart Draft Mode is deterministic local logic, not a hosted LLM. It requires no AI key and never claims to be an external AI provider.
 
@@ -66,10 +67,11 @@ Back up existing tables, then apply migrations in order:
 12. `supabase/migrations/012_job_source_trust.sql`
 13. `supabase/migrations/013_application_kit_assets.sql`
 14. `supabase/migrations/014_admin_analytics_growth.sql`
+15. `supabase/migrations/015_billing_plans_usage.sql`
 
 Migration 002 enforces beta access, owner isolation, append-only logs, automatic approval revocation, and RPC-only draft approval. Its `approve_draft` function uses `extensions.digest(...)`, matching the production digest patch.
 
-Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. Migration 010 adds compatibility-safe career pipeline fields, owner-scoped contacts, provider-only delivery logs, and an owner-checked manual application RPC. Migration 011 adds owner-scoped career targets, plans, recommendations, resume variants, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events. Migration 014 adds admin-only analytics and operations tables with RLS, without exposing private resume or draft content. They do not weaken owner RLS or rename existing tables.
+Migrations 003–005 add resume versioning, supervised email events, tracker follow-up fields, expanded pipeline statuses, and an owner-checked tracker event RPC. Migration 006 adds the RLS-protected beta feedback table. Migration 007 adds server-verified admin operations. Migration 008 removes the beta signup gate and safely bootstraps a minimal profile. Migration 009 adds launch feedback categories and an admin-only aggregate metrics RPC. Migration 010 adds compatibility-safe career pipeline fields, owner-scoped contacts, provider-only delivery logs, and an owner-checked manual application RPC. Migration 011 adds owner-scoped career targets, plans, recommendations, resume variants, outcome feedback, interview preparation, notifications, reminder settings, and calendar-ready events. Migration 014 adds admin-only analytics and operations tables with RLS, without exposing private resume or draft content. Migration 015 adds billing plans, owner-visible subscriptions, usage counters, checkout placeholders, webhook logs, and admin-only plan controls. They do not weaken owner RLS or rename existing tables.
 
 ## Customer workflow
 

@@ -14,7 +14,8 @@
     'resume_analysis_completed','job_search_performed','job_saved','job_moved_pipeline',
     'application_kit_generated','resume_tailored','cover_letter_generated','email_draft_generated',
     'email_copied','email_marked_sent','followup_scheduled','job_marked_applied','job_outcome_updated',
-    'feedback_submitted','error_encountered','source_health_checked','export_created'
+    'feedback_submitted','error_encountered','source_health_checked','export_created',
+    'upgrade_attempted','usage_limit_hit'
   ]);
   const read = () => {
     try { return JSON.parse(root.localStorage?.getItem(KEY) || '[]') || []; }

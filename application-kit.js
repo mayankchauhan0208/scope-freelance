@@ -220,6 +220,7 @@
       node.querySelectorAll('[data-kit-id]').forEach(button => button.onclick = () => renderKit(history.find(item => item.id === button.dataset.kitId)));
     };
     document.querySelector('#kitGenerate').onclick = () => {
+      if (root.RoleDeskBilling && !root.RoleDeskBilling.consume('application_kit')) return;
       const kit = buildKit(document.querySelector('#kitOpportunity').value, { tone:document.querySelector('#kitTone').value, coverFormat:document.querySelector('#kitCoverFormat').value });
       root.RoleDeskAnalytics?.track?.('application_kit_generated', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), readiness:kit.scores.readiness, trust:kit.scores.trust } });
       root.RoleDeskAnalytics?.track?.('resume_tailored', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), score:kit.scores.improvedMatch } });
@@ -252,13 +253,14 @@
     const currentAssets = () => Object.fromEntries([...document.querySelectorAll('[data-asset]')].map(node => [node.dataset.asset, node.value]));
     output.querySelectorAll('[data-copy-asset]').forEach(button => button.onclick = () => { root.navigator?.clipboard?.writeText(currentAssets()[button.dataset.copyAsset]); root.RoleDeskAnalytics?.track?.(button.dataset.copyAsset === 'recruiterEmail' ? 'email_copied' : 'export_created', { page:'kit', metadata:{ action:'copy', asset:button.dataset.copyAsset } }); root.toast?.('Copied for review'); });
     output.querySelectorAll('[data-export-asset]').forEach(button => button.onclick = () => {
+      if (root.RoleDeskBilling && !root.RoleDeskBilling.consume('export')) return;
       const assets = currentAssets(), key = button.dataset.exportAsset, ext = button.dataset.format === 'doc' ? 'doc' : 'txt';
       download(`roledesk-${key}.${ext}`, assets[key], ext === 'doc' ? 'application/msword' : 'text/plain');
       root.RoleDeskAnalytics?.track?.('export_created', { page:'kit', metadata:{ asset:key, format:ext } });
       root.RoleDeskApplicationKitCloud?.recordExport?.(kit, key, ext).catch(() => {});
     });
     output.querySelectorAll('[data-print-asset]').forEach(button => button.onclick = () => printAsset(button.dataset.printAsset, currentAssets()[button.dataset.printAsset]));
-    document.querySelector('#kitExportAll').onclick = () => { download(`roledesk-application-kit-${Date.now()}.txt`, Object.entries(currentAssets()).map(([key, text]) => `${assetLabels[key].toUpperCase()}\n${text}`).join('\n\n---\n\n')); root.RoleDeskAnalytics?.track?.('export_created', { page:'kit', metadata:{ asset:'application_kit', format:'txt' } }); };
+    document.querySelector('#kitExportAll').onclick = () => { if (root.RoleDeskBilling && !root.RoleDeskBilling.consume('export')) return; download(`roledesk-application-kit-${Date.now()}.txt`, Object.entries(currentAssets()).map(([key, text]) => `${assetLabels[key].toUpperCase()}\n${text}`).join('\n\n---\n\n')); root.RoleDeskAnalytics?.track?.('export_created', { page:'kit', metadata:{ asset:'application_kit', format:'txt' } }); };
     document.querySelector('#kitSave').onclick = async () => {
       kit.assets = currentAssets();
       saveLocalKit(kit);
@@ -276,6 +278,7 @@
     document.querySelector('#kitScheduleFollowup').onclick = () => {
       const date = root.prompt?.('Follow-up date (YYYY-MM-DD)');
       if (!date) return;
+      if (root.RoleDeskBilling && !root.RoleDeskBilling.consume('followup')) return;
       root.RoleDeskState?.updateOpportunity?.(kit.opportunityId, { status:'Follow-Up Needed', followup:{ nextAt:date, status:'scheduled', notes:'Scheduled from Application Kit' } });
       root.RoleDeskAnalytics?.track?.('followup_scheduled', { page:'kit', metadata:{ opportunity_id:String(kit.opportunityId || ''), date } });
       root.toast?.('Follow-up scheduled');

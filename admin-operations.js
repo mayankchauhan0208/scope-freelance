@@ -36,6 +36,7 @@
   let sourceHealth = [];
   let notes = [];
   let metrics = {};
+  let billing = { metrics:{}, users:[], webhook_logs:[] };
   const privacyCopy = 'Resume text and private drafts are not shown in admin analytics.';
 
   function setStatus(message, error = false) {
@@ -242,6 +243,32 @@
     `).join('') : '<div class="smart-empty">No admin notes yet.</div>';
   }
 
+  function renderBillingAdmin() {
+    const metricsNode = $('#adminBillingMetrics');
+    const listNode = $('#adminPlanList');
+    if (!metricsNode || !listNode) return;
+    const planCounts = billing.metrics?.users_by_plan || {};
+    const cards = [
+      ['Free users', planCounts.free || 0],
+      ['Beta users', planCounts.beta || 0],
+      ['Pro users', planCounts.pro || 0],
+      ['Premium users', planCounts.premium || 0],
+      ['Trials', billing.metrics?.trial_users || 0],
+      ['Payment failed', billing.metrics?.failed_payments || 0],
+      ['Upgrade attempts', billing.metrics?.upgrade_attempts || 0],
+      ['Limit hits', billing.metrics?.usage_limit_hits || 0]
+    ];
+    metricsNode.innerHTML = cards.map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${number(value)}</strong></article>`).join('');
+    listNode.innerHTML = (billing.users || []).length ? billing.users.map(user => `
+      <article class="admin-plan-row">
+        <div><strong>${escapeHtml(user.email || 'Unknown user')}</strong><small>${escapeHtml(user.display_name || '')}</small></div>
+        <div><b>${escapeHtml(user.plan || 'free')}</b><small>${escapeHtml(user.billing_status || 'manual')}</small></div>
+        <div><b>${escapeHtml(user.trial_ends_at ? displayDate(user.trial_ends_at) : 'No trial')}</b><small>trial end</small></div>
+        <div><button class="button secondary" data-reset-usage="${escapeHtml(user.email || '')}" type="button">Reset usage</button></div>
+      </article>`).join('') : '<div class="smart-empty">No billing records found. Apply migration 015 or assign a plan.</div>';
+    listNode.querySelectorAll('[data-reset-usage]').forEach(button => button.addEventListener('click', () => resetUsage(button.dataset.resetUsage)));
+  }
+
   function renderInvite() {
     const node = $('#adminInviteCopy');
     if (!node) return;
@@ -312,11 +339,13 @@
       const { data, error } = await cloud.rpc('admin_phase26_dashboard');
       if (error) throw error;
       applyDashboard(data || {});
+      await loadBillingAdmin();
       setStatus('Admin analytics loaded through RLS-protected access.');
     } catch (error) {
       if (/admin_phase26_dashboard|schema cache|does not exist/i.test(String(error?.message || error))) {
         try {
           await loadFallback();
+          await loadBillingAdmin();
           setStatus('Basic admin data loaded. Apply Phase 26 migration for full analytics.', true);
         } catch (fallbackError) {
           setStatus(friendlyError(fallbackError), true);
@@ -324,6 +353,15 @@
       } else {
         setStatus(friendlyError(error), true);
       }
+    }
+  }
+
+  async function loadBillingAdmin() {
+    try {
+      billing = await window.RoleDeskBillingCloud?.adminDashboard?.() || billing;
+      renderBillingAdmin();
+    } catch {
+      renderBillingAdmin();
     }
   }
 
@@ -387,6 +425,38 @@
       setStatus(friendlyError(error), true);
     }
   });
+
+  $('#adminPlanForm')?.addEventListener('submit', async event => {
+    event.preventDefault();
+    try {
+      const payload = {
+        email: $('#adminPlanEmail').value.trim(),
+        plan: $('#adminPlanSelect').value,
+        billingStatus: $('#adminBillingStatus').value,
+        trialDays: $('#adminTrialDays').value,
+        note: $('#adminPlanNote').value.trim()
+      };
+      setStatus(`Assigning ${payload.plan} plan...`);
+      await window.RoleDeskBillingCloud?.adminAssignPlan?.(payload);
+      event.currentTarget.reset();
+      await loadBillingAdmin();
+      setStatus('Plan assignment saved through admin RPC.');
+    } catch (error) {
+      setStatus(friendlyError(error), true);
+    }
+  });
+
+  async function resetUsage(email) {
+    if (!email || !confirm(`Reset current usage for ${email}?`)) return;
+    try {
+      setStatus(`Resetting usage for ${email}...`);
+      await window.RoleDeskBillingCloud?.adminResetUsage?.(email);
+      await loadBillingAdmin();
+      setStatus('Usage reset.');
+    } catch (error) {
+      setStatus(friendlyError(error), true);
+    }
+  }
 
   $('#refreshAdmin')?.addEventListener('click', load);
   $('#adminFeedbackType')?.addEventListener('change', renderFeedback);

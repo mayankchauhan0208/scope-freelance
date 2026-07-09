@@ -1,0 +1,29 @@
+.billing-banner,.checkout-notice{display:flex;justify-content:space-between;gap:1rem;align-items:center;background:#fff8ed;border:1px solid rgba(23,24,22,.12);border-radius:24px;padding:1rem 1.2rem;margin:1rem 0;box-shadow:0 18px 50px rgba(23,24,22,.06)}
+.billing-banner strong,.checkout-notice strong{display:block;font-size:1.05rem}
+.billing-banner span,.checkout-notice span{color:#6d675f}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin:1.2rem 0}
+.plan-card{display:flex;flex-direction:column;justify-content:space-between;gap:1rem;background:#fffdf8;border:1px solid rgba(23,24,22,.12);border-radius:28px;padding:1.2rem;box-shadow:0 18px 60px rgba(23,24,22,.07)}
+.plan-card.recommended{border-color:#ef7d62;box-shadow:0 22px 70px rgba(239,125,98,.18)}
+.plan-card h3{margin:.2rem 0;font-size:1.35rem}
+.plan-card p{color:#6d675f;margin:0}
+.plan-price strong{font-size:1.8rem;display:block}
+.plan-price small{color:#6d675f}
+.plan-card ul{margin:0;padding-left:1.1rem;color:#34342f}
+.plan-limits{display:grid;gap:.35rem;font-size:.9rem;color:#6d675f}
+.plan-limits span{display:flex;justify-content:space-between;border-top:1px solid rgba(23,24,22,.08);padding-top:.35rem}
+.plan-table-wrap{overflow:auto;background:#fffdf8;border:1px solid rgba(23,24,22,.12);border-radius:24px;margin-top:1rem}
+.plan-table{width:100%;border-collapse:collapse;min-width:720px}
+.plan-table th,.plan-table td{text-align:left;padding:.85rem;border-bottom:1px solid rgba(23,24,22,.08)}
+.plan-table th{background:#f8efe4}
+.billing-summary,.billing-usage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;margin:1rem 0}
+.billing-summary article,.billing-usage-grid article{background:#fffdf8;border:1px solid rgba(23,24,22,.12);border-radius:22px;padding:1rem}
+.billing-summary span,.billing-usage-grid span{color:#6d675f;font-size:.9rem}
+.billing-summary strong,.billing-usage-grid strong{display:block;font-size:1.25rem;margin:.25rem 0}
+.usage-bar{height:8px;background:#eee3d6;border-radius:999px;overflow:hidden;margin:.65rem 0 .25rem}
+.usage-bar i{display:block;height:100%;background:linear-gradient(90deg,#ef7d62,#b7ff5a);border-radius:999px}
+.billing-prompt{position:sticky;bottom:1rem;z-index:20;margin:1rem 0;background:#171816;color:#fff;border-radius:20px;padding:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;box-shadow:0 18px 60px rgba(23,24,22,.25)}
+.billing-prompt span{color:#ddd6cc}
+.admin-plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.admin-plan-row{display:grid;grid-template-columns:1.2fr .6fr .8fr .8fr;gap:.8rem;align-items:center;background:#fffdf8;border:1px solid rgba(23,24,22,.1);border-radius:18px;padding:.85rem;margin:.6rem 0}
+.admin-plan-row small{color:#6d675f}
+@media (max-width:760px){.billing-banner,.checkout-notice,.billing-prompt{align-items:flex-start;flex-direction:column}.admin-plan-row{grid-template-columns:1fr}}
